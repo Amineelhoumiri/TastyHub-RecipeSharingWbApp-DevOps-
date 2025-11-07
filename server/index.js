@@ -1,30 +1,48 @@
+// IMPORTS 
 const express = require('express');
-const app = express();
-const PORT = 5000;
+const sequelize = require('./config/database'); // We import our database connection
 
-// This middleware parses incoming JSON data, making it available on `req.body`
+// APP INITIALIZATION 
+const app = express();
+const PORT = 5000; // The port our server will run on
+
+//  MIDDLEWARE 
+// This is a "middleware" that tells Express to automatically parse
+// any incoming JSON data from the frontend.
 app.use(express.json());
 
-// --- 1. IMPORT ROUTE FILES ---
+// IMPORT ROUTE FILES 
+// Here, we import the separate "mini-apps" (Routers) we created.
 const userRoutes = require('./routes/userRoutes');
 const recipeRoutes = require('./routes/recipeRoutes');
 const commentRoutes = require('./routes/commentRoutes');
 
-// --- 2. USE ROUTES ---
-// Tell Express to use our route files.
-// Any URL starting with '/api/users' will be handled by 'userRoutes'.
+// USE ROUTES
+// This is where we tell our app to *use* the route files.
+// Any URL starting with "/api/users" will be handled by the 'userRoutes' file.
 app.use('/api/users', userRoutes);
-// Any URL starting with '/api/recipes' will be handled by 'recipeRoutes'.
 app.use('/api/recipes', recipeRoutes);
-// Any URL starting with '/api/comments' will be handled by 'commentRoutes'.
 app.use('/api/comments', commentRoutes);
 
-// --- 3. TODO: DATABASE CONNECTION ---
-// (Your database connection logic will go here)
+// CONNECT TO DATABASE & START SERVER 
+// We try to connect to the database first.
+// If the connection is successful, *then* we start the server.
+// This prevents the app from running if the database is down.
 
+console.log('Attempting to connect to database...');
+sequelize
+  .authenticate()
+  .then(() => {
+    // This code runs if the connection is a success
+    console.log('✅✅✅ DATABASE CONNECTION SUCCESSFUL! ✅✅✅');
 
-// --- 4. START THE SERVER ---
-app.listen(PORT, () => {
-  // This message will show in your terminal, so you know it's working.
-  console.log(`🎉 Server is alive and running on http://localhost:${PORT}`);
-});
+    // We start the server *inside* the .then() block
+    app.listen(PORT, () => {
+      console.log(`🎉 Server is alive and running on http://localhost:${PORT}`);
+    });
+  })
+  .catch((err) => {
+    // This code runs if the connection fails
+    console.error('❌❌❌ UNABLE TO CONNECT TO DATABASE: ❌❌❌');
+    console.error(err);
+  });

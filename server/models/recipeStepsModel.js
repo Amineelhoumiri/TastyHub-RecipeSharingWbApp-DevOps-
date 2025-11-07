@@ -1,0 +1,39 @@
+const { DataTypes, Sequelize } = require('sequelize');
+const sequelize = require('../config/database');
+
+const RecipeStep = sequelize.define(
+  'RecipeStep',
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: Sequelize.UUIDV4,
+      primaryKey: true,
+      allowNull: false,
+    },
+    // This links it to the Recipe model
+    recipeId: {
+      type: DataTypes.UUID,
+      allowNull: false,
+      field: 'recipe_id',
+    },
+    stepNumber: {
+      type: DataTypes.INTEGER,
+      allowNull: false,
+      field: 'step_number',
+    },
+    instruction: {
+      type: DataTypes.TEXT,
+      allowNull: false,
+    },
+    stepImage: {
+      type: DataTypes.TEXT,
+      field: 'step_image',
+    },
+  },
+  {
+    tableName: 'recipe_steps',
+    timestamps: false, // This table also doesn't have timestamps
+  }
+);
+
+module.exports = RecipeStep;
