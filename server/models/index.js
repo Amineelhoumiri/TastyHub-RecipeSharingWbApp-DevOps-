@@ -58,15 +58,6 @@ Like.belongsTo(Recipe, { foreignKey: 'recipe_id' });
 Recipe.belongsToMany(Tag, { through: RecipeTag, foreignKey: 'recipe_id' });
 Tag.belongsToMany(Recipe, { through: RecipeTag, foreignKey: 'tag_id' });
 
-// Sync all models
-//sequelize.sync({ alter: true }) // 'alter: true' will try to update tables. Use 'force: true' to drop and recreate.
- // .then(() => {
-   // console.log('Database & tables created!');
- // })
- // .catch(err => {
-   //  console.error('Error syncing database:', err);
-  // });
-
 // Export all models
 module.exports = {
   sequelize,

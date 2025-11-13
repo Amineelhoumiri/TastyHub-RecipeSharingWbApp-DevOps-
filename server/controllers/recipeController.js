@@ -335,9 +335,9 @@ exports.createRecipe = async (req, res) => {
     }
 
     // Handle tags if provided (many-to-many relationship)
-    // TODO: Implement tag creation/association when tag system is ready
+    // Note: Tag association will be implemented when the tag system is ready
     if (tags && Array.isArray(tags) && tags.length > 0) {
-      console.log('Tags provided (not yet implemented):', tags);
+      // Tag association logic will be added here
     }
 
     // If we made it here, everything succeeded! Commit the transaction

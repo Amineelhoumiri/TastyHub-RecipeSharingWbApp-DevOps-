@@ -95,18 +95,24 @@ process.on('uncaughtException', (err) => {
   setTimeout(() => process.exit(1), 1000);
 });
 
+// Export app for testing
+module.exports = app;
+
 // --- 5. DATABASE CONNECTION & SERVER START ---
-const startServer = async () => {
-  try {
-    await sequelize.authenticate();
-    console.log('✅ Database connection has been established successfully.');
+// Only start server if not in test environment
+if (process.env.NODE_ENV !== 'test') {
+  const startServer = async () => {
+    try {
+      await sequelize.authenticate();
+      console.log('✅ Database connection has been established successfully.');
 
-    app.listen(PORT, () => {
-      console.log(`🚀 Server is live and running on http://localhost:${PORT}`);
-    });
-  } catch (error) {
-    console.error('❌ Unable to connect to the database:', error);
-  }
-};
+      app.listen(PORT, () => {
+        console.log(`🚀 Server is live and running on http://localhost:${PORT}`);
+      });
+    } catch (error) {
+      console.error('❌ Unable to connect to the database:', error);
+    }
+  };
 
-startServer();
+  startServer();
+}

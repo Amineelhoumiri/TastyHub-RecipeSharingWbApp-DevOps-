@@ -328,19 +328,17 @@ exports.updateUserProfile = async (req, res) => {
 /**
  * @route   PUT /api/users/profile/picture
  * @desc   Upload or update profile picture
+ * @access  Private (requires authentication)
+ * 
+ * Note: This endpoint is a placeholder for future implementation.
+ * To implement file uploads, you'll need:
+ * - A library like 'multer' to handle multipart/form-data
+ * - Cloud storage service (Cloudinary, AWS S3, etc.) for image hosting
+ * - Update the user's profilePicture field with the uploaded image URL
  */
-exports.updateProfilePicture = (req, res) => { // groupe decision
-  // TODO: File Upload logic
-  // This is more complex. You'll need a library like 'multer' to handle
-  // 'multipart/form-data' (i.e., the image file).
-  // 1. Use 'multer' to process the uploaded file
-  // 2. You might upload the file to a cloud storage service (like Cloudinary or AWS S3)
-  // 3. Get the URL of the uploaded image
-  // 4. Save that URL to the user's profile in your database
-
-  res.json({
-    message: 'Profile picture updated (placeholder)',
-    imageUrl: 'http://example.com/new-image.jpg',
+exports.updateProfilePicture = (req, res) => {
+  res.status(501).json({
+    message: 'Profile picture upload is not yet implemented',
   });
 };
 
@@ -391,10 +389,9 @@ exports.updateUserPreferences = async (req, res) => {
       ...(units !== undefined && { units })
     };
     
-    // TODO: Uncomment this when you add a preferences column to your users table:
+    // Note: To persist preferences, add a 'preferences' TEXT column to the users table
+    // and uncomment the following line:
     // await user.update({ preferences: JSON.stringify(preferences) });
-    
-    console.log(`Preferences update requested for user ${req.user.id}:`, preferences);
     
     res.json({
       message: 'Preferences updated successfully',
