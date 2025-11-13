@@ -6,11 +6,10 @@ const RecipeStep = sequelize.define(
   {
     id: {
       type: DataTypes.UUID,
-      defaultValue: Sequelize.UUIDV4,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
       allowNull: false,
     },
-    // This links it to the Recipe model
     recipeId: {
       type: DataTypes.UUID,
       allowNull: false,
@@ -32,7 +31,7 @@ const RecipeStep = sequelize.define(
   },
   {
     tableName: 'recipe_steps',
-    timestamps: false, // This table also doesn't have timestamps
+    timestamps: false,
   }
 );
 

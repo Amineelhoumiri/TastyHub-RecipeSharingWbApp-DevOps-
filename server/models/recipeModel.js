@@ -4,14 +4,13 @@ const sequelize = require('../config/database'); // Import the connection
 const Recipe = sequelize.define(
   'Recipe',
   {
-    // We'll map all the columns from the ER Diagram
+    // All the columns from your SQL file
     id: {
       type: DataTypes.UUID,
-      defaultValue: Sequelize.UUIDV4,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
       allowNull: false,
     },
-    // We'll link this to the User model later
     userId: {
       type: DataTypes.UUID,
       allowNull: false,
@@ -57,19 +56,18 @@ const Recipe = sequelize.define(
     },
     createdAt: {
       type: DataTypes.DATE,
-      defaultValue: Sequelize.NOW,
+      defaultValue: () => new Date(),
       field: 'created_at',
     },
     updatedAt: {
       type: DataTypes.DATE,
-      defaultValue: Sequelize.NOW,
+      defaultValue: () => new Date(),
       field: 'updated_at',
     },
   },
   {
-    // Other model options
-    tableName: 'recipes', // The exact table name in the DB
-    timestamps: false, // We're defining the timestamp fields manually
+    tableName: 'recipes', 
+    timestamps: false, 
   }
 );
 

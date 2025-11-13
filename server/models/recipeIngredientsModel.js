@@ -6,11 +6,10 @@ const RecipeIngredient = sequelize.define(
   {
     id: {
       type: DataTypes.UUID,
-      defaultValue: Sequelize.UUIDV4,
+      defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
       allowNull: false,
     },
-    // This links it to the Recipe model
     recipeId: {
       type: DataTypes.UUID,
       allowNull: false,
@@ -22,12 +21,11 @@ const RecipeIngredient = sequelize.define(
       field: 'ingredient_name',
     },
     quantity: {
-      type: DataTypes.DECIMAL(10, 2), // Matches NUMERIC(10,2)
+      type: DataTypes.DECIMAL(10, 2),
       allowNull: false,
     },
     unit: {
       type: DataTypes.STRING(50),
-      // We can add the validation from the SQL file here
       validate: {
         isIn: [
           [
@@ -51,7 +49,7 @@ const RecipeIngredient = sequelize.define(
   },
   {
     tableName: 'recipe_ingredients',
-    timestamps: false, // This table doesn't have createdAt/updatedAt
+    timestamps: false,
   }
 );
 

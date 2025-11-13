@@ -1,10 +1,8 @@
-const sequelize = require('../config/database'); //  DB connection
-
-// Model files
+const sequelize = require('../config/database');
 const User = require('./userModel');
 const Recipe = require('./recipeModel');
 const RecipeIngredient = require('./recipeIngredientsModel');
-const RecipeStep = require('./recipeStepsModel');
+const RecipeStep = require('./recipeStepModel');
 const Tag = require('./tagModel');
 const RecipeTag = require('./recipeTagModel');
 const Review = require('./reviewModel');
@@ -12,9 +10,66 @@ const Like = require('./likeModel');
 const Favorite = require('./favoriteModel');
 const ActivityLog = require('./activityLogModel');
 
-// an object to hold all models
-const db = {
-  sequelize, // The connection instance
+// --- Define Relationships ---
+
+// User-Recipe (One-to-Many)
+User.hasMany(Recipe, { foreignKey: 'user_id' });
+Recipe.belongsTo(User, { foreignKey: 'user_id' });
+
+// User-Review (One-to-Many)
+User.hasMany(Review, { foreignKey: 'user_id' });
+Review.belongsTo(User, { foreignKey: 'user_id' });
+
+// Recipe-Review (One-to-Many)
+Recipe.hasMany(Review, { foreignKey: 'recipe_id', as: 'Reviews' });
+Review.belongsTo(Recipe, { foreignKey: 'recipe_id' });
+
+// Recipe-Ingredient (One-to-Many)
+Recipe.hasMany(RecipeIngredient, { foreignKey: 'recipe_id', as: 'ingredients' });
+RecipeIngredient.belongsTo(Recipe, { foreignKey: 'recipe_id' });
+
+// Recipe-Step (One-to-Many)
+Recipe.hasMany(RecipeStep, { foreignKey: 'recipe_id', as: 'steps' });
+RecipeStep.belongsTo(Recipe, { foreignKey: 'recipe_id' });
+
+// User-Activity (One-to-Many)
+User.hasMany(ActivityLog, { foreignKey: 'user_id' });
+ActivityLog.belongsTo(User, { foreignKey: 'user_id' });
+
+// Recipe-Activity (One-to-Many)
+Recipe.hasMany(ActivityLog, { foreignKey: 'recipe_id' });
+ActivityLog.belongsTo(Recipe, { foreignKey: 'recipe_id' });
+
+// --- Many-to-Many Relationships ---
+
+// User-Recipe (Likes)
+User.belongsToMany(Recipe, { through: Like, foreignKey: 'user_id' });
+Recipe.belongsToMany(User, { through: Like, foreignKey: 'recipe_id' });
+
+// User-Recipe (Favorites)
+User.belongsToMany(Recipe, { through: Favorite, foreignKey: 'user_id' });
+Recipe.belongsToMany(User, { through: Favorite, foreignKey: 'recipe_id' });
+
+// Direct associations for Favorite and Like to Recipe (for easier querying)
+Favorite.belongsTo(Recipe, { foreignKey: 'recipe_id' });
+Like.belongsTo(Recipe, { foreignKey: 'recipe_id' });
+
+// Recipe-Tag (Many-to-Many)
+Recipe.belongsToMany(Tag, { through: RecipeTag, foreignKey: 'recipe_id' });
+Tag.belongsToMany(Recipe, { through: RecipeTag, foreignKey: 'tag_id' });
+
+// Sync all models
+//sequelize.sync({ alter: true }) // 'alter: true' will try to update tables. Use 'force: true' to drop and recreate.
+ // .then(() => {
+   // console.log('Database & tables created!');
+ // })
+ // .catch(err => {
+   //  console.error('Error syncing database:', err);
+  // });
+
+// Export all models
+module.exports = {
+  sequelize,
   User,
   Recipe,
   RecipeIngredient,
@@ -26,77 +81,3 @@ const db = {
   Favorite,
   ActivityLog,
 };
-
-//  RELATIONSHIPS (from the ER Diagram)
-
-//  One-to-Many Relationships 
-
-// User <-> Recipe
-User.hasMany(Recipe, { foreignKey: 'userId', as: 'recipes' });
-Recipe.belongsTo(User, { foreignKey: 'userId', as: 'author' });
-
-// Recipe <-> RecipeIngredient
-Recipe.hasMany(RecipeIngredient, { foreignKey: 'recipeId', as: 'ingredients' });
-RecipeIngredient.belongsTo(Recipe, { foreignKey: 'recipeId' });
-
-// Recipe <-> RecipeStep
-Recipe.hasMany(RecipeStep, { foreignKey: 'recipeId', as: 'steps' });
-RecipeStep.belongsTo(Recipe, { foreignKey: 'recipeId' });
-
-// Recipe <-> Review
-Recipe.hasMany(Review, { foreignKey: 'recipeId', as: 'reviews' });
-Review.belongsTo(Recipe, { foreignKey: 'recipeId' });
-
-// User <-> Review
-User.hasMany(Review, { foreignKey: 'userId', as: 'reviews' });
-Review.belongsTo(User, { foreignKey: 'userId', as: 'author' });
-
-// User <-> ActivityLog
-User.hasMany(ActivityLog, { foreignKey: 'userId' });
-ActivityLog.belongsTo(User, { foreignKey: 'userId' });
-
-// Recipe <-> ActivityLog
-Recipe.hasMany(ActivityLog, { foreignKey: 'recipeId' });
-ActivityLog.belongsTo(Recipe, { foreignKey: 'recipeId' });
-
-//  Many-to-Many Relationships (using Junction tables) 
-
-// Recipe <-> Tag
-Recipe.belongsToMany(Tag, {
-  through: RecipeTag, // The "junction" table
-  foreignKey: 'recipeId',
-  as: 'tags',
-});
-Tag.belongsToMany(Recipe, {
-  through: RecipeTag, // The "junction" table
-  foreignKey: 'tagId',
-  as: 'recipes',
-});
-
-// User <-> Recipe (Likes)
-User.belongsToMany(Recipe, {
-  through: Like,
-  foreignKey: 'userId',
-  as: 'LikedRecipes',
-});
-Recipe.belongsToMany(User, {
-  through: Like,
-  foreignKey: 'recipeId',
-  as: 'LikedByUsers',
-});
-
-// User <-> Recipe (Favorites)
-User.belongsToMany(Recipe, {
-  through: Favorite,
-  foreignKey: 'userId',
-  as: 'FavoriteRecipes',
-});
-Recipe.belongsToMany(User, {
-  through: Favorite,
-  foreignKey: 'recipeId',
-  as: 'FavoritedByUsers',
-});
-
-// Export the db object
-// Now we can import 'db' from this file anywhere in our app
-module.exports = db;
