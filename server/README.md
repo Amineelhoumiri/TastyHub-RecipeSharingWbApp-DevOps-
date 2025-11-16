@@ -48,11 +48,13 @@ Before you begin, ensure you have the following installed:
 ## Installation
 
 1. Clone the repository and navigate to the server directory:
+
 ```bash
 cd server
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
@@ -85,6 +87,7 @@ NODE_ENV=development
 ```
 
 2. Generate a secure JWT secret:
+
 ```bash
 node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ```
@@ -94,11 +97,13 @@ node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
 ## Running the Server
 
 ### Development Mode
+
 ```bash
 npm run dev
 ```
 
 ### Production Mode
+
 ```bash
 npm start
 ```
@@ -108,6 +113,7 @@ The server will start on `http://localhost:5000` (or your configured PORT).
 ## API Endpoints
 
 ### User Endpoints
+
 - `POST /api/users/register` - Register a new user
 - `POST /api/users/login` - Login user
 - `GET /api/users/profile` - Get user profile (Protected)
@@ -118,6 +124,7 @@ The server will start on `http://localhost:5000` (or your configured PORT).
 - `GET /api/users/liked` - Get user's liked recipes (Protected)
 
 ### Recipe Endpoints
+
 - `GET /api/recipes` - Get all recipes (with pagination)
 - `GET /api/recipes/:recipeId` - Get recipe by ID
 - `POST /api/recipes` - Create a new recipe (Protected)
@@ -128,17 +135,22 @@ The server will start on `http://localhost:5000` (or your configured PORT).
 - `POST /api/recipes/:recipeId/comments` - Create comment on recipe (Protected)
 
 ### Comment Endpoints
+
 - `PUT /api/comments/:commentId` - Update comment (Protected, Owner only)
 - `DELETE /api/comments/:commentId` - Delete comment (Protected, Owner only)
 
 For detailed API documentation with examples, see `API_ENDPOINTS_TESTING.md`.
+
+For comprehensive backend documentation including database schema, architecture, and detailed API reference, see `DOCUMENTATION.md`.
 
 ## Testing
 
 We use **Cypress** for API endpoint testing. Make sure your server is running before executing tests.
 
 ### Prerequisites
+
 1. Start your server:
+
 ```bash
 npm run dev
 ```
@@ -146,21 +158,25 @@ npm run dev
 2. In a separate terminal, run Cypress tests.
 
 ### Run All Tests (Headless)
+
 ```bash
 npm test
 ```
 
 ### Open Cypress Test Runner (Interactive)
+
 ```bash
 npm run test:open
 ```
 
 ### Run Only API Tests
+
 ```bash
 npm run test:api
 ```
 
 ### Test Structure
+
 - Test files are located in `cypress/e2e/api/`
 - Custom commands for authentication are in `cypress/support/e2e.js`
 - Tests cover all API endpoints: users, recipes, and comments
@@ -199,21 +215,25 @@ server/
 ### Code Quality
 
 #### Linting
+
 ```bash
 npm run lint
 ```
 
 #### Auto-fix Linting Issues
+
 ```bash
 npm run lint:fix
 ```
 
 #### Code Formatting
+
 ```bash
 npm run format
 ```
 
 #### Check Formatting
+
 ```bash
 npm run format:check
 ```
@@ -252,6 +272,7 @@ The API uses standardized error responses:
 ```
 
 Common HTTP status codes:
+
 - `200` - Success
 - `201` - Created
 - `400` - Bad Request (validation errors)
@@ -272,7 +293,3 @@ Common HTTP status codes:
 ## License
 
 ISC
-
-
-
-
