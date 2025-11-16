@@ -114,5 +114,5 @@ if (process.env.NODE_ENV !== 'test') {
     }
   };
 
-  startServer();
+  startServer(); // Call the function to start the server
 }
