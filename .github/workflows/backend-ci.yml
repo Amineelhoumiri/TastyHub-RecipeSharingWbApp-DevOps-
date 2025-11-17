@@ -31,15 +31,11 @@ jobs:
           POSTGRES_PASSWORD: Amine
           POSTGRES_DB: TastyHub
         #making sure DB is ready before tests run
-        #  - Command to check if DB is ready
-        #  - Check every 10 seconds
-        #  - Wait 5 seconds for response
-        #  - Try 5 times before giving up
         options: >-
-          --health-cmd pg_isready       
-          --health-interval 10s           
-          --health-timeout 5s            
-          --health-retries 5
+          --health-cmd pg_isready       # Command to check if DB is ready
+          --health-interval 10s          # Check every 10 seconds
+          --health-timeout 5s            # Wait 5 seconds for response
+          --health-retries 5             # Try 5 times before giving up
         # Expose PostgreSQL port 5500 to our test environment
         ports:
           - 5500:5432
@@ -82,14 +78,15 @@ jobs:
       - name: Run Jest tests
         working-directory: ./server
         run: npm test
+        
 
       - name: Start server in background
         working-directory: ./server
         run: |
-          npm start &                   #& means don't wait for it
-          sleep 10                       # Wait 10 seconds for server to fully start
-          # Try to connect to server and  retry 5 times if it fails (make sure it's actually running)
-          curl --retry 5 --retry-delay 5 http://localhost:5000/api/recipes || exit 1
+          npm start &                   
+          sleep 10                       
+          # Try to connect to server and  
+          curl --retry 5 --retry-delay 5
 
       # tests full API endpoints
       - name: Run Cypress API tests
