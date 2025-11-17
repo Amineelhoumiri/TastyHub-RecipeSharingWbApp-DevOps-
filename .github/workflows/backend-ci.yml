@@ -62,6 +62,12 @@ jobs:
           echo "PORT=5000" >> $GITHUB_ENV
           echo "FRONTEND_URL=http://localhost:3000" >> $GITHUB_ENV
 
+      - name: Set up database schema 
+        run: |     
+          sudo apt-get update  
+          sudo apt-get install -y postgresql-client
+          PGPASSWORD=Amine psql -h localhost -p 5500 -U postgres -d TastyHub -f RecipeApp-Database-main/RecipeApp-Database-main/Tasty-Hub.sql --set ON_ERROR_STOP=0 || true
+
       - name: Run linter
         working-directory: ./server
         run: npm run lint
@@ -78,7 +84,7 @@ jobs:
           npm start > server.log 2>&1 &
           SERVER_PID=$!
           echo "Server starting (PID: $SERVER_PID)..."
-          
+
           # Wait for server to be ready (check every 2 seconds, max 30 seconds)
           for i in {1..15}; do
             if curl -f -s http://localhost:5000/api/recipes > /dev/null 2>&1; then
@@ -86,7 +92,7 @@ jobs:
               break
             fi
             if [ $i -eq 15 ]; then
-              echo "❌] Server failed to start after 30 seconds"
+              echo "❌ Server failed to start after 30 seconds"
               echo "Server logs:"
               cat server.log || true
               echo "Checking if process is still running..."
