@@ -1,6 +1,5 @@
 // Integration tests for Comment endpoints
 describe('Comment Endpoints', () => {
-  let authToken;
   let testRecipeId;
   let testCommentId;
 
@@ -10,15 +9,13 @@ describe('Comment Endpoints', () => {
     cy.registerUser({
       username: `commenttest_${Date.now()}`,
       email: email,
-      password: 'password123',
+      password: 'password123'
     }).then(() => {
-      cy.login(email, 'password123').then((response) => {
-        authToken = response.token;
-
+      cy.login(email, 'password123').then(() => {
         // Create a recipe
         cy.authenticatedRequest('POST', '/api/recipes', {
           title: `Recipe for Comments ${Date.now()}`,
-          description: 'Test recipe for comment testing',
+          description: 'Test recipe for comment testing'
         }).then((response) => {
           testRecipeId = response.body.recipe.id;
         });
@@ -29,7 +26,7 @@ describe('Comment Endpoints', () => {
   it('POST /api/recipes/:recipeId/comments - should create a comment with rating', () => {
     const commentData = {
       comment: 'This is an amazing recipe! Highly recommend it.',
-      rating: 5,
+      rating: 5
     };
 
     cy.authenticatedRequest('POST', `/api/recipes/${testRecipeId}/comments`, commentData).then((response) => {
@@ -44,7 +41,7 @@ describe('Comment Endpoints', () => {
 
   it('POST /api/recipes/:recipeId/comments - should create a comment without rating', () => {
     const commentData = {
-      comment: 'Great recipe, will try it soon!',
+      comment: 'Great recipe, will try it soon!'
     };
 
     cy.authenticatedRequest('POST', `/api/recipes/${testRecipeId}/comments`, commentData).then((response) => {
@@ -57,7 +54,7 @@ describe('Comment Endpoints', () => {
   it('POST /api/recipes/:recipeId/comments - should reject invalid rating', () => {
     const commentData = {
       comment: 'Test comment',
-      rating: 10, // Invalid - should be 1-5
+      rating: 10 // Invalid - should be 1-5
     };
 
     cy.authenticatedRequest('POST', `/api/recipes/${testRecipeId}/comments`, commentData).then((response) => {
@@ -73,7 +70,7 @@ describe('Comment Endpoints', () => {
     if (!testCommentId) {
       cy.authenticatedRequest('POST', `/api/recipes/${testRecipeId}/comments`, {
         comment: 'Original comment',
-        rating: 3,
+        rating: 3
       }).then((response) => {
         commentId = response.body.comment.id;
       });
@@ -83,7 +80,7 @@ describe('Comment Endpoints', () => {
 
     const updateData = {
       comment: 'Updated comment text',
-      rating: 4,
+      rating: 4
     };
 
     cy.authenticatedRequest('PUT', `/api/comments/${commentId}`, updateData).then((response) => {
@@ -100,7 +97,7 @@ describe('Comment Endpoints', () => {
     // Create a comment with first user
     cy.authenticatedRequest('POST', `/api/recipes/${testRecipeId}/comments`, {
       comment: 'Comment for ownership test',
-      rating: 5,
+      rating: 5
     }).then((response) => {
       commentId = response.body.comment.id;
 
@@ -109,7 +106,7 @@ describe('Comment Endpoints', () => {
       cy.registerUser({
         username: `commentuser_${Date.now()}`,
         email: email,
-        password: 'password123',
+        password: 'password123'
       }).then(() => {
         cy.login(email, 'password123').then((loginResponse) => {
           secondUserToken = loginResponse.token;
@@ -119,10 +116,10 @@ describe('Comment Endpoints', () => {
             method: 'PUT',
             url: `/api/comments/${commentId}`,
             headers: {
-              Authorization: `Bearer ${secondUserToken}`,
+              Authorization: `Bearer ${secondUserToken}`
             },
             body: { comment: 'Unauthorized update' },
-            failOnStatusCode: false,
+            failOnStatusCode: false
           }).then((response) => {
             expect(response.status).to.eq(403);
             expect(response.body.message).to.include('Access denied');
@@ -138,7 +135,7 @@ describe('Comment Endpoints', () => {
     // Create a comment to delete
     cy.authenticatedRequest('POST', `/api/recipes/${testRecipeId}/comments`, {
       comment: 'This comment will be deleted',
-      rating: 3,
+      rating: 3
     }).then((response) => {
       commentToDelete = response.body.comment.id;
 
@@ -158,7 +155,7 @@ describe('Comment Endpoints', () => {
     // Create a comment with first user
     cy.authenticatedRequest('POST', `/api/recipes/${testRecipeId}/comments`, {
       comment: 'Comment for delete test',
-      rating: 4,
+      rating: 4
     }).then((response) => {
       commentId = response.body.comment.id;
 
@@ -167,7 +164,7 @@ describe('Comment Endpoints', () => {
       cy.registerUser({
         username: `deletecomment_${Date.now()}`,
         email: email,
-        password: 'password123',
+        password: 'password123'
       }).then(() => {
         cy.login(email, 'password123').then((loginResponse) => {
           secondUserToken = loginResponse.token;
@@ -177,9 +174,9 @@ describe('Comment Endpoints', () => {
             method: 'DELETE',
             url: `/api/comments/${commentId}`,
             headers: {
-              Authorization: `Bearer ${secondUserToken}`,
+              Authorization: `Bearer ${secondUserToken}`
             },
-            failOnStatusCode: false,
+            failOnStatusCode: false
           }).then((response) => {
             expect(response.status).to.eq(403);
             expect(response.body.message).to.include('Access denied');
@@ -189,6 +186,9 @@ describe('Comment Endpoints', () => {
     });
   });
 });
+
+
+
 
 
 

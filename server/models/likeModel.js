@@ -1,4 +1,4 @@
-const { DataTypes, Sequelize } = require('sequelize');
+const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const Like = sequelize.define(
@@ -8,23 +8,23 @@ const Like = sequelize.define(
       type: DataTypes.UUID,
       primaryKey: true,
       allowNull: false,
-      field: 'user_id',
+      field: 'user_id'
     },
     recipeId: {
       type: DataTypes.UUID,
       primaryKey: true,
       allowNull: false,
-      field: 'recipe_id',
+      field: 'recipe_id'
     },
     createdAt: {
       type: DataTypes.DATE,
       defaultValue: () => new Date(),
-      field: 'created_at',
-    },
+      field: 'created_at'
+    }
   },
   {
     tableName: 'likes',
-    timestamps: false,
+    timestamps: false
   }
 );
 

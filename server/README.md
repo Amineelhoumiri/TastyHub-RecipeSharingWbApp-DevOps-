@@ -12,6 +12,7 @@ Backend API server for the Recipe Sharing web application built with Node.js, Ex
 - [Running the Server](#running-the-server)
 - [API Endpoints](#api-endpoints)
 - [Testing](#testing)
+- [CI/CD Quick Start](#cicd-quick-start-github-actions-friendly)
 - [Project Structure](#project-structure)
 - [Development](#development)
 
@@ -35,7 +36,7 @@ Backend API server for the Recipe Sharing web application built with Node.js, Ex
 - **ORM:** Sequelize
 - **Authentication:** JWT (JSON Web Tokens)
 - **Password Hashing:** bcryptjs
-- **Testing:** Cypress
+- **Testing:** Jest (unit & integration) + Cypress (API & E2E)
 
 ## Prerequisites
 
@@ -145,41 +146,57 @@ For comprehensive backend documentation including database schema, architecture,
 
 ## Testing
 
-We use **Cypress** for API endpoint testing. Make sure your server is running before executing tests.
+We now have two layers of automated tests so you get fast feedback locally and realistic coverage before shipping.
 
-### Prerequisites
+### 1. Fast unit & integration tests (Jest)
 
-1. Start your server:
-
-```bash
-npm run dev
-```
-
-2. In a separate terminal, run Cypress tests.
-
-### Run All Tests (Headless)
+These tests run entirely in Node.js, so they finish in seconds and don't need the server or database running. Use them while you build features or refactor controllers/middleware.
 
 ```bash
+# Run the full Jest suite once (CI uses this command)
 npm test
+
+# Keep Jest watching while you code
+npm run test:watch
 ```
 
-### Open Cypress Test Runner (Interactive)
+- Config lives in `jest.config.js` and automatically loads your `.env`.
+- Sample tests sit in `tests/` (e.g. `tests/userController.test.js`). Add new files here to cover controllers, middleware, and utility functions.
+
+### 2. End-to-end & API tests (Cypress)
+
+These tests hit the running API just like a real client. Make sure `npm run dev` (or `npm start`) is running in another terminal, then:
 
 ```bash
-npm run test:open
-```
+# Headless run of the whole Cypress suite
+npm run test:e2e
 
-### Run Only API Tests
+# Launch the interactive Cypress runner
+npm run test:e2e:open
 
-```bash
+# Only run the API specs in cypress/e2e/api
 npm run test:api
 ```
 
-### Test Structure
+- Specs live in `cypress/e2e/api/`, and shared helpers live under `cypress/support/`.
+- Keep sensitive data (tokens, DB creds) in `.env`; Cypress reuses whatever the server is already using.
 
-- Test files are located in `cypress/e2e/api/`
-- Custom commands for authentication are in `cypress/support/e2e.js`
-- Tests cover all API endpoints: users, recipes, and comments
+### When to run what
+
+- **During development:** run Jest (`npm test` or `npm run test:watch`) after each change so logic bugs surface early.
+- **Before pushing / in CI:** run `npm run lint`, `npm test`, then `npm run test:e2e` (or `npm run test:api`) for full confidence.
+
+## CI/CD quick start (GitHub Actions friendly)
+
+When you're ready to wire up automation, a simple pipeline order that plays nicely with both frameworks looks like:
+
+1. **Install & cache dependencies**
+2. **`npm run lint`** – fail fast on obvious issues
+3. **`npm test`** – fast Jest layer
+4. **Spin up the API (e.g., `npm run dev &`)**
+5. **`npm run test:e2e`** (or the lighter `test:api`) – full Cypress pass
+
+Because `server/index.js` now skips `app.listen` when `NODE_ENV=test`, Jest can import the Express app with zero port conflicts. In GitHub Actions you can express this with two jobs (unit + e2e) or one job with sequential steps; just remember to set `NODE_ENV=test` for the Jest step and keep your database service running before Cypress executes.
 
 ## Project Structure
 

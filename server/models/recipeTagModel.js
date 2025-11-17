@@ -8,18 +8,18 @@ const RecipeTag = sequelize.define(
       type: DataTypes.UUID,
       primaryKey: true,
       allowNull: false,
-      field: 'recipe_id',
+      field: 'recipe_id'
     },
     tagId: {
       type: DataTypes.UUID,
       primaryKey: true,
       allowNull: false,
-      field: 'tag_id',
-    },
+      field: 'tag_id'
+    }
   },
   {
     tableName: 'recipe_tags',
-    timestamps: false,
+    timestamps: false
   }
 );
 

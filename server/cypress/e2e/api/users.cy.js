@@ -4,13 +4,13 @@ describe('User Registration', () => {
     const userData = {
       username: `testuser_${Date.now()}`,
       email: `test_${Date.now()}@example.com`,
-      password: 'password123',
+      password: 'password123'
     };
 
     cy.request({
       method: 'POST',
       url: '/api/users/register',
-      body: userData,
+      body: userData
     }).then((response) => {
       expect(response.status).to.eq(201);
       expect(response.body).to.have.property('token');
@@ -25,21 +25,21 @@ describe('User Registration', () => {
     const userData = {
       username: `testuser2_${Date.now()}`,
       email: `duplicate_${Date.now()}@example.com`,
-      password: 'password123',
+      password: 'password123'
     };
 
     // Register first time
     cy.request({
       method: 'POST',
       url: '/api/users/register',
-      body: userData,
+      body: userData
     }).then(() => {
       // Try to register again with same email
       cy.request({
         method: 'POST',
         url: '/api/users/register',
         body: userData,
-        failOnStatusCode: false,
+        failOnStatusCode: false
       }).then((response) => {
         expect(response.status).to.eq(400);
         expect(response.body.message).to.include('already exists');
@@ -51,14 +51,14 @@ describe('User Registration', () => {
     const userData = {
       username: 'testuser',
       email: 'invalid-email',
-      password: 'password123',
+      password: 'password123'
     };
 
     cy.request({
       method: 'POST',
       url: '/api/users/register',
       body: userData,
-      failOnStatusCode: false,
+      failOnStatusCode: false
     }).then((response) => {
       expect(response.status).to.eq(400);
       expect(response.body.message).to.include('valid email');
@@ -69,14 +69,14 @@ describe('User Registration', () => {
     const userData = {
       username: 'testuser',
       email: 'test@example.com',
-      password: 'short',
+      password: 'short'
     };
 
     cy.request({
       method: 'POST',
       url: '/api/users/register',
       body: userData,
-      failOnStatusCode: false,
+      failOnStatusCode: false
     }).then((response) => {
       expect(response.status).to.eq(400);
       expect(response.body.message).to.include('at least 8 characters');
@@ -96,7 +96,7 @@ describe('User Login', () => {
     cy.registerUser({
       username: `logintest_${Date.now()}`,
       email: registeredEmail,
-      password: registeredPassword,
+      password: registeredPassword
     });
   });
 
@@ -115,9 +115,9 @@ describe('User Login', () => {
       url: '/api/users/login',
       body: {
         email: registeredEmail,
-        password: 'wrongpassword',
+        password: 'wrongpassword'
       },
-      failOnStatusCode: false,
+      failOnStatusCode: false
     }).then((response) => {
       expect(response.status).to.eq(400);
       expect(response.body.message).to.include('Invalid email or password');
@@ -130,9 +130,9 @@ describe('User Login', () => {
       url: '/api/users/login',
       body: {
         email: 'nonexistent@example.com',
-        password: 'password123',
+        password: 'password123'
       },
-      failOnStatusCode: false,
+      failOnStatusCode: false
     }).then((response) => {
       expect(response.status).to.eq(400);
       expect(response.body.message).to.include('Invalid email or password');
@@ -141,15 +141,13 @@ describe('User Login', () => {
 });
 
 describe('Protected User Endpoints', () => {
-  let testUser;
-
   before(() => {
     // Register and login to get token
     const email = `protected_test_${Date.now()}@example.com`;
     cy.registerUser({
       username: `protected_${Date.now()}`,
       email: email,
-      password: 'password123',
+      password: 'password123'
     }).then((response) => {
       testUser = response.body.user;
       cy.login(email, 'password123');
@@ -163,7 +161,7 @@ describe('Protected User Endpoints', () => {
       cy.registerUser({
         username: `protected_${Date.now()}`,
         email: email,
-        password: 'password123',
+        password: 'password123'
       }).then(() => {
         cy.login(email, 'password123');
       });
@@ -183,7 +181,7 @@ describe('Protected User Endpoints', () => {
     cy.request({
       method: 'GET',
       url: '/api/users/profile',
-      failOnStatusCode: false,
+      failOnStatusCode: false
     }).then((response) => {
       expect(response.status).to.eq(401);
       expect(response.body.message).to.include('token');
@@ -194,7 +192,7 @@ describe('Protected User Endpoints', () => {
     const newUsername = `updated_${Date.now()}`;
 
     cy.authenticatedRequest('PUT', '/api/users/profile', {
-      username: newUsername,
+      username: newUsername
     }).then((response) => {
       expect(response.status).to.eq(200);
       expect(response.body.user.username).to.eq(newUsername);
@@ -211,13 +209,13 @@ describe('User Collection Endpoints', () => {
     cy.registerUser({
       username: `collection_${Date.now()}`,
       email: email,
-      password: 'password123',
+      password: 'password123'
     }).then(() => {
       cy.login(email, 'password123').then(() => {
         // Create a recipe for this user
         cy.authenticatedRequest('POST', '/api/recipes', {
           title: `My Recipe ${Date.now()}`,
-          description: 'A recipe I created',
+          description: 'A recipe I created'
         }).then((response) => {
           testRecipeId = response.body.recipe.id;
 
@@ -229,7 +227,7 @@ describe('User Collection Endpoints', () => {
     });
   });
 
-  it("GET /api/users/recipes - should get user's own recipes", () => {
+  it('GET /api/users/recipes - should get user\'s own recipes', () => {
     cy.authenticatedRequest('GET', '/api/users/recipes').then((response) => {
       expect(response.status).to.eq(200);
       expect(response.body).to.have.property('recipes');
@@ -239,7 +237,7 @@ describe('User Collection Endpoints', () => {
     });
   });
 
-  it("GET /api/users/favorites - should get user's favorite recipes", () => {
+  it('GET /api/users/favorites - should get user\'s favorite recipes', () => {
     cy.authenticatedRequest('GET', '/api/users/favorites').then((response) => {
       expect(response.status).to.eq(200);
       expect(response.body).to.have.property('recipes');
@@ -248,7 +246,7 @@ describe('User Collection Endpoints', () => {
     });
   });
 
-  it("GET /api/users/liked - should get user's liked recipes", () => {
+  it('GET /api/users/liked - should get user\'s liked recipes', () => {
     cy.authenticatedRequest('GET', '/api/users/liked').then((response) => {
       expect(response.status).to.eq(200);
       expect(response.body).to.have.property('recipes');
@@ -260,7 +258,7 @@ describe('User Collection Endpoints', () => {
   it('PUT /api/users/preferences - should update user preferences', () => {
     const preferences = {
       darkMode: true,
-      units: 'metric',
+      units: 'metric'
     };
 
     cy.authenticatedRequest('PUT', '/api/users/preferences', preferences).then((response) => {
@@ -276,12 +274,12 @@ describe('User Collection Endpoints', () => {
       method: 'PUT',
       url: '/api/users/preferences',
       headers: {
-        Authorization: `Bearer ${Cypress.env('authToken')}`,
+        Authorization: `Bearer ${Cypress.env('authToken')}`
       },
       body: {
-        units: 'invalid_unit',
+        units: 'invalid_unit'
       },
-      failOnStatusCode: false,
+      failOnStatusCode: false
     }).then((response) => {
       expect(response.status).to.eq(400);
       // Check that the error message mentions the valid units
@@ -294,12 +292,12 @@ describe('User Collection Endpoints', () => {
       method: 'PUT',
       url: '/api/users/preferences',
       headers: {
-        Authorization: `Bearer ${Cypress.env('authToken')}`,
+        Authorization: `Bearer ${Cypress.env('authToken')}`
       },
       body: {
-        darkMode: 'yes', // Should be boolean
+        darkMode: 'yes' // Should be boolean
       },
-      failOnStatusCode: false,
+      failOnStatusCode: false
     }).then((response) => {
       expect(response.status).to.eq(400);
       expect(response.body.message).to.include('boolean');

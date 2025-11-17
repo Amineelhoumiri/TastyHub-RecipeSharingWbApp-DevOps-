@@ -1,4 +1,4 @@
-const { DataTypes, Sequelize } = require('sequelize');
+const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database'); // Import the connection
 
 const Recipe = sequelize.define(
@@ -9,65 +9,65 @@ const Recipe = sequelize.define(
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
-      allowNull: false,
+      allowNull: false
     },
     userId: {
       type: DataTypes.UUID,
       allowNull: false,
-      field: 'user_id',
+      field: 'user_id'
     },
     title: {
       type: DataTypes.STRING(255),
-      allowNull: false,
+      allowNull: false
     },
     description: {
-      type: DataTypes.TEXT,
+      type: DataTypes.TEXT
     },
     cookingTime: {
       type: DataTypes.INTEGER,
-      field: 'cooking_time',
+      field: 'cooking_time'
     },
     servings: {
-      type: DataTypes.INTEGER,
+      type: DataTypes.INTEGER
     },
     totalLikes: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
-      field: 'total_likes',
+      field: 'total_likes'
     },
     totalDownloads: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
-      field: 'total_downloads',
+      field: 'total_downloads'
     },
     totalShares: {
       type: DataTypes.INTEGER,
       defaultValue: 0,
-      field: 'total_shares',
+      field: 'total_shares'
     },
     averageRating: {
       type: DataTypes.DECIMAL(2, 1), // Matches NUMERIC(2,1)
       defaultValue: 0.0,
-      field: 'average_rating',
+      field: 'average_rating'
     },
     imageUrl: {
       type: DataTypes.TEXT,
-      field: 'image_url',
+      field: 'image_url'
     },
     createdAt: {
       type: DataTypes.DATE,
       defaultValue: () => new Date(),
-      field: 'created_at',
+      field: 'created_at'
     },
     updatedAt: {
       type: DataTypes.DATE,
       defaultValue: () => new Date(),
-      field: 'updated_at',
-    },
+      field: 'updated_at'
+    }
   },
   {
-    tableName: 'recipes', 
-    timestamps: false, 
+    tableName: 'recipes',
+    timestamps: false
   }
 );
 

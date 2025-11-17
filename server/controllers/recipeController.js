@@ -1,6 +1,5 @@
 // I'll import all the models I'll need for recipes from my main models/index.js file
-const { Recipe, RecipeIngredient, RecipeStep, Tag, Review, Like, Favorite, User, sequelize } = require('../models');
-const { Op } = require('sequelize');
+const { Recipe, RecipeIngredient, RecipeStep, Review, Like, Favorite, User, sequelize } = require('../models');
 
 /**
  * @route   GET /api/recipes
@@ -12,36 +11,36 @@ exports.getAllRecipes = async (req, res) => {
     // Add pagination support to handle large numbers of recipes efficiently
     // This prevents loading thousands of recipes at once, which would be slow
     // Users can request specific pages of results
-    
+
     // Get page number and page size from query parameters
     // Default to page 1 with 20 recipes per page (reasonable defaults)
     const page = parseInt(req.query.page) || 1;
     const pageSize = parseInt(req.query.pageSize) || 20;
-    
+
     // Validate pagination parameters
     // Page must be at least 1, and page size should be between 1 and 100
     if (page < 1) {
       return res.status(400).json({ message: 'Page number must be at least 1' });
     }
-    
+
     if (pageSize < 1 || pageSize > 100) {
       return res.status(400).json({ message: 'Page size must be between 1 and 100' });
     }
-    
+
     // Calculate offset (how many recipes to skip)
     // For page 1: skip 0, for page 2: skip 20, for page 3: skip 40, etc.
     const offset = (page - 1) * pageSize;
-    
+
     // Fetch recipes with pagination, ordered by most recent first
     // This gives users the newest recipes first, which is usually what they want
     let recipes;
     let totalCount;
-    
+
     try {
       // Get total count of recipes for pagination metadata
       // This helps the frontend know how many pages are available
       totalCount = await Recipe.count();
-      
+
       // Fetch only the recipes for the current page
       // We use limit and offset to get just the recipes we need
       recipes = await Recipe.findAll({
@@ -53,7 +52,7 @@ exports.getAllRecipes = async (req, res) => {
       console.error('Recipe.findAll failed:', queryError.message);
       throw queryError;
     }
-    
+
     // Try to fetch user info separately (but don't fail if it doesn't work)
     let userMap = {};
     try {
@@ -71,7 +70,7 @@ exports.getAllRecipes = async (req, res) => {
       console.error('Could not fetch user info:', userError.message);
       // Continue without user info
     }
-    
+
     // Build response safely
     const recipeList = (recipes || []).map(recipe => {
       try {
@@ -96,13 +95,13 @@ exports.getAllRecipes = async (req, res) => {
         return null;
       }
     }).filter(r => r !== null);
-    
+
     // Calculate pagination metadata
     // This helps the frontend build pagination controls
     const totalPages = Math.ceil(totalCount / pageSize);
     const hasNextPage = page < totalPages;
     const hasPreviousPage = page > 1;
-    
+
     res.json({
       message: 'Recipes fetched successfully',
       count: recipeList.length,           // Number of recipes in this page
@@ -121,7 +120,7 @@ exports.getAllRecipes = async (req, res) => {
       message: error.message,
       stack: error.stack
     });
-    res.status(500).json({ 
+    res.status(500).json({
       message: 'Server error while fetching recipes',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined,
       details: process.env.NODE_ENV === 'development' ? {
@@ -180,13 +179,13 @@ exports.getRecipeById = async (req, res) => {
     // Check if user has liked/favorited this recipe (if logged in)
     let isLiked = false;
     let isFavorited = false;
-    
+
     if (req.user) {
       const like = await Like.findOne({
         where: { userId: req.user.id, recipeId: recipeId }
       });
       isLiked = !!like;
-      
+
       const favorite = await Favorite.findOne({
         where: { userId: req.user.id, recipeId: recipeId }
       });
@@ -236,17 +235,17 @@ exports.createRecipe = async (req, res) => {
   // If anything fails (recipe, steps, or ingredients), we roll back everything
   // This prevents orphaned data in the database
   const transaction = await sequelize.transaction();
-  
+
   try {
-    const { 
-      title, 
-      description, 
-      steps, 
-      ingredients, 
-      cookingTime, 
-      servings, 
+    const {
+      title,
+      description,
+      steps,
+      ingredients,
+      cookingTime,
+      servings,
       imageUrl,
-      tags 
+      tags
     } = req.body;
 
     // Validate required fields
@@ -297,7 +296,7 @@ exports.createRecipe = async (req, res) => {
         if (!step.instruction && !step.text) {
           throw new Error(`Step ${index + 1} must have an instruction`);
         }
-        
+
         return RecipeStep.create({
           recipeId: newRecipe.id,
           stepNumber: step.stepNumber || index + 1,
@@ -317,12 +316,12 @@ exports.createRecipe = async (req, res) => {
         if (!ingredientName || !ingredientName.trim()) {
           throw new Error(`Ingredient ${index + 1} must have a name`);
         }
-        
+
         const quantity = parseFloat(ingredient.quantity);
         if (isNaN(quantity) || quantity < 0) {
           throw new Error(`Ingredient ${index + 1} must have a valid quantity`);
         }
-        
+
         return RecipeIngredient.create({
           recipeId: newRecipe.id,
           ingredientName: ingredientName.trim(),
@@ -373,14 +372,14 @@ exports.createRecipe = async (req, res) => {
     // If anything went wrong, roll back the entire transaction
     // This ensures we don't have partial data (like a recipe without ingredients)
     await transaction.rollback();
-    
+
     console.error('Create recipe error:', error);
-    
+
     // Send a user-friendly error message
     if (error.message && error.message.includes('must have')) {
       return res.status(400).json({ message: error.message });
     }
-    
+
     res.status(500).json({ message: 'Server error while creating recipe' });
   }
 };
@@ -393,12 +392,12 @@ exports.createRecipe = async (req, res) => {
 exports.updateRecipe = async (req, res) => {
   try {
     const { recipeId } = req.params;
-    const { 
-      title, 
-      description, 
-      cookingTime, 
-      servings, 
-      imageUrl 
+    const {
+      title,
+      description,
+      cookingTime,
+      servings,
+      imageUrl
     } = req.body;
 
     // Find the recipe first
@@ -410,8 +409,8 @@ exports.updateRecipe = async (req, res) => {
 
     // Check if the user owns this recipe
     if (recipe.userId !== req.user.id) {
-      return res.status(403).json({ 
-        message: 'Access denied. You can only update your own recipes.' 
+      return res.status(403).json({
+        message: 'Access denied. You can only update your own recipes.'
       });
     }
 
@@ -475,8 +474,8 @@ exports.deleteRecipe = async (req, res) => {
 
     // Check if the user owns this recipe
     if (recipe.userId !== req.user.id) {
-      return res.status(403).json({ 
-        message: 'Access denied. You can only delete your own recipes.' 
+      return res.status(403).json({
+        message: 'Access denied. You can only delete your own recipes.'
       });
     }
 
@@ -503,7 +502,7 @@ exports.likeRecipe = async (req, res) => {
   // Use a transaction to prevent race conditions
   // If two users like the same recipe at the exact same time, we want to handle it correctly
   const transaction = await sequelize.transaction();
-  
+
   try {
     const { recipeId } = req.params;
 
@@ -514,7 +513,7 @@ exports.likeRecipe = async (req, res) => {
       lock: true, // Lock the row for update (prevents concurrent modifications)
       transaction
     });
-    
+
     if (!recipe) {
       await transaction.rollback();
       return res.status(404).json({ message: 'Recipe not found' });
@@ -534,17 +533,17 @@ exports.likeRecipe = async (req, res) => {
       // Unlike: remove the like and decrement count
       // All within the same transaction to keep data consistent
       await existingLike.destroy({ transaction });
-      
+
       // Decrement the total likes count atomically
       // Using decrement ensures the count is accurate even with concurrent requests
       await recipe.decrement('totalLikes', { transaction });
-      
+
       // Reload the recipe to get the updated count
       await recipe.reload({ transaction });
-      
+
       // Commit the transaction - all changes are now permanent
       await transaction.commit();
-      
+
       res.json({
         message: 'Recipe unliked successfully',
         isLiked: false,
@@ -554,7 +553,7 @@ exports.likeRecipe = async (req, res) => {
       // Like: create a new like and increment count
       // We use findOrCreate to handle race conditions gracefully
       // If two requests try to create a like at the same time, only one will succeed
-      const [like, created] = await Like.findOrCreate({
+      const [, created] = await Like.findOrCreate({
         where: {
           userId: req.user.id,
           recipeId: recipeId
@@ -565,20 +564,20 @@ exports.likeRecipe = async (req, res) => {
         },
         transaction
       });
-      
+
       // Only increment if we actually created a new like
       // (findOrCreate might return an existing like if there was a race condition)
       if (created) {
         // Increment the total likes count atomically
         await recipe.increment('totalLikes', { transaction });
       }
-      
+
       // Reload the recipe to get the updated count
       await recipe.reload({ transaction });
-      
+
       // Commit the transaction
       await transaction.commit();
-      
+
       res.json({
         message: 'Recipe liked successfully',
         isLiked: true,
@@ -588,15 +587,15 @@ exports.likeRecipe = async (req, res) => {
   } catch (error) {
     // If anything went wrong, roll back the transaction
     await transaction.rollback();
-    
+
     console.error('Like recipe error:', error);
-    
+
     // Handle unique constraint violations (if user tries to like twice simultaneously)
     if (error.name === 'SequelizeUniqueConstraintError') {
       // This shouldn't happen with findOrCreate, but just in case...
       return res.status(400).json({ message: 'You have already liked this recipe' });
     }
-    
+
     res.status(500).json({ message: 'Server error while toggling like' });
   }
 };
@@ -610,7 +609,7 @@ exports.favouriteRecipe = async (req, res) => {
   // Use a transaction to prevent race conditions
   // Similar to the like function, we want to handle concurrent requests correctly
   const transaction = await sequelize.transaction();
-  
+
   try {
     const { recipeId } = req.params;
 
@@ -639,10 +638,10 @@ exports.favouriteRecipe = async (req, res) => {
       // Unfavorite: remove the favorite
       // The favorite already exists, so we remove it
       await favorite.destroy({ transaction });
-      
+
       // Commit the transaction
       await transaction.commit();
-      
+
       res.json({
         message: 'Recipe removed from favorites successfully',
         isFavorited: false
@@ -651,7 +650,7 @@ exports.favouriteRecipe = async (req, res) => {
       // Favorite: we just created a new favorite
       // Commit the transaction
       await transaction.commit();
-      
+
       res.json({
         message: 'Recipe added to favorites successfully',
         isFavorited: true
@@ -660,14 +659,14 @@ exports.favouriteRecipe = async (req, res) => {
   } catch (error) {
     // If anything went wrong, roll back the transaction
     await transaction.rollback();
-    
+
     console.error('Favorite recipe error:', error);
-    
+
     // Handle unique constraint violations
     if (error.name === 'SequelizeUniqueConstraintError') {
       return res.status(400).json({ message: 'You have already favorited this recipe' });
     }
-    
+
     res.status(500).json({ message: 'Server error while toggling favorite' });
   }
 };
@@ -720,7 +719,7 @@ exports.createComment = async (req, res) => {
         ],
         raw: true
       });
-      
+
       // The result will have the average rating and count
       // If there are ratings, update the recipe's average rating
       if (result && result.averageRating) {

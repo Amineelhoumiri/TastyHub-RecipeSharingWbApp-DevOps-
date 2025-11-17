@@ -3,7 +3,7 @@ describe('Server Health Check', () => {
   it('GET /api/recipes - should return recipes list', () => {
     cy.request({
       method: 'GET',
-      url: '/api/recipes',
+      url: '/api/recipes'
     }).then((response) => {
       expect(response.status).to.eq(200);
       expect(response.body).to.have.property('recipes');
@@ -11,6 +11,9 @@ describe('Server Health Check', () => {
     });
   });
 });
+
+
+
 
 
 

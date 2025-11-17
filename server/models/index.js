@@ -70,5 +70,6 @@ module.exports = {
   Review,
   Like,
   Favorite,
-  ActivityLog,
+  ActivityLog
 };
+

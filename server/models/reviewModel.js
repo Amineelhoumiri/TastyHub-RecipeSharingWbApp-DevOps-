@@ -1,4 +1,4 @@
-const { DataTypes, Sequelize } = require('sequelize');
+const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const Review = sequelize.define(
@@ -8,37 +8,37 @@ const Review = sequelize.define(
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
-      allowNull: false,
+      allowNull: false
     },
     userId: {
       type: DataTypes.UUID,
       allowNull: false,
-      field: 'user_id',
+      field: 'user_id'
     },
     recipeId: {
       type: DataTypes.UUID,
       allowNull: false,
-      field: 'recipe_id',
+      field: 'recipe_id'
     },
     rating: {
       type: DataTypes.INTEGER,
       validate: {
         min: 1,
-        max: 5,
-      },
+        max: 5
+      }
     },
     comment: {
-      type: DataTypes.TEXT,
+      type: DataTypes.TEXT
     },
     createdAt: {
       type: DataTypes.DATE,
       defaultValue: () => new Date(),
-      field: 'created_at',
-    },
+      field: 'created_at'
+    }
   },
   {
     tableName: 'reviews',
-    timestamps: false,
+    timestamps: false
   }
 );
 

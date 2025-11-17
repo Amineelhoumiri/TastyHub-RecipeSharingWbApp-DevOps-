@@ -1,6 +1,5 @@
 // Integration tests for Recipe endpoints
 describe('Recipe Endpoints', () => {
-  let authToken;
   let testRecipeId;
 
   before(() => {
@@ -9,18 +8,16 @@ describe('Recipe Endpoints', () => {
     cy.registerUser({
       username: `recipetest_${Date.now()}`,
       email: email,
-      password: 'password123',
+      password: 'password123'
     }).then(() => {
-      cy.login(email, 'password123').then((response) => {
-        authToken = response.token;
-      });
+      cy.login(email, 'password123');
     });
   });
 
   it('GET /api/recipes - should return paginated recipes', () => {
     cy.request({
       method: 'GET',
-      url: '/api/recipes',
+      url: '/api/recipes'
     }).then((response) => {
       expect(response.status).to.eq(200);
       expect(response.body).to.have.property('recipes');
@@ -35,7 +32,7 @@ describe('Recipe Endpoints', () => {
   it('GET /api/recipes?page=1&pageSize=5 - should respect pagination', () => {
     cy.request({
       method: 'GET',
-      url: '/api/recipes?page=1&pageSize=5',
+      url: '/api/recipes?page=1&pageSize=5'
     }).then((response) => {
       expect(response.status).to.eq(200);
       expect(response.body.page).to.eq(1);
@@ -49,7 +46,7 @@ describe('Recipe Endpoints', () => {
       title: `Test Recipe ${Date.now()}`,
       description: 'This is a test recipe',
       cookingTime: 30,
-      servings: 4,
+      servings: 4
     };
 
     cy.authenticatedRequest('POST', '/api/recipes', recipeData).then((response) => {
@@ -64,14 +61,14 @@ describe('Recipe Endpoints', () => {
   it('POST /api/recipes - should reject without token', () => {
     const recipeData = {
       title: 'Test Recipe',
-      description: 'This is a test recipe',
+      description: 'This is a test recipe'
     };
 
     cy.request({
       method: 'POST',
       url: '/api/recipes',
       body: recipeData,
-      failOnStatusCode: false,
+      failOnStatusCode: false
     }).then((response) => {
       expect(response.status).to.eq(401);
     });
@@ -79,7 +76,7 @@ describe('Recipe Endpoints', () => {
 
   it('POST /api/recipes - should reject without title', () => {
     const recipeData = {
-      description: 'This is a test recipe without title',
+      description: 'This is a test recipe without title'
     };
 
     cy.authenticatedRequest('POST', '/api/recipes', recipeData).then((response) => {
@@ -93,7 +90,7 @@ describe('Recipe Endpoints', () => {
     if (!testRecipeId) {
       cy.authenticatedRequest('POST', '/api/recipes', {
         title: `Test Recipe for Get ${Date.now()}`,
-        description: 'Test description',
+        description: 'Test description'
       }).then((response) => {
         testRecipeId = response.body.recipe.id;
       });
@@ -101,7 +98,7 @@ describe('Recipe Endpoints', () => {
 
     cy.request({
       method: 'GET',
-      url: `/api/recipes/${testRecipeId}`,
+      url: `/api/recipes/${testRecipeId}`
     }).then((response) => {
       expect(response.status).to.eq(200);
       expect(response.body).to.have.property('recipe');
@@ -114,7 +111,7 @@ describe('Recipe Endpoints', () => {
     cy.request({
       method: 'GET',
       url: `/api/recipes/${fakeId}`,
-      failOnStatusCode: false,
+      failOnStatusCode: false
     }).then((response) => {
       expect(response.status).to.eq(404);
       expect(response.body.message).to.include('not found');
@@ -126,7 +123,7 @@ describe('Recipe Endpoints', () => {
     if (!testRecipeId) {
       cy.authenticatedRequest('POST', '/api/recipes', {
         title: `Recipe to Update ${Date.now()}`,
-        description: 'Original description',
+        description: 'Original description'
       }).then((response) => {
         testRecipeId = response.body.recipe.id;
       });
@@ -136,7 +133,7 @@ describe('Recipe Endpoints', () => {
       title: 'Updated Recipe Title',
       description: 'Updated description',
       cookingTime: 45,
-      servings: 6,
+      servings: 6
     };
 
     cy.authenticatedRequest('PUT', `/api/recipes/${testRecipeId}`, updateData).then((response) => {
@@ -155,7 +152,7 @@ describe('Recipe Endpoints', () => {
     // Create a recipe with first user
     cy.authenticatedRequest('POST', '/api/recipes', {
       title: `Recipe for Ownership Test ${Date.now()}`,
-      description: 'Test description',
+      description: 'Test description'
     }).then((response) => {
       recipeId = response.body.recipe.id;
 
@@ -164,7 +161,7 @@ describe('Recipe Endpoints', () => {
       cy.registerUser({
         username: `seconduser_${Date.now()}`,
         email: email,
-        password: 'password123',
+        password: 'password123'
       }).then(() => {
         cy.login(email, 'password123').then((loginResponse) => {
           secondUserToken = loginResponse.token;
@@ -174,10 +171,10 @@ describe('Recipe Endpoints', () => {
             method: 'PUT',
             url: `/api/recipes/${recipeId}`,
             headers: {
-              Authorization: `Bearer ${secondUserToken}`,
+              Authorization: `Bearer ${secondUserToken}`
             },
             body: { title: 'Unauthorized Update' },
-            failOnStatusCode: false,
+            failOnStatusCode: false
           }).then((response) => {
             expect(response.status).to.eq(403);
             expect(response.body.message).to.include('Access denied');
@@ -193,7 +190,7 @@ describe('Recipe Endpoints', () => {
     // Create a recipe to delete
     cy.authenticatedRequest('POST', '/api/recipes', {
       title: `Recipe to Delete ${Date.now()}`,
-      description: 'This recipe will be deleted',
+      description: 'This recipe will be deleted'
     }).then((response) => {
       recipeToDelete = response.body.recipe.id;
 
@@ -207,7 +204,7 @@ describe('Recipe Endpoints', () => {
         cy.request({
           method: 'GET',
           url: `/api/recipes/${recipeToDelete}`,
-          failOnStatusCode: false,
+          failOnStatusCode: false
         }).then((response) => {
           expect(response.status).to.eq(404);
         });
@@ -222,7 +219,7 @@ describe('Recipe Endpoints', () => {
     // Create a recipe with first user
     cy.authenticatedRequest('POST', '/api/recipes', {
       title: `Recipe for Delete Test ${Date.now()}`,
-      description: 'Test description',
+      description: 'Test description'
     }).then((response) => {
       recipeId = response.body.recipe.id;
 
@@ -231,7 +228,7 @@ describe('Recipe Endpoints', () => {
       cy.registerUser({
         username: `deleteuser_${Date.now()}`,
         email: email,
-        password: 'password123',
+        password: 'password123'
       }).then(() => {
         cy.login(email, 'password123').then((loginResponse) => {
           secondUserToken = loginResponse.token;
@@ -241,9 +238,9 @@ describe('Recipe Endpoints', () => {
             method: 'DELETE',
             url: `/api/recipes/${recipeId}`,
             headers: {
-              Authorization: `Bearer ${secondUserToken}`,
+              Authorization: `Bearer ${secondUserToken}`
             },
-            failOnStatusCode: false,
+            failOnStatusCode: false
           }).then((response) => {
             expect(response.status).to.eq(403);
             expect(response.body.message).to.include('Access denied');
@@ -258,7 +255,7 @@ describe('Recipe Endpoints', () => {
     if (!testRecipeId) {
       cy.authenticatedRequest('POST', '/api/recipes', {
         title: `Recipe to Like ${Date.now()}`,
-        description: 'Test description',
+        description: 'Test description'
       }).then((response) => {
         testRecipeId = response.body.recipe.id;
       });
@@ -278,7 +275,7 @@ describe('Recipe Endpoints', () => {
     // Create a fresh recipe for this test to avoid state issues
     cy.authenticatedRequest('POST', '/api/recipes', {
       title: `Recipe to Unlike ${Date.now()}`,
-      description: 'Test description',
+      description: 'Test description'
     }).then((response) => {
       recipeId = response.body.recipe.id;
 
@@ -300,7 +297,7 @@ describe('Recipe Endpoints', () => {
     if (!testRecipeId) {
       cy.authenticatedRequest('POST', '/api/recipes', {
         title: `Recipe to Favorite ${Date.now()}`,
-        description: 'Test description',
+        description: 'Test description'
       }).then((response) => {
         testRecipeId = response.body.recipe.id;
       });
@@ -319,7 +316,7 @@ describe('Recipe Endpoints', () => {
     // Create a fresh recipe for this test to avoid state issues
     cy.authenticatedRequest('POST', '/api/recipes', {
       title: `Recipe to Unfavorite ${Date.now()}`,
-      description: 'Test description',
+      description: 'Test description'
     }).then((response) => {
       recipeId = response.body.recipe.id;
 
@@ -341,7 +338,7 @@ describe('Recipe Endpoints', () => {
     if (!testRecipeId) {
       cy.authenticatedRequest('POST', '/api/recipes', {
         title: `Recipe for Comment ${Date.now()}`,
-        description: 'Test description',
+        description: 'Test description'
       }).then((response) => {
         testRecipeId = response.body.recipe.id;
       });
@@ -349,7 +346,7 @@ describe('Recipe Endpoints', () => {
 
     const commentData = {
       comment: 'This is a great recipe!',
-      rating: 5,
+      rating: 5
     };
 
     cy.authenticatedRequest('POST', `/api/recipes/${testRecipeId}/comments`, commentData).then((response) => {
@@ -364,7 +361,7 @@ describe('Recipe Endpoints', () => {
     if (!testRecipeId) {
       cy.authenticatedRequest('POST', '/api/recipes', {
         title: `Recipe for Comment Test ${Date.now()}`,
-        description: 'Test description',
+        description: 'Test description'
       }).then((response) => {
         testRecipeId = response.body.recipe.id;
       });
@@ -376,6 +373,9 @@ describe('Recipe Endpoints', () => {
     });
   });
 });
+
+
+
 
 
 

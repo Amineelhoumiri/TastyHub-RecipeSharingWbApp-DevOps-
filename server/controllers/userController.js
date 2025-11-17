@@ -22,13 +22,13 @@ const generateToken = (id) => {
   // This keeps our secret secure and out of our codebase.
   // IMPORTANT: JWT_SECRET must be set in environment variables!
   const jwtSecret = process.env.JWT_SECRET;
-  
+
   if (!jwtSecret) {
     throw new Error('JWT_SECRET is not configured. Cannot generate authentication token.');
   }
-  
+
   return jwt.sign({ id }, jwtSecret, {
-    expiresIn: '30d', // The token will be valid for 30 days
+    expiresIn: '30d' // The token will be valid for 30 days
   });
 };
 
@@ -45,8 +45,8 @@ exports.registerUser = async (req, res) => {
   try {
     // Safety check for req.body
     if (!req.body) {
-      return res.status(400).json({ 
-        message: 'Request body is missing. Please ensure Content-Type is application/json' 
+      return res.status(400).json({
+        message: 'Request body is missing. Please ensure Content-Type is application/json'
       });
     }
 
@@ -63,7 +63,7 @@ exports.registerUser = async (req, res) => {
     if (username.trim().length < 3) {
       return res.status(400).json({ message: 'Username must be at least 3 characters long' });
     }
-    
+
     if (username.length > 100) {
       return res.status(400).json({ message: 'Username is too long (maximum 100 characters)' });
     }
@@ -78,7 +78,7 @@ exports.registerUser = async (req, res) => {
     if (password.length < 8) {
       return res.status(400).json({ message: 'Password must be at least 8 characters long' });
     }
-    
+
     if (password.length > 128) {
       return res.status(400).json({ message: 'Password is too long (maximum 128 characters)' });
     }
@@ -93,10 +93,10 @@ exports.registerUser = async (req, res) => {
     }
 
     // 5. Check if username is already taken (case-insensitive)
-    const usernameExists = await User.findOne({ 
-      where: { username: username.trim() } 
+    const usernameExists = await User.findOne({
+      where: { username: username.trim() }
     });
-    
+
     if (usernameExists) {
       return res.status(400).json({ message: 'Username is already taken' });
     }
@@ -113,7 +113,7 @@ exports.registerUser = async (req, res) => {
     const newUser = await User.create({
       username: username.trim(),
       email: email.trim().toLowerCase(),
-      password: hashedPassword, // We save the HASHED password, never the plain text!
+      password: hashedPassword // We save the HASHED password, never the plain text!
     });
 
     // 8. If the user was created successfully...
@@ -129,8 +129,8 @@ exports.registerUser = async (req, res) => {
         user: {
           id: newUser.id,
           username: newUser.username,
-          email: newUser.email,
-        },
+          email: newUser.email
+        }
       });
     } else {
       // This is a fallback in case 'create' fails for some reason
@@ -153,8 +153,8 @@ exports.loginUser = async (req, res) => {
   try {
     // Safety check for req.body
     if (!req.body) {
-      return res.status(400).json({ 
-        message: 'Request body is missing. Please ensure Content-Type is application/json' 
+      return res.status(400).json({
+        message: 'Request body is missing. Please ensure Content-Type is application/json'
       });
     }
 
@@ -190,8 +190,8 @@ exports.loginUser = async (req, res) => {
         user: {
           id: user.id,
           username: user.username,
-          email: user.email,
-        },
+          email: user.email
+        }
       });
     } else {
       // If no user was found OR the password didn't match...
@@ -223,11 +223,11 @@ exports.getUserProfile = async (req, res) => {
     const user = await User.findByPk(req.user.id, {
       attributes: { exclude: ['password'] } // Don't send the password hash back to the frontend
     });
-    
+
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
+
     res.json({
       message: 'User profile fetched successfully',
       user: {
@@ -252,63 +252,63 @@ exports.getUserProfile = async (req, res) => {
 exports.updateUserProfile = async (req, res) => {
   try {
     const { username, email } = req.body;
-    
+
     // Basic validation - make sure at least something is being updated
     if (!username && !email) {
-      return res.status(400).json({ 
-        message: 'Please provide at least one field to update (username or email)' 
+      return res.status(400).json({
+        message: 'Please provide at least one field to update (username or email)'
       });
     }
-    
+
     // Check if username is being changed and if it's already taken
     if (username) {
       const { Op } = require('sequelize');
-      const existingUser = await User.findOne({ 
-        where: { 
+      const existingUser = await User.findOne({
+        where: {
           username: username,
           id: { [Op.ne]: req.user.id } // Exclude current user
-        } 
+        }
       });
-      
+
       if (existingUser) {
         return res.status(400).json({ message: 'Username is already taken' });
       }
     }
-    
+
     // Check if email is being changed and if it's already taken
     if (email) {
       const { Op } = require('sequelize');
-      const existingUser = await User.findOne({ 
-        where: { 
+      const existingUser = await User.findOne({
+        where: {
           email: email,
           id: { [Op.ne]: req.user.id } // Exclude current user
-        } 
+        }
       });
-      
+
       if (existingUser) {
         return res.status(400).json({ message: 'Email is already taken' });
       }
     }
-    
+
     // Build update object with only the fields that were provided
     const updateData = {};
     if (username) updateData.username = username;
     if (email) updateData.email = email;
-    
+
     // Update the user in the database
     const [updatedRows] = await User.update(updateData, {
       where: { id: req.user.id }
     });
-    
+
     if (updatedRows === 0) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
+
     // Fetch the updated user to send back
     const updatedUser = await User.findByPk(req.user.id, {
       attributes: { exclude: ['password'] }
     });
-    
+
     res.json({
       message: 'User profile updated successfully',
       user: {
@@ -329,7 +329,7 @@ exports.updateUserProfile = async (req, res) => {
  * @route   PUT /api/users/profile/picture
  * @desc   Upload or update profile picture
  * @access  Private (requires authentication)
- * 
+ *
  * Note: This endpoint is a placeholder for future implementation.
  * To implement file uploads, you'll need:
  * - A library like 'multer' to handle multipart/form-data
@@ -338,7 +338,7 @@ exports.updateUserProfile = async (req, res) => {
  */
 exports.updateProfilePicture = (req, res) => {
   res.status(501).json({
-    message: 'Profile picture upload is not yet implemented',
+    message: 'Profile picture upload is not yet implemented'
   });
 };
 
@@ -346,7 +346,7 @@ exports.updateProfilePicture = (req, res) => {
  * @route   PUT /api/users/preferences
  * @desc    Update user's preferences (like dark mode, measurement units, etc.)
  * @access  Private (requires authentication)
- * 
+ *
  * Note: This stores preferences as JSON in a text field.
  * For a production app, you might want to add a dedicated preferences column or table.
  * For now, we'll store it as a JSON string in a text field if you add it to your database.
@@ -354,45 +354,45 @@ exports.updateProfilePicture = (req, res) => {
 exports.updateUserPreferences = async (req, res) => {
   try {
     const { darkMode, units } = req.body;
-    
+
     // Validate the preferences data
     // darkMode should be a boolean, units should be a string
     if (darkMode !== undefined && typeof darkMode !== 'boolean') {
       return res.status(400).json({ message: 'darkMode must be a boolean (true or false)' });
     }
-    
+
     // Validate units if provided (should be 'metric' or 'imperial')
     const validUnits = ['metric', 'imperial'];
     if (units !== undefined && !validUnits.includes(units)) {
       return res.status(400).json({ message: 'Units must be either "metric" or "imperial"' });
     }
-    
+
     // Build preferences object with only the provided values
     // We merge with existing preferences if they exist
     const user = await User.findByPk(req.user.id);
     if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    
+
     // For now, we'll store preferences in memory/log them
     // To actually persist them, you would need to:
     // 1. Add a 'preferences' TEXT column to your users table
     // 2. Update the User model to include a preferences field
     // 3. Store preferences as JSON: JSON.stringify({ darkMode, units })
     // 4. Retrieve and parse: JSON.parse(user.preferences)
-    
+
     // For this implementation, we'll acknowledge the request
     // In a real app, you'd do: await user.update({ preferences: JSON.stringify({ darkMode, units }) });
-    
+
     const preferences = {
       ...(darkMode !== undefined && { darkMode }),
       ...(units !== undefined && { units })
     };
-    
+
     // Note: To persist preferences, add a 'preferences' TEXT column to the users table
     // and uncomment the following line:
     // await user.update({ preferences: JSON.stringify(preferences) });
-    
+
     res.json({
       message: 'Preferences updated successfully',
       preferences: preferences,

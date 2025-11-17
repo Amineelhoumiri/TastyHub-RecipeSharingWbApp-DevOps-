@@ -1,4 +1,4 @@
-const { DataTypes, Sequelize } = require('sequelize');
+const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const RecipeIngredient = sequelize.define(
@@ -8,21 +8,21 @@ const RecipeIngredient = sequelize.define(
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
-      allowNull: false,
+      allowNull: false
     },
     recipeId: {
       type: DataTypes.UUID,
       allowNull: false,
-      field: 'recipe_id',
+      field: 'recipe_id'
     },
     ingredientName: {
       type: DataTypes.STRING(150),
       allowNull: false,
-      field: 'ingredient_name',
+      field: 'ingredient_name'
     },
     quantity: {
       type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
+      allowNull: false
     },
     unit: {
       type: DataTypes.STRING(50),
@@ -38,18 +38,18 @@ const RecipeIngredient = sequelize.define(
             'liter',
             'piece',
             'pinch',
-            'other',
-          ],
-        ],
-      },
+            'other'
+          ]
+        ]
+      }
     },
     notes: {
-      type: DataTypes.TEXT,
-    },
+      type: DataTypes.TEXT
+    }
   },
   {
     tableName: 'recipe_ingredients',
-    timestamps: false,
+    timestamps: false
   }
 );
 

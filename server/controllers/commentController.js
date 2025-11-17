@@ -21,8 +21,8 @@ exports.updateComment = async (req, res) => {
 
     // Check if the user owns this comment
     if (review.userId !== req.user.id) {
-      return res.status(403).json({ 
-        message: 'Access denied. You can only update your own comments.' 
+      return res.status(403).json({
+        message: 'Access denied. You can only update your own comments.'
       });
     }
 
@@ -54,7 +54,7 @@ exports.updateComment = async (req, res) => {
           ],
           raw: true
         });
-        
+
         // Update the recipe's average rating based on the database calculation
         if (result && result.averageRating) {
           const averageRating = parseFloat(parseFloat(result.averageRating).toFixed(1));
@@ -103,8 +103,8 @@ exports.deleteComment = async (req, res) => {
 
     // Check if the user owns this comment
     if (review.userId !== req.user.id) {
-      return res.status(403).json({ 
-        message: 'Access denied. You can only delete your own comments.' 
+      return res.status(403).json({
+        message: 'Access denied. You can only delete your own comments.'
       });
     }
 
@@ -130,7 +130,7 @@ exports.deleteComment = async (req, res) => {
           ],
           raw: true
         });
-        
+
         // Update the recipe's average rating based on the database calculation
         if (result && result.averageRating) {
           const averageRating = parseFloat(parseFloat(result.averageRating).toFixed(1));

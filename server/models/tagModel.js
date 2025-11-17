@@ -1,4 +1,4 @@
-const { DataTypes, Sequelize } = require('sequelize');
+const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const Tag = sequelize.define(
@@ -8,18 +8,18 @@ const Tag = sequelize.define(
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
-      allowNull: false,
+      allowNull: false
     },
     tagName: {
       type: DataTypes.STRING(100),
       allowNull: false,
       unique: true,
-      field: 'tag_name',
-    },
+      field: 'tag_name'
+    }
   },
   {
     tableName: 'tags',
-    timestamps: false,
+    timestamps: false
   }
 );
 

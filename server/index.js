@@ -58,7 +58,12 @@ app.use('/api/comments', commentRoutes);
 // This catches any errors thrown in our route handlers and sends a proper response
 app.use((err, req, res, next) => {
   console.error('Error caught by middleware:', err);
-  
+
+  // If Express already sent something back, let it finish instead of crashing
+  if (res.headersSent) {
+    return next(err);
+  }
+
   // If it's a validation error from Sequelize, make it more user-friendly
   if (err.name === 'SequelizeValidationError') {
     return res.status(400).json({
@@ -66,14 +71,14 @@ app.use((err, req, res, next) => {
       errors: err.errors.map(e => e.message)
     });
   }
-  
+
   // If it's a database connection error
   if (err.name === 'SequelizeConnectionError') {
     return res.status(503).json({
       message: 'Database connection failed. Please try again later.'
     });
   }
-  
+
   // Default error response
   res.status(err.status || 500).json({
     message: err.message || 'Something went wrong on the server',
@@ -99,20 +104,22 @@ process.on('uncaughtException', (err) => {
 module.exports = app;
 
 // --- 5. DATABASE CONNECTION & SERVER START ---
-// Only start server if not in test environment
-if (process.env.NODE_ENV !== 'test') {
-  const startServer = async () => {
-    try {
-      await sequelize.authenticate();
-      console.log('✅ Database connection has been established successfully.');
+const startServer = async () => {
+  try {
+    await sequelize.authenticate();
+    console.log('✅ Database connection has been established successfully.');
 
-      app.listen(PORT, () => {
-        console.log(`🚀 Server is live and running on http://localhost:${PORT}`);
-      });
-    } catch (error) {
-      console.error('❌ Unable to connect to the database:', error);
-    }
-  };
+    app.listen(PORT, () => {
+      console.log(`🚀 Server is live and running on http://localhost:${PORT}`);
+    });
+  } catch (error) {
+    console.error('❌ Unable to connect to the database:', error);
+    console.error('🛑 Shutting down so the process manager can restart us with a fresh attempt.');
+    setTimeout(() => process.exit(1), 1000); // Give logs a second to flush
+  }
+};
 
-  startServer(); // Call the function to start the server
+// Only boot the HTTP server when this file is run directly (not when imported by tests/tools)
+if (require.main === module && process.env.NODE_ENV !== 'test') {
+  startServer();
 }

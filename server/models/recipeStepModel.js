@@ -1,4 +1,4 @@
-const { DataTypes, Sequelize } = require('sequelize');
+const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
 const RecipeStep = sequelize.define(
@@ -8,30 +8,30 @@ const RecipeStep = sequelize.define(
       type: DataTypes.UUID,
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
-      allowNull: false,
+      allowNull: false
     },
     recipeId: {
       type: DataTypes.UUID,
       allowNull: false,
-      field: 'recipe_id',
+      field: 'recipe_id'
     },
     stepNumber: {
       type: DataTypes.INTEGER,
       allowNull: false,
-      field: 'step_number',
+      field: 'step_number'
     },
     instruction: {
       type: DataTypes.TEXT,
-      allowNull: false,
+      allowNull: false
     },
     stepImage: {
       type: DataTypes.TEXT,
-      field: 'step_image',
-    },
+      field: 'step_image'
+    }
   },
   {
     tableName: 'recipe_steps',
-    timestamps: false,
+    timestamps: false
   }
 );
 

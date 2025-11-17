@@ -8,16 +8,16 @@ const { Sequelize } = require('sequelize');
 // ===================================================
 // We're using environment variables to keep sensitive credentials secure.
 // These values should be set in a .env file (which should NOT be committed to git).
-// 
+//
 // IMPORTANT: Never hardcode passwords or sensitive data in your code!
 // Always use environment variables, especially in production.
 // ===================================================
 
 // Database name - safe to have a default for local development
-const DB_NAME = process.env.DB_NAME || 'TastyHub'; 
+const DB_NAME = process.env.DB_NAME || 'TastyHub';
 
 // Database user - safe to have a default for local development
-const DB_USER = process.env.DB_USER || 'postgres'; 
+const DB_USER = process.env.DB_USER || 'postgres';
 
 // Database password - CRITICAL: Must be set via environment variable!
 // We don't provide a fallback because hardcoded passwords are a security risk.
@@ -33,7 +33,7 @@ if (!DB_PASSWORD) {
 }
 
 // Database host - safe to default to localhost for local development
-const DB_HOST = process.env.DB_HOST || 'localhost'; 
+const DB_HOST = process.env.DB_HOST || 'localhost';
 
 // Database port - safe to have a default
 const DB_PORT = process.env.DB_PORT || 5500;
@@ -55,3 +55,4 @@ const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
 
 // We export this 'sequelize' connection to be used by all our models
 module.exports = sequelize;
+
