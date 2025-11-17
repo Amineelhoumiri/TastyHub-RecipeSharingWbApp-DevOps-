@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - develop
-    # Only run if files in these paths changed (saves CI time and money)
     paths:
       - "server/**"
       - ".github/workflows/backend-ci*.yml"
@@ -21,8 +20,6 @@ jobs:
   backend-test:
     runs-on: ubuntu-latest
 
-    # Services are external dependencies we need (like databases)
-    # GitHub Actions will start a PostgreSQL database for us to test with
     services:
       postgres:
         image: postgres:14
@@ -30,13 +27,11 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: Amine
           POSTGRES_DB: TastyHub
-        #making sure DB is ready before tests run
         options: >-
-          --health-cmd pg_isready       
-          --health-interval 10s          
-          --health-timeout 5s           
-          --health-retries 5            
-        # Expose PostgreSQL port 5500 to our test environment
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
         ports:
           - 5500:5432
 
@@ -58,38 +53,45 @@ jobs:
       - name: Set up environment variables
         working-directory: ./server
         run: |
-          # These variables are needed for the server to connect to database and run
-          echo "DB_NAME=TastyHub" >> $GITHUB_ENV                    
-          echo "DB_USER=postgres" >> $GITHUB_ENV                    
-          echo "DB_PASSWORD=Amine" >> $GITHUB_ENV               
-          echo "DB_HOST=localhost" >> $GITHUB_ENV                   
-          echo "DB_PORT=5500" >> $GITHUB_ENV                        
-          echo "JWT_SECRET=test_jwt_secret_for_ci_minimum_32_characters_long" >> $GITHUB_ENV  
-          echo "PORT=5000" >> $GITHUB_ENV                           
-          echo "FRONTEND_URL=http://localhost:3000" >> $GITHUB_ENV   
+          echo "DB_NAME=TastyHub" >> $GITHUB_ENV
+          echo "DB_USER=postgres" >> $GITHUB_ENV
+          echo "DB_PASSWORD=Amine" >> $GITHUB_ENV
+          echo "DB_HOST=localhost" >> $GITHUB_ENV
+          echo "DB_PORT=5500" >> $GITHUB_ENV
+          echo "JWT_SECRET=test_jwt_secret_for_ci_minimum_32_characters_long" >> $GITHUB_ENV
+          echo "PORT=5000" >> $GITHUB_ENV
+          echo "FRONTEND_URL=http://localhost:3000" >> $GITHUB_ENV
           echo "NODE_ENV=test" >> $GITHUB_ENV
 
-      # Running ESLint tests for code quality
       - name: Run linter
         working-directory: ./server
         run: npm run lint
 
-      # Running Jest tests
       - name: Run Jest tests
         working-directory: ./server
         run: npm test
 
-      - name: Start server in background
+      - name: Start server and wait for it to be ready
         working-directory: ./server
         run: |
-          npm start &                   
-          sleep 10                       
-          # Try to connect to server and  
-          curl --retry 5 --retry-delay 5
+          npm start &
+          SERVER_PID=$!
+          echo "Waiting for server to start..."
+          for i in {1..15}; do
+            if curl -f http://localhost:5000/api/recipes > /dev/null 2>&1; then
+              echo "Server is ready!"
+              break
+            fi
+            if [ $i -eq 15 ]; then
+              echo "Server failed to start after 30 seconds"
+              exit 1
+            fi
+            echo "Attempt $i: Server not ready yet, waiting..."
+            sleep 2
+          done
 
-      # tests full API endpoints
       - name: Run Cypress API tests
         working-directory: ./server
-        run: npm run test:api # Runs Cypress tests that hit the real API
+        run: npm run test:api
         env:
           CYPRESS_BASE_URL: http://localhost:5000
