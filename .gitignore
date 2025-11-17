@@ -32,6 +32,13 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+
+# server specific
+/server/node_modules
+/server/.env
+/server/coverage
+/server/.DS_Store
 
 # vercel
 .vercel
