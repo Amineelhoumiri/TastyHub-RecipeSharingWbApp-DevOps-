@@ -53,7 +53,7 @@ jobs:
 
       - name: Install server dependencies
         working-directory: ./server
-        run: npm ci || npm install
+        run: npm ci --include=dev
 
       - name: Set up environment variables
         working-directory: ./server
