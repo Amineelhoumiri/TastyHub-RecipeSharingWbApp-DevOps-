@@ -61,7 +61,6 @@ jobs:
           echo "JWT_SECRET=test_jwt_secret_for_ci_minimum_32_characters_long" >> $GITHUB_ENV
           echo "PORT=5000" >> $GITHUB_ENV
           echo "FRONTEND_URL=http://localhost:3000" >> $GITHUB_ENV
-          echo "NODE_ENV=test" >> $GITHUB_ENV
 
       - name: Run linter
         working-directory: ./server
@@ -70,23 +69,31 @@ jobs:
       - name: Run Jest tests
         working-directory: ./server
         run: npm test
+        # Jest script already sets NODE_ENV=test via cross-env, so no need to set it here
 
       - name: Start server and wait for it to be ready
         working-directory: ./server
         run: |
-          npm start &
+          # Start server in background and capture its output
+          npm start > server.log 2>&1 &
           SERVER_PID=$!
-          echo "Waiting for server to start..."
+          echo "Server starting (PID: $SERVER_PID)..."
+          
+          # Wait for server to be ready (check every 2 seconds, max 30 seconds)
           for i in {1..15}; do
-            if curl -f http://localhost:5000/api/recipes > /dev/null 2>&1; then
-              echo "Server is ready!"
+            if curl -f -s http://localhost:5000/api/recipes > /dev/null 2>&1; then
+              echo "✅ Server is ready and responding!"
               break
             fi
             if [ $i -eq 15 ]; then
-              echo "Server failed to start after 30 seconds"
+              echo "❌] Server failed to start after 30 seconds"
+              echo "Server logs:"
+              cat server.log || true
+              echo "Checking if process is still running..."
+              ps aux | grep node || true
               exit 1
             fi
-            echo "Attempt $i: Server not ready yet, waiting..."
+            echo "Attempt $i/15: Server not ready yet, waiting 2 seconds..."
             sleep 2
           done
 
