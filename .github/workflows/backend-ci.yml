@@ -1,0 +1,88 @@
+name: TastyHub Backend CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    # Only run if files in these paths changed (saves CI time and money)
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci*.yml"
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci*.yml"
+
+jobs:
+  backend-test:
+    runs-on: ubuntu-latest
+
+    # Services are external dependencies we need (like databases)
+    # PostgreSQL database is set up for potential integration tests (currently Jest tests use mocks)
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: Amine
+          POSTGRES_DB: TastyHub
+        #making sure DB is ready before tests run
+        options: >-
+          --health-cmd pg_isready       # Command to check if DB is ready
+          --health-interval 10s          # Check every 10 seconds
+          --health-timeout 5s            # Wait 5 seconds for response
+          --health-retries 5             # Try 5 times before giving up
+        # Expose PostgreSQL port 5500 to our test environment
+        ports:
+          - 5500:5432
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm ci --include=dev
+
+      - name: Set up environment variables
+        working-directory: ./backend
+        run: |
+          # Environment variables for Jest tests
+          echo "DB_NAME=TastyHub" >> $GITHUB_ENV                    
+          echo "DB_USER=postgres" >> $GITHUB_ENV                    
+          echo "DB_PASSWORD=Amine" >> $GITHUB_ENV               
+          echo "DB_HOST=localhost" >> $GITHUB_ENV                   
+          echo "DB_PORT=5500" >> $GITHUB_ENV                        
+          echo "JWT_SECRET=test_jwt_secret_for_ci_minimum_32_characters_long" >> $GITHUB_ENV  
+          echo "PORT=5000" >> $GITHUB_ENV                           
+          echo "FRONTEND_URL=http://localhost:3000" >> $GITHUB_ENV   
+          echo "NODE_ENV=test" >> $GITHUB_ENV
+
+      - name: Set up database schema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+          psql postgresql://postgres:Amine@localhost:5500/TastyHub -f ./backend/database/Tasty-Hub.sql
+
+      # Running ESLint tests for code quality
+      - name: Run linter
+        working-directory: ./backend
+        run: npm run lint
+
+      # Running Jest unit tests
+      - name: Run Jest unit tests
+        working-directory: ./backend
+        env:
+          NODE_ENV: test
+        run: npm run test:unit

@@ -1,5 +1,0 @@
-We went with PostgreSQL because it’s reliable, powerful, and perfect for handling complex data structures like our users, recipes, ingredients, and reviews. It supports relationships, constraints, and indexing really well — which helps keep our data clean and consistent.
-
-It’s also open-source, easy to share across different systems, and works great with tools like pgAdmin. Plus, if we ever want to scale or add advanced features (like JSON data or full-text search), PostgreSQL already has that built in.
-
-Overall, it’s just a solid, flexible database that fits both development and production needs perfectly.
