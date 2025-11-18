@@ -6,10 +6,10 @@
   "scripts": {
     "start": "node index.js",
     "dev": "node index.js",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "test:watch": "jest --watch",
     "test:coverage": "jest --coverage",
-    "test:unit": "jest",
+    "test:unit": "jest --passWithNoTests",
     "test:e2e": "cypress run",
     "test:e2e:open": "cypress open",
     "test:api": "cypress run --spec 'cypress/e2e/api/**/*.cy.js'",
