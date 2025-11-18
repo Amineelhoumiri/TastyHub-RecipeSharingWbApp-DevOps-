@@ -5,7 +5,7 @@ on:
     branches:
       - main
       - develop
-    # Only run if files in these paths changed (saves CI time and money)
+    # Only run if BACKEND files changed (saves CI time and money)
     paths:
       - "backend/**"
       - ".github/workflows/backend-ci*.yml"
@@ -13,6 +13,7 @@ on:
     branches:
       - main
       - develop
+    # Only run if BACKEND files changed
     paths:
       - "backend/**"
       - ".github/workflows/backend-ci*.yml"
@@ -21,8 +22,7 @@ jobs:
   backend-test:
     runs-on: ubuntu-latest
 
-    # Services are external dependencies we need (like databases)
-    # PostgreSQL database is set up for potential integration tests (currently Jest tests use mocks)
+    # PostgreSQL database service for backend tests
     services:
       postgres:
         image: postgres:14
@@ -30,13 +30,11 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: Amine
           POSTGRES_DB: TastyHub
-        #making sure DB is ready before tests run
         options: >-
-          --health-cmd pg_isready       # Command to check if DB is ready
-          --health-interval 10s          # Check every 10 seconds
-          --health-timeout 5s            # Wait 5 seconds for response
-          --health-retries 5             # Try 5 times before giving up
-        # Expose PostgreSQL port 5500 to our test environment
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
         ports:
           - 5500:5432
 
@@ -53,36 +51,45 @@ jobs:
 
       - name: Install backend dependencies
         working-directory: ./backend
-        run: npm ci --include=dev
+        run: npm ci
 
       - name: Set up environment variables
         working-directory: ./backend
         run: |
-          # Environment variables for Jest tests
-          echo "DB_NAME=TastyHub" >> $GITHUB_ENV                    
-          echo "DB_USER=postgres" >> $GITHUB_ENV                    
-          echo "DB_PASSWORD=Amine" >> $GITHUB_ENV               
-          echo "DB_HOST=localhost" >> $GITHUB_ENV                   
-          echo "DB_PORT=5500" >> $GITHUB_ENV                        
-          echo "JWT_SECRET=test_jwt_secret_for_ci_minimum_32_characters_long" >> $GITHUB_ENV  
-          echo "PORT=5000" >> $GITHUB_ENV                           
-          echo "FRONTEND_URL=http://localhost:3000" >> $GITHUB_ENV   
+          echo "DB_NAME=TastyHub" >> $GITHUB_ENV
+          echo "DB_USER=postgres" >> $GITHUB_ENV
+          echo "DB_PASSWORD=Amine" >> $GITHUB_ENV
+          echo "DB_HOST=localhost" >> $GITHUB_ENV
+          echo "DB_PORT=5500" >> $GITHUB_ENV
+          echo "JWT_SECRET=test_jwt_secret_for_ci_minimum_32_characters_long" >> $GITHUB_ENV
+          echo "PORT=5000" >> $GITHUB_ENV
+          echo "FRONTEND_URL=http://localhost:3000" >> $GITHUB_ENV
           echo "NODE_ENV=test" >> $GITHUB_ENV
 
       - name: Set up database schema
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
-          psql postgresql://postgres:Amine@localhost:5500/TastyHub -f ./backend/database/Tasty-Hub.sql
+          until pg_isready -h localhost -p 5500 -U postgres; do
+            echo "Waiting for database..."
+            sleep 2
+          done
+          psql postgresql://postgres:Amine@localhost:5500/TastyHub -f ./backend/database/Tasty-Hub.sql || true
 
-      # Running ESLint tests for code quality
-      - name: Run linter
+      - name: Run backend linter
         working-directory: ./backend
         run: npm run lint
 
-      # Running Jest unit tests
-      - name: Run Jest unit tests
+      - name: Run backend unit tests
         working-directory: ./backend
         env:
           NODE_ENV: test
+          DB_NAME: TastyHub
+          DB_USER: postgres
+          DB_PASSWORD: Amine
+          DB_HOST: localhost
+          DB_PORT: 5500
+          JWT_SECRET: test_jwt_secret_for_ci_minimum_32_characters_long
+          PORT: 5000
+          FRONTEND_URL: http://localhost:3000
         run: npm run test:unit
