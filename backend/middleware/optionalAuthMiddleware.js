@@ -62,7 +62,7 @@ const optionalAuthMiddleware = async (req, res, next) => {
           email: user.email
         };
       }
-    } catch (tokenError) {
+    } catch (_tokenError) {
       // Token is invalid or expired, but that's okay - just continue without req.user
       // We don't throw an error because this is optional authentication
       // The user might just be browsing without being logged in

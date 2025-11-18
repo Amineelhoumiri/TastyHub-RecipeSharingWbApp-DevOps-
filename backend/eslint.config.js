@@ -23,7 +23,7 @@ module.exports = [
       'quotes': ['error', 'single'],
       'camelcase': 'error',
       'no-mixed-spaces-and-tabs': 'error',
-      'no-unused-vars': ['error', { 'argsIgnorePattern': '^_' }],
+      'no-unused-vars': ['error', { 'argsIgnorePattern': '^_', 'varsIgnorePattern': '^_' }],
       'no-console': 'warn',
       'semi': ['error', 'always'],
       'indent': ['error', 2],

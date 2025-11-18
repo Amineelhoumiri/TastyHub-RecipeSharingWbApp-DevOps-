@@ -56,7 +56,7 @@ app.use('/api/comments', commentRoutes);
 
 // Custom error handling middleware - MUST be after all routes
 // This catches any errors thrown in our route handlers and sends a proper response
-app.use((err, req, res, next) => {
+app.use((err, req, res, _next) => {
   console.error('Error caught by middleware:', err);
 
   // If it's a validation error from Sequelize, make it more user-friendly

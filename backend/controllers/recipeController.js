@@ -1,6 +1,5 @@
 ﻿// I'll import all the models I'll need for recipes from my main models/index.js file
-const { Recipe, RecipeIngredient, RecipeStep, Tag, Review, Like, Favorite, User, sequelize } = require('../models');
-const { Op } = require('sequelize');
+const { Recipe, RecipeIngredient, RecipeStep, Review, Like, Favorite, User, sequelize } = require('../models');
 
 /**
  * @route   GET /api/recipes
@@ -554,7 +553,7 @@ exports.likeRecipe = async (req, res) => {
       // Like: create a new like and increment count
       // We use findOrCreate to handle race conditions gracefully
       // If two requests try to create a like at the same time, only one will succeed
-      const [like, created] = await Like.findOrCreate({
+      const [_like, created] = await Like.findOrCreate({
         where: {
           userId: req.user.id,
           recipeId: recipeId
