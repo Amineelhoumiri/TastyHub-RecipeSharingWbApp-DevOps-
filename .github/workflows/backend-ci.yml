@@ -94,7 +94,7 @@ jobs:
       - name: Start backend server
         working-directory: ./backend
         env:
-          NODE_ENV: test
+          NODE_ENV: ci
           DB_NAME: TastyHub
           DB_USER: postgres
           DB_PASSWORD: Amine
