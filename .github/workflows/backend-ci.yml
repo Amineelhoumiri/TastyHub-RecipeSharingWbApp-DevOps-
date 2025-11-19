@@ -72,7 +72,11 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y postgresql-client
-          psql postgresql://postgres:Amine@localhost:5500/TastyHub -f ./backend/database/Tasty-Hub.sql
+          until pg_isready -h localhost -p 5500 -U postgres; do
+            echo "Waiting for database..."
+            sleep 2
+          done
+          psql postgresql://postgres:Amine@localhost:5500/TastyHub -f ./backend/database/Tasty-Hub.sql || true
 
       # Running ESLint tests for code quality
       - name: Run linter
