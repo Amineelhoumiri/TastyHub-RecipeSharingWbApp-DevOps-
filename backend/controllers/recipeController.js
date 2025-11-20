@@ -1,5 +1,6 @@
 ﻿// I'll import all the models I'll need for recipes from my main models/index.js file
 const { Recipe, RecipeIngredient, RecipeStep, Review, Like, Favorite, User, sequelize } = require('../models');
+const { Op } = require('sequelize');
 
 /**
  * @route   GET /api/recipes
@@ -16,6 +17,9 @@ exports.getAllRecipes = async (req, res) => {
     // Default to page 1 with 20 recipes per page (reasonable defaults)
     const page = parseInt(req.query.page) || 1;
     const pageSize = parseInt(req.query.pageSize) || 20;
+    
+    // Get search parameter from query string
+    const search = req.query.search || '';
 
     // Validate pagination parameters
     // Page must be at least 1, and page size should be between 1 and 100
@@ -31,19 +35,29 @@ exports.getAllRecipes = async (req, res) => {
     // For page 1: skip 0, for page 2: skip 20, for page 3: skip 40, etc.
     const offset = (page - 1) * pageSize;
 
+    // Build where clause for search
+    const whereClause = {};
+    if (search && search.trim()) {
+      whereClause[Op.or] = [
+        { title: { [Op.iLike]: `%${search.trim()}%` } },
+        { description: { [Op.iLike]: `%${search.trim()}%` } }
+      ];
+    }
+
     // Fetch recipes with pagination, ordered by most recent first
     // This gives users the newest recipes first, which is usually what they want
     let recipes;
     let totalCount;
 
     try {
-      // Get total count of recipes for pagination metadata
+      // Get total count of recipes for pagination metadata (with search filter)
       // This helps the frontend know how many pages are available
-      totalCount = await Recipe.count();
+      totalCount = await Recipe.count({ where: whereClause });
 
       // Fetch only the recipes for the current page
       // We use limit and offset to get just the recipes we need
       recipes = await Recipe.findAll({
+        where: whereClause,   // Add search filter
         limit: pageSize,      // Maximum number of recipes to return
         offset: offset,        // Number of recipes to skip
         order: [['createdAt', 'DESC']] // Newest recipes first
