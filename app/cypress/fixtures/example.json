@@ -1,0 +1,15 @@
+{
+  "testUser": {
+    "username": "testuser",
+    "email": "test@example.com",
+    "password": "test1234"
+  },
+  "testRecipe": {
+    "title": "Test Recipe",
+    "description": "This is a test recipe for E2E testing",
+    "prepTime": 15,
+    "cookTime": 30,
+    "servings": 4
+  }
+}
+

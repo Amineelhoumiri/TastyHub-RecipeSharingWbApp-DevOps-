@@ -56,8 +56,16 @@ Import `backend/database/Tasty-Hub.sql` into PostgreSQL. See `backend/README.md`
 - Seeds database schema
 - Runs ESLint
 - Runs Jest unit tests
+- Runs Cypress API tests
 
-**Note:** Cypress API tests run locally (`npm run test:api` in backend). E2E tests will be added to frontend pipeline.
+### Frontend Pipeline
+
+`.github/workflows/frontend-ci.yml` runs on push/PR to `main` or `develop`:
+
+- Installs dependencies
+- Runs ESLint
+- Runs Jest unit tests with coverage
+- Builds Next.js application
 
 ## Testing
 
@@ -74,8 +82,42 @@ npm run lint          # ESLint
 
 ```bash
 cd frontend
+npm test              # Jest unit tests
+npm run test:watch    # Watch mode
+npm run test:coverage # Coverage report
 npm run lint          # ESLint
 ```
+
+Or from root:
+```bash
+npm run test:frontend
+npm run test:frontend:watch
+npm run test:frontend:coverage
+```
+
+### Frontend E2E Tests
+
+We use Cypress for end-to-end testing of the frontend. See `cypress/README.md` for detailed testing documentation.
+
+**Quick Start:**
+```bash
+# Make sure both servers are running first!
+# Backend: cd backend && npm run dev
+# Frontend: cd frontend && npm run dev
+
+# Then run tests from root
+npm run test:e2e:open  # Interactive mode
+npm run test:e2e       # Headless mode
+```
+
+**Test Coverage:**
+- Home page navigation and content
+- User login and registration
+- Recipes listing and detail pages
+- Navigation between pages
+- Authentication state management
+
+See `frontend/TESTING.md` for detailed frontend testing documentation.
 
 ## Branch Strategy
 
@@ -88,10 +130,10 @@ npm run lint          # ESLint
 
 ## Technology Stack
 
-- **Frontend:** Next.js 16, React 19, Tailwind CSS
+- **Frontend:** Next.js 14, React 18, Tailwind CSS
 - **Backend:** Node.js, Express.js, Sequelize ORM
 - **Database:** PostgreSQL 14
-- **Testing:** Jest (unit), Cypress (E2E/API)
+- **Testing:** Jest (unit), Cypress (E2E/API), React Testing Library
 - **CI/CD:** GitHub Actions
 - **Code Quality:** ESLint, Prettier
 
@@ -100,7 +142,12 @@ npm run lint          # ESLint
 ```
 ├── frontend/
 │   ├── app/              # Next.js app router
+│   │   ├── lib/          # API utilities
+│   │   ├── login/        # Login page
+│   │   ├── register/     # Registration page
+│   │   └── recipes/      # Recipe pages
 │   ├── public/           # Static assets
+│   ├── __tests__/        # Unit tests
 │   └── package.json
 ├── backend/
 │   ├── controllers/      # Request handlers
@@ -118,8 +165,8 @@ npm run lint          # ESLint
 ## Documentation
 
 - [Backend API Documentation](backend/README.md)
+- [Frontend Testing Guide](frontend/TESTING.md)
 - Database schema: `backend/database/Tasty-Hub.sql`
-- ER diagram: `backend/database/ER DIAGRAM.jpg`
 
 ## Contributing
 

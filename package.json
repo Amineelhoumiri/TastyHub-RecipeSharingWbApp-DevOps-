@@ -9,6 +9,15 @@
     "lint": "npm run lint --prefix frontend",
     "dev:backend": "npm run dev --prefix backend",
     "lint:backend": "npm run lint --prefix backend",
-    "test:backend": "npm test --prefix backend"
+    "test:backend": "npm test --prefix backend",
+    "test:frontend": "npm test --prefix frontend",
+    "test:frontend:watch": "npm run test:watch --prefix frontend",
+    "test:frontend:coverage": "npm run test:coverage --prefix frontend",
+    "test:e2e": "node cypress/scripts/check-servers.js && cypress run --spec 'cypress/e2e/**/*.cy.js'",
+    "test:e2e:open": "cypress open",
+    "test:all": "npm run test:backend && npm run test:frontend && npm run test:e2e"
+  },
+  "devDependencies": {
+    "cypress": "^13.6.0"
   }
 }

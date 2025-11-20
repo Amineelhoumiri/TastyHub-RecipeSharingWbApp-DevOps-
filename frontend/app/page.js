@@ -1,6 +1,36 @@
-import Link from "next/link";
+'use client';
+// Home page - displays featured recipes from the API
+// Shows the first few recipes to entice users to explore more
+
+import { useEffect, useState } from 'react';
+import Link from 'next/link';
+import { api } from './lib/api';
 
 export default function Home() {
+  const [recipes, setRecipes] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  // Fetch featured recipes when the page loads
+  useEffect(() => {
+    fetchFeaturedRecipes();
+  }, []);
+
+  // Get the first 3 recipes to display as featured
+  const fetchFeaturedRecipes = async () => {
+    try {
+      setLoading(true);
+      const allRecipes = await api.getRecipes();
+      // Get first 3 recipes
+      setRecipes(Array.isArray(allRecipes) ? allRecipes.slice(0, 3) : []);
+    } catch (err) {
+      console.error('Error fetching recipes:', err);
+      setError('Failed to load recipes. Please try again later.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <main className="min-h-screen flex flex-col bg-gradient-to-b from-orange-50 to-white">
       {/* Navbar */}
@@ -25,12 +55,14 @@ export default function Home() {
         <div className="flex gap-4">
           <Link
             href="/recipes"
-            className="px-6 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition">
+            className="px-6 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition"
+          >
             Browse Recipes
           </Link>
           <Link
             href="/register"
-            className="px-6 py-3 border border-orange-500 text-orange-500 rounded-xl hover:bg-orange-50 transition">
+            className="px-6 py-3 border border-orange-500 text-orange-500 rounded-xl hover:bg-orange-50 transition"
+          >
             Join Now
           </Link>
         </div>
@@ -39,31 +71,54 @@ export default function Home() {
       {/* Featured Recipes */}
       <section className="px-8 py-12 bg-white">
         <h3 className="text-3xl font-bold text-center text-gray-800 mb-8">Featured Recipes</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {/* Recipe Card 1 */}
-          <div className="bg-orange-50 rounded-2xl p-4 shadow hover:shadow-lg transition">
-            <img src="https://betterhomebase.com/wp-content/uploads/2025/06/One-Pot-Creamy-Garlic-Pasta.webp" alt="Pasta" className="rounded-xl mb-4 w-full h-48 object-cover" />
-            <h4 className="text-xl font-semibold text-gray-800 mb-2">Creamy Garlic Pasta</h4>
-            <p className="text-gray-600 text-sm mb-3">A delicious creamy pasta recipe topped with parmesan and herbs.</p>
-            <button className="text-orange-600 font-medium hover:underline">View Recipe →</button>
+        {loading ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600">Loading recipes...</p>
           </div>
-
-          {/* Recipe Card 2 */}
-          <div className="bg-orange-50 rounded-2xl p-4 shadow hover:shadow-lg transition">
-            <img src="https://www.recipetineats.com/tachyon/2021/08/Garden-Salad_48.jpg?resize=900%2C1260&zoom=1" alt="Salad" className="rounded-xl mb-4 w-full h-48 object-cover" />
-            <h4 className="text-xl font-semibold text-gray-800 mb-2">Fresh Garden Salad</h4>
-            <p className="text-gray-600 text-sm mb-3">A light and healthy salad with fresh vegetables and dressing.</p>
-            <button className="text-orange-600 font-medium hover:underline">View Recipe →</button>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-red-600">{error}</p>
           </div>
-
-          {/* Recipe Card 3 */}
-          <div className="bg-orange-50 rounded-2xl p-4 shadow hover:shadow-lg transition">
-            <img src="https://eightforestlane.com/wp-content/uploads/2020/02/Chocolate-Lava-Cakes_SQ-1.jpg" alt="Dessert" className="rounded-xl mb-4 w-full h-48 object-cover" />
-            <h4 className="text-xl font-semibold text-gray-800 mb-2">Chocolate Lava Cake</h4>
-            <p className="text-gray-600 text-sm mb-3">Rich and gooey chocolate cake with a molten center.</p>
-            <button className="text-orange-600 font-medium hover:underline">View Recipe →</button>
+        ) : recipes.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-gray-600">No recipes available yet. Be the first to share one!</p>
           </div>
-        </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
+            {recipes.map((recipe) => (
+              <div
+                key={recipe.id}
+                className="bg-orange-50 rounded-2xl p-4 shadow hover:shadow-lg transition"
+              >
+                <img
+                  src={recipe.image_url || '/placeholder-recipe.jpg'}
+                  alt={recipe.title}
+                  className="rounded-xl mb-4 w-full h-48 object-cover"
+                  onError={(e) => {
+                    // Fallback to a placeholder if image fails to load
+                    e.target.src = '/placeholder-recipe.jpg';
+                  }}
+                />
+                <h4 className="text-xl font-semibold text-gray-800 mb-2">{recipe.title}</h4>
+                <p className="text-gray-600 text-sm mb-3 line-clamp-2">
+                  {recipe.description || 'A delicious recipe waiting for you to try!'}
+                </p>
+                <div className="flex items-center justify-between">
+                  <Link
+                    href={`/recipes/${recipe.id}`}
+                    className="text-orange-600 font-medium hover:underline"
+                  >
+                    View Recipe →
+                  </Link>
+                  <div className="flex gap-3 text-sm text-gray-500">
+                    <span>⭐ {recipe.average_rating || 0}</span>
+                    <span>👤 {recipe.username || 'Unknown'}</span>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </section>
 
       {/* Call to Action */}
@@ -74,7 +129,8 @@ export default function Home() {
         </p>
         <Link
           href="/register"
-          className="px-8 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition">
+          className="inline-block px-8 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition"
+        >
           Sign Up Now
         </Link>
       </section>

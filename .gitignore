@@ -13,11 +13,22 @@ node_modules/
 
 # testing
 /coverage
+frontend/coverage
+backend/coverage
+
+# cypress
+cypress/videos/
+cypress/screenshots/
+cypress/downloads/
+**/cypress/videos/
+**/cypress/screenshots/
+**/cypress/downloads/
 
 # next.js (build artifacts)
 /frontend/.next/
 /frontend/out/
-
+/.next/
+/out/
 
 # production
 /build
