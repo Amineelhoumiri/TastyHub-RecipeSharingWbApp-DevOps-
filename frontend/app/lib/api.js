@@ -1,7 +1,6 @@
-// API utility for connecting to backend Express server
+// API utilities for backend communication
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
-// Helper function to get auth token from localStorage
 const getAuthToken = () => {
   if (typeof window !== 'undefined') {
     return localStorage.getItem('token');
@@ -9,7 +8,6 @@ const getAuthToken = () => {
   return null;
 };
 
-// Helper function to get headers with authentication
 const getHeaders = (includeAuth = false) => {
   const headers = {
     'Content-Type': 'application/json',
@@ -26,7 +24,6 @@ const getHeaders = (includeAuth = false) => {
 };
 
 export const api = {
-  // Recipes
   getRecipes: async (search = '', tag = '') => {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
@@ -34,12 +31,12 @@ export const api = {
     
     const url = `${API_BASE_URL}/api/recipes${params.toString() ? '?' + params.toString() : ''}`;
     const response = await fetch(url, {
-      headers: getHeaders(true), // Include auth token if available
+      headers: getHeaders(true),
     });
     if (!response.ok) throw new Error('Failed to fetch recipes');
     const data = await response.json();
-    // Backend returns { recipes: [...], ... }, extract recipes array
-    // Also map field names to match frontend expectations
+    
+    // Transform backend response to match frontend format
     if (data.recipes && Array.isArray(data.recipes)) {
       return data.recipes.map(recipe => ({
         id: recipe.id,
@@ -58,17 +55,16 @@ export const api = {
         tags: recipe.tags || []
       }));
     }
-    // Fallback: if response is already an array, return it
     return Array.isArray(data) ? data : [];
   },
 
   getRecipe: async (id) => {
     const response = await fetch(`${API_BASE_URL}/api/recipes/${id}`, {
-      headers: getHeaders(true), // Include auth token if available
+      headers: getHeaders(true),
     });
     if (!response.ok) throw new Error('Failed to fetch recipe');
     const data = await response.json();
-    // Backend returns { recipe: {...}, ... }, extract recipe object
+    
     if (data.recipe) {
       const recipe = data.recipe;
       return {
@@ -106,21 +102,18 @@ export const api = {
   createRecipe: async (recipeData) => {
     const response = await fetch(`${API_BASE_URL}/api/recipes`, {
       method: 'POST',
-      headers: getHeaders(true), // Requires authentication
+      headers: getHeaders(true),
       body: JSON.stringify(recipeData),
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || data.error || 'Failed to create recipe');
     
-    // Ensure recipe ID is accessible (handle Sequelize model format)
+    // Handle Sequelize model format
     if (data.recipe) {
-      // Sequelize models can have id directly or in dataValues
-      // Also handle if it's already a plain object
       if (!data.recipe.id) {
         if (data.recipe.dataValues && data.recipe.dataValues.id) {
           data.recipe.id = data.recipe.dataValues.id;
         } else if (data.recipe.get && typeof data.recipe.get === 'function') {
-          // If it's a Sequelize instance, try to get the id
           try {
             data.recipe.id = data.recipe.get('id') || data.recipe.id;
           } catch (e) {
@@ -129,7 +122,6 @@ export const api = {
         }
       }
       
-      // Ensure we have a valid UUID string
       if (data.recipe.id && typeof data.recipe.id !== 'string') {
         data.recipe.id = String(data.recipe.id);
       }
@@ -138,7 +130,6 @@ export const api = {
     return data;
   },
 
-  // Authentication
   register: async (username, email, password) => {
     const response = await fetch(`${API_BASE_URL}/api/users/register`, {
       method: 'POST',
@@ -161,11 +152,10 @@ export const api = {
     return data;
   },
 
-  // Recipe interactions
   likeRecipe: async (recipeId) => {
     const response = await fetch(`${API_BASE_URL}/api/recipes/${recipeId}/like`, {
       method: 'POST',
-      headers: getHeaders(true), // Requires authentication
+      headers: getHeaders(true),
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || data.error || 'Failed to like recipe');
@@ -175,7 +165,7 @@ export const api = {
   createComment: async (recipeId, comment, rating = null) => {
     const response = await fetch(`${API_BASE_URL}/api/recipes/${recipeId}/comments`, {
       method: 'POST',
-      headers: getHeaders(true), // Requires authentication
+      headers: getHeaders(true),
       body: JSON.stringify({ comment, rating }),
     });
     const data = await response.json();
@@ -183,4 +173,3 @@ export const api = {
     return data;
   },
 };
-

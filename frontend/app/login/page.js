@@ -1,4 +1,4 @@
-// app/login/page.js
+// Login page
 'use client';
 import Link from "next/link";
 import { useState, useEffect } from "react";
@@ -21,14 +21,12 @@ export default function LoginPage() {
 
     try {
       const data = await api.login(email, password);
-      // Store user data and token in localStorage
       if (data.token) {
         localStorage.setItem('token', data.token);
       }
       if (data.user) {
         localStorage.setItem('user', JSON.stringify(data.user));
       }
-      // Redirect to the page they were trying to access, or recipes page
       router.push(redirectTo);
     } catch (err) {
       setError(err.message || 'An error occurred during login');
@@ -57,10 +55,12 @@ export default function LoginPage() {
         )}
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
-          {/* Email */}
           <div>
-            <label className="block mb-1 font-medium text-gray-700">Email</label>
+            <label htmlFor="email" className="block mb-1 font-medium text-gray-700">
+              Email
+            </label>
             <input
+              id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -70,10 +70,12 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Password */}
           <div>
-            <label className="block mb-1 font-medium text-gray-700">Password</label>
+            <label htmlFor="password" className="block mb-1 font-medium text-gray-700">
+              Password
+            </label>
             <input
+              id="password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -83,7 +85,6 @@ export default function LoginPage() {
             />
           </div>
 
-          {/* Login Button */}
           <button
             type="submit"
             disabled={loading}
@@ -93,9 +94,8 @@ export default function LoginPage() {
           </button>
         </form>
 
-        {/* Extra Links */}
         <p className="text-center text-gray-600 mt-4">
-          Don't have an account?{" "}
+          Don&apos;t have an account?{" "}
           <Link href="/register" className="text-orange-600 font-medium hover:underline">
             Register
           </Link>

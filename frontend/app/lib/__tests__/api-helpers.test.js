@@ -133,5 +133,3 @@ describe('API Helper Functions', () => {
   });
 });
 
-
-

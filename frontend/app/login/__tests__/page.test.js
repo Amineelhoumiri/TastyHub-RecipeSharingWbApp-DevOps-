@@ -25,6 +25,10 @@ describe('LoginPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     localStorage.clear();
+    // Mock localStorage methods
+    Storage.prototype.setItem = jest.fn();
+    Storage.prototype.getItem = jest.fn();
+    Storage.prototype.removeItem = jest.fn();
   });
 
   it('should render login form', () => {
@@ -126,4 +130,3 @@ describe('LoginPage', () => {
     expect(passwordInput).toBeRequired();
   });
 });
-
