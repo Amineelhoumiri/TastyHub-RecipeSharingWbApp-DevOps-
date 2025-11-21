@@ -245,6 +245,49 @@ exports.getUserProfile = async (req, res) => {
 };
 
 /**
+ * @route   GET /api/users/:userId
+ * @desc    Get a user's public profile by ID
+ * @access  Public (no authentication required)
+ */
+exports.getUserById = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    console.log('Fetching user profile for:', userId);
+
+    if (!userId) {
+      return res.status(400).json({ message: 'User ID is required' });
+    }
+
+    // Only return public info - no password or email
+    const user = await User.findByPk(userId, {
+      attributes: { exclude: ['password', 'email'] }
+    });
+
+    if (!user) {
+      console.log('User not found:', userId);
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    console.log('Found user:', user.username);
+    res.json({
+      message: 'User profile fetched successfully',
+      user: {
+        id: user.id,
+        username: user.username,
+        profilePicture: user.profilePicture,
+        createdAt: user.createdAt
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+    res.status(500).json({ 
+      message: 'Server error while fetching user profile',
+      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    });
+  }
+};
+
+/**
  * @route   PUT /api/users/profile
  * @desc    Update the logged-in user's profile
  * @access  Private (requires authentication)
@@ -329,17 +372,45 @@ exports.updateUserProfile = async (req, res) => {
  * @route   PUT /api/users/profile/picture
  * @desc   Upload or update profile picture
  * @access  Private (requires authentication)
- *
- * Note: This endpoint is a placeholder for future implementation.
- * To implement file uploads, you'll need:
- * - A library like 'multer' to handle multipart/form-data
- * - Cloud storage service (Cloudinary, AWS S3, etc.) for image hosting
- * - Update the user's profilePicture field with the uploaded image URL
  */
-exports.updateProfilePicture = (req, res) => {
-  res.status(501).json({
-    message: 'Profile picture upload is not yet implemented'
-  });
+exports.updateProfilePicture = async (req, res) => {
+  try {
+    // Make sure a file was actually uploaded
+    if (!req.file) {
+      return res.status(400).json({
+        message: 'No file uploaded. Please select an image file.'
+      });
+    }
+
+    // Grab the filename and user ID
+    const filename = req.file.filename;
+    const userId = req.user.id;
+
+    // Build the URL where the image will be accessible
+    const baseUrl = process.env.BASE_URL || 'http://localhost:5000';
+    const profilePictureUrl = `${baseUrl}/uploads/profile-pictures/${filename}`;
+
+    // Save the new profile picture URL to the user's record
+    const user = await User.findByPk(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+
+    // TODO: Could clean up old profile pictures here to save disk space
+    await user.update({ profilePicture: profilePictureUrl });
+
+    res.json({
+      message: 'Profile picture uploaded successfully',
+      profilePicture: profilePictureUrl,
+      profile_picture: profilePictureUrl // Return both formats for compatibility
+    });
+  } catch (error) {
+    console.error('Error uploading profile picture:', error);
+    res.status(500).json({
+      message: 'Server error while uploading profile picture',
+      error: error.message
+    });
+  }
 };
 
 /**

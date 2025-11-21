@@ -3,6 +3,7 @@
 require('dotenv').config();
 
 const express = require('express');
+const multer = require('multer');
 const app = express();
 const PORT = process.env.PORT || 5000; // Use environment variable for port if available
 
@@ -53,15 +54,42 @@ try {
   process.exit(1);
 }
 
-// --- 3. USE ROUTES ---
+// --- 3. STATIC FILE SERVING ---
+// Make uploaded images accessible via URL
+const path = require('path');
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// --- 4. USE ROUTES ---
 app.use('/api/users', userRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/comments', commentRoutes);
+
+// Catch any requests that don't match our routes
+// Return JSON for API calls, plain text for everything else
+app.use((req, res) => {
+  if (req.path.startsWith('/api/')) {
+    res.status(404).json({
+      message: 'API endpoint not found',
+      path: req.path,
+      method: req.method
+    });
+  } else {
+    res.status(404).send('Page not found');
+  }
+});
 
 // Custom error handling middleware - MUST be after all routes
 // This catches any errors thrown in our route handlers and sends a proper response
 app.use((err, req, res, _next) => {
   console.error('Error caught by middleware:', err);
+
+  // Handle multer errors
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ message: 'File size too large. Maximum size is 5MB.' });
+    }
+    return res.status(400).json({ message: err.message });
+  }
 
   // If it's a validation error from Sequelize, make it more user-friendly
   if (err.name === 'SequelizeValidationError') {
