@@ -11,13 +11,13 @@ jest.mock('../../lib/api', () => ({
 }));
 
 // Mock Navbar and Footer components
-jest.mock('../../components/Navbar', () => {
+jest.mock('../components/Navbar', () => {
   return function Navbar() {
     return <nav>Navbar</nav>;
   };
 });
 
-jest.mock('../../components/Footer', () => {
+jest.mock('../components/Footer', () => {
   return function Footer() {
     return <footer>Footer</footer>;
   };
