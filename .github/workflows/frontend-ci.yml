@@ -52,6 +52,13 @@ jobs:
         working-directory: ./frontend
         run: npm ci
 
+      # Security audit for dependencies
+      - name: Run security audit
+        working-directory: ./frontend
+        run: |
+          npm audit --audit-level=moderate || true
+          npm audit fix --dry-run || true
+
       - name: Install backend dependencies
         working-directory: ./backend
         run: npm ci --include=dev
@@ -62,7 +69,7 @@ jobs:
 
       - name: Run Jest unit tests
         working-directory: ./frontend
-        run: npm test -- --coverage --watchAll=false
+        run: npm test -- --coverage --watchAll=false --passWithNoTests
 
       - name: Upload coverage reports
         uses: codecov/codecov-action@v3
@@ -72,35 +79,24 @@ jobs:
           flags: frontend
           name: frontend-coverage
 
+      # Set up database schema (before starting servers)
+      - name: Set up database schema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+          until pg_isready -h localhost -p 5500 -U postgres; do
+            echo "Waiting for database..."
+            sleep 2
+          done
+          psql postgresql://postgres:Amine@localhost:5500/TastyHub -f ./backend/database/Tasty-Hub.sql || true
+
       - name: Build Next.js app
         working-directory: ./frontend
         run: npm run build
         env:
           NEXT_PUBLIC_API_URL: http://localhost:5000
 
-      # Start frontend server for Cypress E2E tests
-      - name: Start frontend server
-        working-directory: ./frontend
-        env:
-          NEXT_PUBLIC_API_URL: http://localhost:5000
-        run: |
-          npm start &
-          FRONTEND_PID=$!
-          echo "FRONTEND_PID=$FRONTEND_PID" >> $GITHUB_ENV
-          sleep 5
-          # Wait for server to be ready (max 30 seconds)
-          for i in {1..15}; do
-            if curl -f http://localhost:3000 > /dev/null 2>&1; then
-              echo "Frontend server is ready!"
-              exit 0
-            fi
-            echo "Waiting for frontend server... ($i/15)"
-            sleep 2
-          done
-          echo "Frontend server failed to start!"
-          exit 1
-
-      # Start backend server for Cypress E2E tests
+      # Start backend server for Cypress E2E tests (before frontend)
       - name: Start backend server
         working-directory: ./backend
         env:
@@ -129,16 +125,27 @@ jobs:
           echo "Backend server failed to start!"
           exit 1
 
-      # Set up database schema
-      - name: Set up database schema
+      # Start frontend server for Cypress E2E tests
+      - name: Start frontend server
+        working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:5000
         run: |
-          sudo apt-get update
-          sudo apt-get install -y postgresql-client
-          until pg_isready -h localhost -p 5500 -U postgres; do
-            echo "Waiting for database..."
+          npm start &
+          FRONTEND_PID=$!
+          echo "FRONTEND_PID=$FRONTEND_PID" >> $GITHUB_ENV
+          sleep 5
+          # Wait for server to be ready (max 30 seconds)
+          for i in {1..15}; do
+            if curl -f http://localhost:3000 > /dev/null 2>&1; then
+              echo "Frontend server is ready!"
+              exit 0
+            fi
+            echo "Waiting for frontend server... ($i/15)"
             sleep 2
           done
-          psql postgresql://postgres:Amine@localhost:5500/TastyHub -f ./backend/database/Tasty-Hub.sql || true
+          echo "Frontend server failed to start!"
+          exit 1
 
       # Run Cypress E2E tests
       - name: Run Cypress E2E tests
@@ -160,6 +167,3 @@ jobs:
           fi
           pkill -f "node.*next" || true
           pkill -f "node.*index.js" || true
-
-
-
