@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import LoginPage from '../page';
 import { api } from '../../lib/api';
@@ -10,9 +10,18 @@ jest.mock('../../lib/api', () => ({
   },
 }));
 
-// Mock Navbar and Footer components (virtual mocks so Jest won't try to resolve the real files)
-jest.mock('../../components/Navbar', () => ({ __esModule: true, default: () => 'Navbar' }), { virtual: true });
-jest.mock('../../components/Footer', () => ({ __esModule: true, default: () => 'Footer' }), { virtual: true });
+// Mock Navbar and Footer components
+jest.mock('../../components/Navbar', () => {
+  return function Navbar() {
+    return <nav>Navbar</nav>;
+  };
+});
+
+jest.mock('../../components/Footer', () => {
+  return function Footer() {
+    return <footer>Footer</footer>;
+  };
+});
 
 // Mock next/navigation
 const mockPush = jest.fn();
@@ -65,9 +74,14 @@ describe('LoginPage', () => {
     const passwordInput = screen.getByLabelText('Password');
     const submitButton = screen.getByRole('button', { name: /login/i });
 
-    await user.type(emailInput, 'test@example.com');
-    await user.type(passwordInput, 'wrongpassword');
-    await user.click(submitButton);
+    await act(async () => {
+      await user.type(emailInput, 'test@example.com');
+      await user.type(passwordInput, 'wrongpassword');
+    });
+
+    await act(async () => {
+      await user.click(submitButton);
+    });
 
     await waitFor(() => {
       expect(screen.getByText('Invalid credentials')).toBeInTheDocument();
@@ -92,9 +106,14 @@ describe('LoginPage', () => {
     const passwordInput = screen.getByLabelText('Password');
     const submitButton = screen.getByRole('button', { name: /login/i });
 
-    await user.type(emailInput, 'test@example.com');
-    await user.type(passwordInput, 'password123');
-    await user.click(submitButton);
+    await act(async () => {
+      await user.type(emailInput, 'test@example.com');
+      await user.type(passwordInput, 'password123');
+    });
+
+    await act(async () => {
+      await user.click(submitButton);
+    });
 
     await waitFor(() => {
       expect(api.login).toHaveBeenCalledWith('test@example.com', 'password123');
@@ -123,11 +142,19 @@ describe('LoginPage', () => {
     const passwordInput = screen.getByLabelText('Password');
     const submitButton = screen.getByRole('button', { name: /login/i });
 
-    await user.type(emailInput, 'test@example.com');
-    await user.type(passwordInput, 'password123');
-    await user.click(submitButton);
+    await act(async () => {
+      await user.type(emailInput, 'test@example.com');
+      await user.type(passwordInput, 'password123');
+    });
 
-    expect(screen.getByText('Logging in...')).toBeInTheDocument();
+    await act(async () => {
+      await user.click(submitButton);
+    });
+
+    await waitFor(() => {
+      expect(screen.getByText('Logging in...')).toBeInTheDocument();
+    });
+
     expect(submitButton).toBeDisabled();
   });
 
@@ -157,3 +184,4 @@ describe('LoginPage', () => {
     expect(passwordInput).toBeRequired();
   });
 });
+
