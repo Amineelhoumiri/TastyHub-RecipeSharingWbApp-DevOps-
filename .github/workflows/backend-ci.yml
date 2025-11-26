@@ -55,6 +55,13 @@ jobs:
         working-directory: ./backend
         run: npm ci --include=dev
 
+      # Security audit for dependencies
+      - name: Run security audit
+        working-directory: ./backend
+        run: |
+          npm audit --audit-level=moderate || true
+          npm audit fix --dry-run || true
+
       - name: Set up environment variables
         working-directory: ./backend
         run: |
