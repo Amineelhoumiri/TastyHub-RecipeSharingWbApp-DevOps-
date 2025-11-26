@@ -64,12 +64,11 @@ const logger = winston.createLogger({
   ]
 });
 
-// Add console transport for non-production environments
-if (!isProduction) {
-  logger.add(new winston.transports.Console({
-    format: consoleFormat
-  }));
-}
+// Add console transport for all environments (needed for Railway/cloud platforms)
+// Cloud platforms capture logs from stdout/stderr
+logger.add(new winston.transports.Console({
+  format: isProduction ? winston.format.simple() : consoleFormat
+}));
 
 // Express middleware for request logging
 const requestLogger = (req, res, next) => {

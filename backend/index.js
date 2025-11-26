@@ -202,20 +202,33 @@ module.exports = app;
 if (process.env.NODE_ENV !== 'test') {
   const startServer = async () => {
     try {
+      // Log database connection attempt with config (without password)
+      console.log('Attempting to connect to database...');
+      console.log('DB_HOST:', process.env.DB_HOST);
+      console.log('DB_PORT:', process.env.DB_PORT);
+      console.log('DB_NAME:', process.env.DB_NAME);
+      console.log('DB_USER:', process.env.DB_USER);
+      
       await sequelize.authenticate();
       logger.info('Database connection established successfully');
+      console.log('✅ Database connection established successfully');
 
       app.listen(PORT, () => {
         logger.info(`Server is live and running on http://localhost:${PORT}`, {
           port: PORT,
           environment: process.env.NODE_ENV || 'development'
         });
+        console.log(`✅ Server is live and running on port ${PORT}`);
       });
     } catch (error) {
       logger.error('Unable to connect to the database', {
         error: error.message,
         stack: error.stack
       });
+      console.error('❌ Unable to connect to the database:', error.message);
+      console.error('Full error:', error);
+      // Exit with error code so Railway knows it failed
+      process.exit(1);
     }
   };
 
