@@ -13,7 +13,7 @@
     "test:frontend": "npm test --prefix frontend",
     "test:frontend:watch": "npm run test:watch --prefix frontend",
     "test:frontend:coverage": "npm run test:coverage --prefix frontend",
-    "test:e2e": "node cypress/scripts/check-servers.js && cypress run --spec 'cypress/e2e/**/*.cy.js'",
+    "test:e2e": "node frontend/cypress/scripts/check-servers.js && cypress run --config-file frontend/cypress.config.js --spec 'frontend/cypress/e2e/**/*.cy.js'",
     "test:e2e:open": "cypress open",
     "test:all": "npm run test:backend && npm run test:frontend && npm run test:e2e"
   },
