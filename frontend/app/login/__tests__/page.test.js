@@ -10,18 +10,9 @@ jest.mock('../../lib/api', () => ({
   },
 }));
 
-// Mock Navbar and Footer components
-jest.mock('../../components/Navbar', () => {
-  return function Navbar() {
-    return <nav>Navbar</nav>;
-  };
-});
-
-jest.mock('../../components/Footer', () => {
-  return function Footer() {
-    return <footer>Footer</footer>;
-  };
-});
+// Mock Navbar and Footer components (virtual mocks so Jest won't try to resolve the real files)
+jest.mock('../../components/Navbar', () => ({ __esModule: true, default: () => 'Navbar' }), { virtual: true });
+jest.mock('../../components/Footer', () => ({ __esModule: true, default: () => 'Footer' }), { virtual: true });
 
 // Mock next/navigation
 const mockPush = jest.fn();
@@ -166,4 +157,3 @@ describe('LoginPage', () => {
     expect(passwordInput).toBeRequired();
   });
 });
-
