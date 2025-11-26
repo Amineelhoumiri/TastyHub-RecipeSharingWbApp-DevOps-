@@ -17,8 +17,19 @@ describe('Login Page', () => {
     cy.get('input[type="password"]').type('wrongpassword');
     cy.get('button[type="submit"]').click();
     
-    // Wait for error message
-    cy.contains('error', { matchCase: false }).should('be.visible');
+    // Wait for error message - check for error element with role="alert"
+    // The error message will be either from the API or a generic "Login failed" message
+    cy.get('[role="alert"]', { timeout: 10000 }).should('be.visible');
+    // Verify it contains some error-related text
+    cy.get('[role="alert"]').then(($el) => {
+      const text = $el.text().toLowerCase();
+      expect(text).to.satisfy((txt) => 
+        txt.includes('login failed') || 
+        txt.includes('invalid') || 
+        txt.includes('error') ||
+        txt.includes('credentials')
+      );
+    });
   });
 
   it('should navigate to register page from link', () => {

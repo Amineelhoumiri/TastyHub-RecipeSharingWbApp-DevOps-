@@ -6,7 +6,7 @@ describe('Register Page', () => {
   });
 
   it('should display registration form', () => {
-    cy.contains('Create Account').should('be.visible');
+    cy.contains('Create your account').should('be.visible');
     cy.get('input').should('have.length.at.least', 3); // username, email, password fields
   });
 
