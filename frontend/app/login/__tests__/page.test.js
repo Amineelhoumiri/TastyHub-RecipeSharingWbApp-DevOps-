@@ -10,27 +10,51 @@ jest.mock('../../lib/api', () => ({
   },
 }));
 
+// Mock Navbar and Footer components
+jest.mock('../../components/Navbar', () => {
+  return function Navbar() {
+    return <nav>Navbar</nav>;
+  };
+});
+
+jest.mock('../../components/Footer', () => {
+  return function Footer() {
+    return <footer>Footer</footer>;
+  };
+});
+
 // Mock next/navigation
 const mockPush = jest.fn();
+const mockPathname = jest.fn(() => '/');
+const mockGet = jest.fn(() => null);
 jest.mock('next/navigation', () => ({
   useRouter: () => ({
     push: mockPush,
   }),
   useSearchParams: () => ({
-    get: jest.fn(() => null),
+    get: mockGet,
   }),
+  usePathname: () => mockPathname(),
 }));
 
 describe('LoginPage', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGet.mockReturnValue(null);
     localStorage.clear();
+    // Mock localStorage methods
+    Storage.prototype.setItem = jest.fn();
+    Storage.prototype.getItem = jest.fn();
+    Storage.prototype.removeItem = jest.fn();
   });
 
-  it('should render login form', () => {
+  it('should render login form', async () => {
     render(<LoginPage />);
 
-    expect(screen.getByText('Login to TastyHub')).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByText('Login to TastyHub')).toBeInTheDocument();
+    });
+
     expect(screen.getByLabelText('Email')).toBeInTheDocument();
     expect(screen.getByLabelText('Password')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /login/i })).toBeInTheDocument();
@@ -41,6 +65,10 @@ describe('LoginPage', () => {
     api.login.mockRejectedValueOnce(new Error('Invalid credentials'));
 
     render(<LoginPage />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Email')).toBeInTheDocument();
+    });
 
     const emailInput = screen.getByLabelText('Email');
     const passwordInput = screen.getByLabelText('Password');
@@ -64,6 +92,10 @@ describe('LoginPage', () => {
     api.login.mockResolvedValueOnce(mockResponse);
 
     render(<LoginPage />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Email')).toBeInTheDocument();
+    });
 
     const emailInput = screen.getByLabelText('Email');
     const passwordInput = screen.getByLabelText('Password');
@@ -92,6 +124,10 @@ describe('LoginPage', () => {
 
     render(<LoginPage />);
 
+    await waitFor(() => {
+      expect(screen.getByLabelText('Email')).toBeInTheDocument();
+    });
+
     const emailInput = screen.getByLabelText('Email');
     const passwordInput = screen.getByLabelText('Password');
     const submitButton = screen.getByRole('button', { name: /login/i });
@@ -104,20 +140,24 @@ describe('LoginPage', () => {
     expect(submitButton).toBeDisabled();
   });
 
-  it('should show redirect message when redirectTo is /recipes/new', () => {
-    jest.spyOn(require('next/navigation'), 'useSearchParams').mockReturnValue({
-      get: jest.fn(() => '/recipes/new'),
-    });
+  it('should show redirect message when redirectTo is /recipes/new', async () => {
+    mockGet.mockReturnValue('/recipes/new');
 
     render(<LoginPage />);
 
-    expect(
-      screen.getByText('Please login to create a new recipe')
-    ).toBeInTheDocument();
+    await waitFor(() => {
+      expect(
+        screen.getByText('Please login to create a new recipe')
+      ).toBeInTheDocument();
+    });
   });
 
-  it('should require email and password fields', () => {
+  it('should require email and password fields', async () => {
     render(<LoginPage />);
+
+    await waitFor(() => {
+      expect(screen.getByLabelText('Email')).toBeInTheDocument();
+    });
 
     const emailInput = screen.getByLabelText('Email');
     const passwordInput = screen.getByLabelText('Password');
