@@ -17,7 +17,7 @@ exports.getAllRecipes = async (req, res) => {
     // Default to page 1 with 20 recipes per page (reasonable defaults)
     const page = parseInt(req.query.page) || 1;
     const pageSize = parseInt(req.query.pageSize) || 20;
-    
+
     // Get search parameter from query string
     const search = req.query.search || '';
 

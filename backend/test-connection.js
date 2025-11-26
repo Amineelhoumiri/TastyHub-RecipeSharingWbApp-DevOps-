@@ -11,27 +11,27 @@ async function testConnection() {
     console.log(`   DB_HOST: ${process.env.DB_HOST || 'localhost'}`);
     console.log(`   DB_PORT: ${process.env.DB_PORT || 5500}`);
     console.log(`   DB_PASSWORD: ${process.env.DB_PASSWORD ? '***set***' : '❌ NOT SET'}`);
-    
+
     await sequelize.authenticate();
     console.log('✅ Database connection has been established successfully.');
-    
+
     // Test a simple query
     const [results] = await sequelize.query('SELECT NOW() as current_time');
     console.log('✅ Database query test successful:', results[0].current_time);
-    
+
     // Check if tables exist
     const [tables] = await sequelize.query(`
-      SELECT table_name 
-      FROM information_schema.tables 
+      SELECT table_name
+      FROM information_schema.tables
       WHERE table_schema = 'public'
       ORDER BY table_name;
     `);
-    
+
     console.log(`\n📋 Found ${tables.length} tables in database:`);
     tables.forEach(table => {
       console.log(`   - ${table.table_name}`);
     });
-    
+
     await sequelize.close();
     console.log('\n✅ All connection tests passed!');
     process.exit(0);

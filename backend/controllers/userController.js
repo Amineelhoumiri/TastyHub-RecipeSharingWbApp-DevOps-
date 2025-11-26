@@ -280,7 +280,7 @@ exports.getUserById = async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching user profile:', error);
-    res.status(500).json({ 
+    res.status(500).json({
       message: 'Server error while fetching user profile',
       error: process.env.NODE_ENV === 'development' ? error.message : undefined
     });
@@ -402,6 +402,7 @@ exports.updateProfilePicture = async (req, res) => {
     res.json({
       message: 'Profile picture uploaded successfully',
       profilePicture: profilePictureUrl,
+      // eslint-disable-next-line camelcase
       profile_picture: profilePictureUrl // Return both formats for compatibility
     });
   } catch (error) {

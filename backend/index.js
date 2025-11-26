@@ -2,12 +2,26 @@
 // This allows us to keep sensitive info like database passwords and JWT secrets out of our code
 require('dotenv').config();
 
+// Initialize Sentry error tracking (only in production)
+if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
+  const Sentry = require('@sentry/node');
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || 'production',
+    tracesSampleRate: 0.1 // 10% of transactions for performance monitoring
+  });
+}
+
 const express = require('express');
 const multer = require('multer');
+const { logger, requestLogger } = require('./middleware/logger');
 const app = express();
 const PORT = process.env.PORT || 5000; // Use environment variable for port if available
 
 // --- 1. MIDDLEWARE ---
+
+// Request logging middleware
+app.use(requestLogger);
 
 // CORS (Cross-Origin Resource Sharing) - This allows our frontend (running on a different port)
 // to make requests to our backend API without getting blocked by the browser
@@ -25,12 +39,16 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true })); // Also parse URL-encoded bodies
 
-// Debug middleware to log requests (remove in production)
+// Debug middleware to log request bodies in development
 if (process.env.NODE_ENV === 'development') {
   app.use((req, res, next) => {
     if (req.method === 'POST' || req.method === 'PUT') {
-      console.log(`${req.method} ${req.path} - Content-Type: ${req.headers['content-type']}`);
-      console.log('Body:', req.body);
+      logger.debug('Request body', {
+        method: req.method,
+        path: req.path,
+        contentType: req.headers['content-type'],
+        body: req.body
+      });
     }
     next();
   });
@@ -45,8 +63,7 @@ try {
   const models = require('./models'); // Import the sequelize instance from models/index.js
   sequelize = models.sequelize;
 } catch (importError) {
-  console.error('Γ¥î Error loading routes or models:', importError);
-  console.error('Import error details:', {
+  logger.error('Error loading routes or models', {
     name: importError.name,
     message: importError.message,
     stack: importError.stack
@@ -59,7 +76,31 @@ try {
 const path = require('path');
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
-// --- 4. USE ROUTES ---
+// --- 4. HEALTH CHECK ENDPOINT ---
+// Health check endpoint for monitoring and deployment verification
+app.get('/api/health', async (req, res) => {
+  const healthCheck = {
+    status: 'ok',
+    timestamp: new Date().toISOString(),
+    uptime: process.uptime(),
+    environment: process.env.NODE_ENV || 'development',
+    database: 'unknown'
+  };
+
+  try {
+    // Test database connection
+    await sequelize.authenticate();
+    healthCheck.database = 'connected';
+    res.status(200).json(healthCheck);
+  } catch (error) {
+    healthCheck.status = 'degraded';
+    healthCheck.database = 'disconnected';
+    healthCheck.error = error.message;
+    res.status(503).json(healthCheck);
+  }
+});
+
+// --- 5. USE ROUTES ---
 app.use('/api/users', userRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/comments', commentRoutes);
@@ -81,7 +122,27 @@ app.use((req, res) => {
 // Custom error handling middleware - MUST be after all routes
 // This catches any errors thrown in our route handlers and sends a proper response
 app.use((err, req, res, _next) => {
-  console.error('Error caught by middleware:', err);
+  // Send error to Sentry if configured
+  if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
+    const Sentry = require('@sentry/node');
+    Sentry.captureException(err, {
+      tags: {
+        path: req.path,
+        method: req.method
+      },
+      extra: {
+        statusCode: err.status || 500
+      }
+    });
+  }
+
+  logger.error('Error caught by middleware', {
+    error: err.message,
+    stack: err.stack,
+    path: req.path,
+    method: req.method,
+    statusCode: err.status || 500
+  });
 
   // Handle multer errors
   if (err instanceof multer.MulterError) {
@@ -113,16 +174,22 @@ app.use((err, req, res, _next) => {
   });
 });
 
-// --- 4. GLOBAL ERROR HANDLERS (Prevent server crashes) ---
+// --- 6. GLOBAL ERROR HANDLERS (Prevent server crashes) ---
 // Handle unhandled promise rejections
 process.on('unhandledRejection', (err) => {
-  console.error('Unhandled Promise Rejection:', err);
+  logger.error('Unhandled Promise Rejection', {
+    error: err.message,
+    stack: err.stack
+  });
   // Don't exit the process, just log it
 });
 
 // Handle uncaught exceptions
 process.on('uncaughtException', (err) => {
-  console.error('Uncaught Exception:', err);
+  logger.error('Uncaught Exception', {
+    error: err.message,
+    stack: err.stack
+  });
   // Don't exit immediately, give time to log
   setTimeout(() => process.exit(1), 1000);
 });
@@ -130,19 +197,25 @@ process.on('uncaughtException', (err) => {
 // Export app for testing
 module.exports = app;
 
-// --- 5. DATABASE CONNECTION & SERVER START ---
+// --- 7. DATABASE CONNECTION & SERVER START ---
 // Only start server if not in test environment
 if (process.env.NODE_ENV !== 'test') {
   const startServer = async () => {
     try {
       await sequelize.authenticate();
-      console.log('Γ£à Database connection has been established successfully.');
+      logger.info('Database connection established successfully');
 
       app.listen(PORT, () => {
-        console.log(`≡ƒÜÇ Server is live and running on http://localhost:${PORT}`);
+        logger.info(`Server is live and running on http://localhost:${PORT}`, {
+          port: PORT,
+          environment: process.env.NODE_ENV || 'development'
+        });
       });
     } catch (error) {
-      console.error('Γ¥î Unable to connect to the database:', error);
+      logger.error('Unable to connect to the database', {
+        error: error.message,
+        stack: error.stack
+      });
     }
   };
 

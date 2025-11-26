@@ -24,7 +24,7 @@ module.exports = [
       'camelcase': 'error',
       'no-mixed-spaces-and-tabs': 'error',
       'no-unused-vars': ['error', { 'argsIgnorePattern': '^_', 'varsIgnorePattern': '^_', 'caughtErrorsIgnorePattern': '^_' }],
-      'no-console': 'warn',
+      'no-console': 'off', // Allow console statements for debugging
       'semi': ['error', 'always'],
       'indent': ['error', 2],
       'comma-dangle': ['error', 'never'],
