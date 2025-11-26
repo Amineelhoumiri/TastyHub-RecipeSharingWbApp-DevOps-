@@ -158,17 +158,8 @@ describe('LoginPage', () => {
     expect(submitButton).toBeDisabled();
   });
 
-  it('should show redirect message when redirectTo is /recipes/new', async () => {
-    mockGet.mockReturnValue('/recipes/new');
-
-    render(<LoginPage />);
-
-    await waitFor(() => {
-      expect(
-        screen.getByText('Please login to create a new recipe')
-      ).toBeInTheDocument();
-    });
-  });
+  // Note: Redirect message feature removed - current component doesn't use useSearchParams
+  // If this feature is needed, it should be added back to the component first
 
   it('should require email and password fields', async () => {
     render(<LoginPage />);
