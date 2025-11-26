@@ -8,7 +8,151 @@ on:
     # Only run if files in these paths changed (saves CI time and money)
     paths:
       - "backend/**"
+      - ".github/workflows/backend-ci*.yml"name: TastyHub Backend CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    # Only run if files in these paths changed (saves CI time and money)
+    paths:
+      - "backend/**"
       - ".github/workflows/backend-ci*.yml"
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci*.yml"
+
+jobs:
+  backend-test:
+    runs-on: ubuntu-latest
+
+    # Services are external dependencies we need (like databases)
+    # PostgreSQL database is set up for potential integration tests (currently Jest tests use mocks)
+    services:
+      postgres:
+        image: postgres:14
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: Amine
+          POSTGRES_DB: TastyHub
+        #making sure DB is ready before tests run
+        options: >-
+          --health-cmd pg_isready       
+          --health-interval 10s          
+          --health-timeout 5s            
+          --health-retries 5
+        # Expose PostgreSQL port 5500 to our test environment
+        ports:
+          - 5500:5432
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm ci --include=dev
+
+      - name: Set up environment variables
+        working-directory: ./backend
+        run: |
+          # Environment variables for Jest tests
+          echo "DB_NAME=TastyHub" >> $GITHUB_ENV                    
+          echo "DB_USER=postgres" >> $GITHUB_ENV                    
+          echo "DB_PASSWORD=Amine" >> $GITHUB_ENV               
+          echo "DB_HOST=localhost" >> $GITHUB_ENV                   
+          echo "DB_PORT=5500" >> $GITHUB_ENV                        
+          echo "JWT_SECRET=test_jwt_secret_for_ci_minimum_32_characters_long" >> $GITHUB_ENV  
+          echo "PORT=5000" >> $GITHUB_ENV                           
+          echo "NODE_ENV=test" >> $GITHUB_ENV
+
+      - name: Set up database schema
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+          until pg_isready -h localhost -p 5500 -U postgres; do
+            echo "Waiting for database..."
+            sleep 2
+          done
+          psql postgresql://postgres:Amine@localhost:5500/TastyHub -f ./backend/database/Tasty-Hub.sql || true
+
+      # Running ESLint tests for code quality
+      - name: Run linter
+        working-directory: ./backend
+        run: npm run lint
+
+      # Running Jest unit tests with coverage
+      - name: Run Jest unit tests with coverage
+        working-directory: ./backend
+        env:
+          NODE_ENV: test
+        run: npm run test:coverage
+
+      # Upload coverage reports to Codecov
+      - name: Upload coverage reports
+        uses: codecov/codecov-action@v3
+        if: always()
+        with:
+          directory: ./backend/coverage
+          flags: backend
+          name: backend-coverage
+          fail_ci_if_error: false
+
+      # Start backend server for Cypress API tests
+      - name: Start backend server
+        working-directory: ./backend
+        env:
+          NODE_ENV: ci
+          DB_NAME: TastyHub
+          DB_USER: postgres
+          DB_PASSWORD: Amine
+          DB_HOST: localhost
+          DB_PORT: 5500
+          JWT_SECRET: test_jwt_secret_for_ci_minimum_32_characters_long
+          PORT: 5000
+        run: |
+          npm start &
+          SERVER_PID=$!
+          echo "SERVER_PID=$SERVER_PID" >> $GITHUB_ENV
+          sleep 3
+          # Wait for server to be ready (max 30 seconds)
+          for i in {1..15}; do
+            if curl -f http://localhost:5000/api/recipes > /dev/null 2>&1; then
+              echo "Server is ready!"
+              exit 0
+            fi
+            echo "Waiting for server... ($i/15)"
+            sleep 2
+          done
+          echo "Server failed to start!"
+          exit 1
+
+      # Run Cypress API tests (API endpoints only, not E2E browser tests)
+      - name: Run Cypress API tests
+        working-directory: ./backend
+        run: npm run test:api
+
+      # Stop backend server
+      - name: Stop backend server
+        if: always()
+        run: |
+          if [ -n "$SERVER_PID" ]; then
+            kill $SERVER_PID || true
+          fi
+          pkill -f "node.*index.js" || true
+
   pull_request:
     branches:
       - main
