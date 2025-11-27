@@ -1,6 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
+  output: 'standalone', // Required for Docker deployment
   env: {
     DB_USER: process.env.DB_USER,
     DB_HOST: process.env.DB_HOST,

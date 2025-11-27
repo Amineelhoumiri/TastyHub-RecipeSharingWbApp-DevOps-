@@ -18,7 +18,8 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{js,json}\"",
-    "format:check": "prettier --check \"**/*.{js,json}\""
+    "format:check": "prettier --check \"**/*.{js,json}\"",
+    "db:sync": "node sync-db.js"
   },
   "keywords": [],
   "author": "",

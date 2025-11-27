@@ -9,12 +9,13 @@ coverage
 .DS_Store
 .vscode
 .idea
+*.md
+LICENSE
 cypress
-tests
+.cypress
 cypress.config.js
 jest.config.js
 .eslintrc*
 .prettierrc*
 .editorconfig
-README.md
-*.md
+
