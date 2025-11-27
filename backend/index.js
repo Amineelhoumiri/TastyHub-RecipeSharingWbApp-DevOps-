@@ -2,6 +2,9 @@
 // This allows us to keep sensitive info like database passwords and JWT secrets out of our code
 require('dotenv').config();
 
+// Log startup for Railway visibility
+console.log('Starting TastyHub Backend Server...');
+
 // Initialize Sentry error tracking (only in production)
 if (process.env.NODE_ENV === 'production' && process.env.SENTRY_DSN) {
   const Sentry = require('@sentry/node');
@@ -26,14 +29,50 @@ app.use(requestLogger);
 // CORS (Cross-Origin Resource Sharing) - This allows our frontend (running on a different port)
 // to make requests to our backend API without getting blocked by the browser
 const cors = require('cors');
-app.use(cors({
-  origin: [
-    process.env.FRONTEND_URL || 'http://localhost:3000',
-    'http://localhost:3001', // Also allow port 3001
-    'http://localhost:3000'
-  ], // Frontend URL
+
+// Dynamic CORS origin function to handle Vercel deployments and localhost
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps, Postman, or curl)
+    if (!origin) {
+      return callback(null, true);
+    }
+
+    // List of allowed origins
+    const allowedOrigins = [
+      process.env.FRONTEND_URL,
+      'http://localhost:3000',
+      'http://localhost:3001',
+      'http://127.0.0.1:3000',
+      'http://127.0.0.1:3001'
+    ].filter(Boolean); // Remove undefined values
+
+    // Check if origin is in allowed list
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+
+    // Allow Vercel domains (pattern: *.vercel.app)
+    if (origin.includes('.vercel.app')) {
+      return callback(null, true);
+    }
+
+    // In production, allow the origin if FRONTEND_URL is set and matches
+    if (process.env.NODE_ENV === 'production' && process.env.FRONTEND_URL) {
+      const frontendUrl = new URL(process.env.FRONTEND_URL);
+      const originUrl = new URL(origin);
+      if (frontendUrl.origin === originUrl.origin) {
+        return callback(null, true);
+      }
+    }
+
+    // Reject origin
+    callback(new Error('Not allowed by CORS'));
+  },
   credentials: true // Allow cookies/auth headers
-}));
+};
+
+app.use(cors(corsOptions));
 
 // Parses incoming JSON payloads - converts JSON request bodies into JavaScript objects
 app.use(express.json());
@@ -200,24 +239,46 @@ module.exports = app;
 // --- 7. DATABASE CONNECTION & SERVER START ---
 // Only start server if not in test environment
 if (process.env.NODE_ENV !== 'test') {
-  const startServer = async () => {
-    try {
-      await sequelize.authenticate();
-      logger.info('Database connection established successfully');
+  // Start server first so Railway can see it's running and show logs
+  app.listen(PORT, '0.0.0.0', () => {
+    // Log to console for Railway visibility
+    console.log(`✓ Server is live and running on port ${PORT}`);
+    console.log(`  Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`  Node version: ${process.version}`);
 
-      app.listen(PORT, () => {
-        logger.info(`Server is live and running on http://localhost:${PORT}`, {
-          port: PORT,
-          environment: process.env.NODE_ENV || 'development'
+    logger.info(`Server is live and running on port ${PORT}`, {
+      port: PORT,
+      environment: process.env.NODE_ENV || 'development',
+      nodeVersion: process.version
+    });
+
+    // Try to connect to database after server starts
+    sequelize.authenticate()
+      .then(() => {
+        console.log('✓ Database connection established successfully');
+        logger.info('Database connection established successfully');
+      })
+      .catch((error) => {
+        console.error('✗ Unable to connect to the database');
+        console.error(`  Error: ${error.message}`);
+        console.error(`  DB Host: ${process.env.PGHOST || process.env.DB_HOST || 'not set'}`);
+        console.error(`  DB Port: ${process.env.PGPORT || process.env.DB_PORT || 'not set'}`);
+        console.error(`  DB Name: ${process.env.PGDATABASE || process.env.DB_NAME || 'not set'}`);
+        console.error(`  DB User: ${process.env.PGUSER || process.env.DB_USER || 'not set'}`);
+        console.error(`  Has PGPASSWORD: ${!!process.env.PGPASSWORD}`);
+        console.error(`  Has DB_PASSWORD: ${!!process.env.DB_PASSWORD}`);
+
+        logger.error('Unable to connect to the database', {
+          error: error.message,
+          stack: error.stack,
+          dbHost: process.env.PGHOST || process.env.DB_HOST,
+          dbPort: process.env.PGPORT || process.env.DB_PORT,
+          dbName: process.env.PGDATABASE || process.env.DB_NAME,
+          dbUser: process.env.PGUSER || process.env.DB_USER,
+          hasPGPassword: !!process.env.PGPASSWORD,
+          hasDBPassword: !!process.env.DB_PASSWORD
         });
+        logger.warn('Server is running but database is unavailable. Health check will show database status.');
       });
-    } catch (error) {
-      logger.error('Unable to connect to the database', {
-        error: error.message,
-        stack: error.stack
-      });
-    }
-  };
-
-  startServer(); // Call the function to start the server
+  });
 }
