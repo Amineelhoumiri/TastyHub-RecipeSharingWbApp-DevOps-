@@ -15,13 +15,13 @@ describe('API Utility', () => {
         recipes: [
           {
             id: '1',
-            title: 'Test Recipe',
-            description: 'Test Description',
-            imageUrl: 'test.jpg',
+            title: 'Delicious Pasta',
+            description: 'A wonderful pasta dish',
+            imageUrl: 'pasta.jpg',
             cookingTime: 30,
             servings: 4,
             averageRating: 4.5,
-            author: { username: 'testuser' },
+            author: { username: 'chef123' },
             tags: ['dinner'],
           },
         ],
@@ -45,13 +45,13 @@ describe('API Utility', () => {
       expect(result).toHaveLength(1);
       expect(result[0]).toMatchObject({
         id: '1',
-        title: 'Test Recipe',
-        description: 'Test Description',
-        image_url: 'test.jpg',
+        title: 'Delicious Pasta',
+        description: 'A wonderful pasta dish',
+        image_url: 'pasta.jpg',
         cooking_time: 30,
         servings: 4,
         average_rating: 4.5,
-        username: 'testuser',
+        username: 'chef123',
         tags: ['dinner'],
       });
     });

@@ -75,8 +75,8 @@ describe('API Helper Functions', () => {
         recipes: [
           {
             id: '1',
-            title: 'Test',
-            imageUrl: 'test.jpg',
+            title: 'Chocolate Cake',
+            imageUrl: 'cake.jpg',
             cookingTime: 30,
             averageRating: null,
             author: null,
@@ -93,8 +93,8 @@ describe('API Helper Functions', () => {
 
       expect(result[0]).toMatchObject({
         id: '1',
-        title: 'Test',
-        image_url: 'test.jpg',
+        title: 'Chocolate Cake',
+        image_url: 'cake.jpg',
         cooking_time: 30,
         average_rating: 0,
         username: 'Unknown',
@@ -106,7 +106,7 @@ describe('API Helper Functions', () => {
         recipes: [
           {
             id: '1',
-            title: 'Test',
+            title: 'Homemade Bread',
           },
         ],
       };
@@ -120,7 +120,7 @@ describe('API Helper Functions', () => {
 
       expect(result[0]).toMatchObject({
         id: '1',
-        title: 'Test',
+        title: 'Homemade Bread',
         description: undefined,
         image_url: undefined,
         cooking_time: undefined,
