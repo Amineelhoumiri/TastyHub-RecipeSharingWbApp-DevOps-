@@ -16,6 +16,14 @@ node_modules/
 frontend/coverage
 backend/coverage
 
+# logs (runtime generated)
+backend/logs/
+**/logs/*.log
+
+# uploads (user-generated content, should not be in repo)
+backend/uploads/
+**/uploads/**
+
 # cypress
 cypress/videos/
 cypress/screenshots/
@@ -43,8 +51,20 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
+# temporary test scripts (keep test-connection.js as it's in package.json)
+**/test-user-route.js
+**/test-api-connection.js
+**/test-env-vars.js
+
 # env files (can opt-in for committing if needed)
 .env*
+
+# Railway/deployment config files (may contain sensitive data)
+*railway*.json
+*-railway-vars.json
+*env-vars*.json
+*_ENV_SETUP.md
+*DEPLOYMENT*.md
 
 # vercel
 .vercel

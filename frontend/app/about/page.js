@@ -1,62 +1,67 @@
-import Link from "next/link";
+'use client';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 export default function About() {
   return (
-    <main className="min-h-screen flex flex-col bg-gradient-to-b from-orange-50 to-white">
+    <main className="min-h-screen flex flex-col bg-gradient-to-b from-orange-50 to-white dark:from-gray-900 dark:to-gray-800">
       <Navbar />
       
-      <div className="flex-1 px-8 py-12">
+      <div className="flex-1 max-w-4xl mx-auto px-8 py-16">
         {/* Heading */}
-        <h1 className="text-4xl font-extrabold text-orange-600 text-center mb-6">
+        <h1 className="text-5xl font-extrabold text-orange-600 dark:text-orange-400 text-center mb-12">
           About TastyHub
         </h1>
 
         {/* Description */}
-        <section className="max-w-3xl mx-auto text-center text-gray-700 text-lg leading-relaxed">
-          <p className="mb-4">
+        <section className="max-w-3xl mx-auto text-center space-y-6">
+          <p className="text-gray-700 dark:text-gray-300 text-lg leading-relaxed">
             TastyHub is a simple and modern platform created for food lovers.
             Whether you want to discover new recipes or share your own creations,
             TastyHub brings the community together in one place.
           </p>
 
-          <p className="mb-4">
+          <p className="text-gray-700 dark:text-gray-300 text-lg leading-relaxed">
             Our mission is to make cooking fun, accessible, and inspiring.
             From everyday meals to creative dishes, TastyHub empowers people
             to explore food without limits.
           </p>
 
-          <p>
+          <p className="text-gray-700 dark:text-gray-300 text-lg leading-relaxed">
             Enjoy browsing recipes, saving your favourites, and becoming part
             of a growing food community — all in one clean and easy-to-use platform.
           </p>
+        </section>
+
+        {/* Features Section */}
+        <section className="mt-16 grid md:grid-cols-3 gap-8">
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 text-center">
+            <div className="text-4xl mb-4">🍳</div>
+            <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">Discover Recipes</h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              Explore a wide variety of delicious recipes from our community
+            </p>
+          </div>
+          
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 text-center">
+            <div className="text-4xl mb-4">❤️</div>
+            <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">Save Favorites</h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              Keep track of your favorite recipes and access them anytime
+            </p>
+          </div>
+          
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 text-center">
+            <div className="text-4xl mb-4">👥</div>
+            <h3 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-2">Share & Connect</h3>
+            <p className="text-gray-600 dark:text-gray-400">
+              Share your culinary creations and connect with fellow food lovers
+            </p>
+          </div>
         </section>
       </div>
 
       <Footer />
     </main>
-  );
-}
-
-function Navbar() {
-  return (
-    <nav className="flex justify-between items-center px-8 py-4 bg-white shadow-sm">
-      <Link href="/" className="text-2xl font-bold text-orange-600">
-        🍽️ TastyHub
-      </Link>
-      <ul className="flex gap-6 text-gray-700 font-medium">
-        <li><Link href="/">Home</Link></li>
-        <li><Link href="/recipes">Recipes</Link></li>
-        <li><Link href="/about">About</Link></li>
-        <li><Link href="/login">Login</Link></li>
-      </ul>
-    </nav>
-  );
-}
-
-function Footer() {
-  return (
-    <footer className="text-center py-6 text-gray-500 text-sm border-t mt-auto">
-      © 2025 TastyHub. All rights reserved.
-    </footer>
   );
 }

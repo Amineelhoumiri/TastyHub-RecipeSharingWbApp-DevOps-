@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 export default function RecipeDetailPage() {
   const params = useParams();
@@ -124,7 +126,7 @@ export default function RecipeDetailPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gradient-to-b from-orange-50 to-white">
+    <main className="min-h-screen bg-gradient-to-b from-orange-50 to-white dark:from-gray-900 dark:to-gray-800">
       <Navbar />
       
       <div className="max-w-4xl mx-auto px-6 py-12">
@@ -134,7 +136,7 @@ export default function RecipeDetailPage() {
         </Link>
 
         {/* Recipe Header */}
-        <div className="bg-white rounded-2xl shadow-lg overflow-hidden mb-8">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden mb-8">
           {recipe.image_url && (
             <img
               src={recipe.image_url}
@@ -144,13 +146,13 @@ export default function RecipeDetailPage() {
           )}
           
           <div className="p-8">
-            <h1 className="text-4xl font-bold text-gray-800 mb-4">{recipe.title}</h1>
+            <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-200 mb-4">{recipe.title}</h1>
             
             {recipe.description && (
-              <p className="text-gray-600 text-lg mb-6">{recipe.description}</p>
+              <p className="text-gray-600 dark:text-gray-400 text-lg mb-6">{recipe.description}</p>
             )}
 
-            <div className="flex flex-wrap gap-6 text-gray-700 mb-4">
+            <div className="flex flex-wrap gap-6 text-gray-700 dark:text-gray-300 mb-4">
               {recipe.cooking_time && (
                 <div className="flex items-center gap-2">
                   <span className="text-2xl">⏱️</span>
@@ -188,16 +190,25 @@ export default function RecipeDetailPage() {
               </div>
             </div>
 
-            <div className="text-gray-600">
-              By <span className="font-semibold text-gray-800">{recipe.username}</span>
+            <div className="text-gray-600 dark:text-gray-400">
+              By {recipe.userId ? (
+                <Link 
+                  href={`/users/${recipe.userId}`}
+                  className="font-semibold text-gray-800 dark:text-gray-200 hover:text-orange-600 dark:hover:text-orange-400 hover:underline"
+                >
+                  {recipe.username}
+                </Link>
+              ) : (
+                <span className="font-semibold text-gray-800 dark:text-gray-200">{recipe.username}</span>
+              )}
             </div>
           </div>
         </div>
 
         {/* Ingredients Section */}
         {recipe.ingredients && recipe.ingredients.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-6">Ingredients</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-8">
+            <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-6">Ingredients</h2>
             <ul className="space-y-3">
               {recipe.ingredients.map((ingredient, index) => {
                 const ingredientName = ingredient.ingredientName || ingredient.name || '';
@@ -209,11 +220,11 @@ export default function RecipeDetailPage() {
                 return (
                   <li key={index} className="flex items-start gap-3">
                     <span className="text-orange-500 mt-1">•</span>
-                    <span className="text-gray-700">
+                    <span className="text-gray-700 dark:text-gray-300">
                       {showQuantity && `${quantity} ${unit} `}
                       <strong>{ingredientName}</strong>
                       {ingredient.notes && (
-                        <span className="text-gray-500 italic"> ({ingredient.notes})</span>
+                        <span className="text-gray-500 dark:text-gray-400 italic"> ({ingredient.notes})</span>
                       )}
                     </span>
                   </li>
@@ -225,8 +236,8 @@ export default function RecipeDetailPage() {
 
         {/* Instructions Section */}
         {recipe.steps && recipe.steps.length > 0 && (
-          <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-            <h2 className="text-3xl font-bold text-gray-800 mb-6">Instructions</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-8">
+            <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-6">Instructions</h2>
             <ol className="space-y-4">
               {recipe.steps
                 .sort((a, b) => (a.stepNumber || 0) - (b.stepNumber || 0))
@@ -235,7 +246,7 @@ export default function RecipeDetailPage() {
                   <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-orange-500 text-white font-bold rounded-full">
                     {step.stepNumber || index + 1}
                   </span>
-                  <p className="text-gray-700 flex-1 pt-1">
+                  <p className="text-gray-700 dark:text-gray-300 flex-1 pt-1">
                     {step.instruction || step.text}
                   </p>
                 </li>
@@ -246,15 +257,15 @@ export default function RecipeDetailPage() {
 
         {/* Comment Form */}
         {isAuthenticated && (
-          <div className="bg-white rounded-2xl shadow-lg p-8 mb-8">
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">Write a Review</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-8">
+            <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">Write a Review</h2>
             <form onSubmit={handleSubmitComment} className="space-y-4">
               <div>
-                <label className="block mb-2 font-medium text-gray-700">Rating</label>
+                <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">Rating</label>
                 <select
                   value={commentRating}
                   onChange={(e) => setCommentRating(parseInt(e.target.value))}
-                  className="px-4 py-2 border rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 outline-none"
+                  className="px-4 py-2 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-white dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none"
                 >
                   <option value={5}>5 ⭐⭐⭐⭐⭐</option>
                   <option value={4}>4 ⭐⭐⭐⭐</option>
@@ -264,12 +275,12 @@ export default function RecipeDetailPage() {
                 </select>
               </div>
               <div>
-                <label className="block mb-2 font-medium text-gray-700">Your Comment</label>
+                <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">Your Comment</label>
                 <textarea
                   value={commentText}
                   onChange={(e) => setCommentText(e.target.value)}
                   rows={4}
-                  className="w-full px-4 py-3 border rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 outline-none"
+                  className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-white dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none"
                   placeholder="Share your thoughts about this recipe..."
                   required
                 />
@@ -286,8 +297,8 @@ export default function RecipeDetailPage() {
         )}
 
         {/* Reviews Section */}
-        <div className="bg-white rounded-2xl shadow-lg p-8">
-          <h2 className="text-3xl font-bold text-gray-800 mb-6">
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
+          <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-6">
             Reviews ({recipe.reviews?.length || 0})
           </h2>
           {recipe.reviews && recipe.reviews.length > 0 ? (
@@ -295,61 +306,67 @@ export default function RecipeDetailPage() {
               {recipe.reviews.map((review, index) => {
                 const reviewUser = review.User || review.user || {};
                 const username = reviewUser.username || review.username || 'Anonymous';
+                const userId = reviewUser.id || review.userId || review.user?.id || null;
                 const rating = review.rating;
                 const comment = review.comment;
                 const createdAt = review.createdAt ? new Date(review.createdAt).toLocaleDateString() : '';
                 
                 return (
-                  <div key={review.id || index} className="border-b border-gray-200 pb-6 last:border-0">
+                  <div key={review.id || index} className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-0">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 font-bold">
-                          {username.charAt(0).toUpperCase()}
-                        </div>
-                        <div>
-                          <div className="font-semibold text-gray-800">{username}</div>
-                          {createdAt && (
-                            <div className="text-sm text-gray-500">{createdAt}</div>
-                          )}
-                        </div>
+                        {userId ? (
+                          <Link href={`/users/${userId}`} className="flex items-center gap-3 hover:opacity-80 transition">
+                            <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center text-orange-600 dark:text-orange-400 font-bold overflow-hidden">
+                              {reviewUser.profilePicture ? (
+                                <img src={reviewUser.profilePicture} alt={username} className="w-full h-full object-cover" />
+                              ) : (
+                                username.charAt(0).toUpperCase()
+                              )}
+                            </div>
+                            <div>
+                              <div className="font-semibold text-gray-800 dark:text-gray-200 hover:text-orange-600 dark:hover:text-orange-400">{username}</div>
+                              {createdAt && (
+                                <div className="text-sm text-gray-500 dark:text-gray-400">{createdAt}</div>
+                              )}
+                            </div>
+                          </Link>
+                        ) : (
+                          <>
+                            <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center text-orange-600 dark:text-orange-400 font-bold">
+                              {username.charAt(0).toUpperCase()}
+                            </div>
+                            <div>
+                              <div className="font-semibold text-gray-800 dark:text-gray-200">{username}</div>
+                              {createdAt && (
+                                <div className="text-sm text-gray-500 dark:text-gray-400">{createdAt}</div>
+                              )}
+                            </div>
+                          </>
+                        )}
                       </div>
                       {rating && (
                         <div className="flex items-center gap-1">
                           <span className="text-yellow-500 text-xl">⭐</span>
-                          <span className="font-semibold text-gray-800">{rating}/5</span>
+                          <span className="font-semibold text-gray-800 dark:text-gray-200">{rating}/5</span>
                         </div>
                       )}
                     </div>
                     {comment && (
-                      <p className="text-gray-700 mt-2">{comment}</p>
+                      <p className="text-gray-700 dark:text-gray-300 mt-2">{comment}</p>
                     )}
                   </div>
                 );
               })}
             </div>
           ) : (
-            <p className="text-gray-500 text-center py-8">No reviews yet. Be the first to review this recipe!</p>
+            <p className="text-gray-500 dark:text-gray-400 text-center py-8">No reviews yet. Be the first to review this recipe!</p>
           )}
         </div>
       </div>
+      
+      <Footer />
     </main>
-  );
-}
-
-function Navbar() {
-  return (
-    <nav className="flex justify-between items-center px-8 py-4 bg-white shadow-sm">
-      <Link href="/" className="text-2xl font-bold text-orange-600">
-        🍽️ TastyHub
-      </Link>
-      <ul className="flex gap-6 text-gray-700 font-medium">
-        <li><Link href="/">Home</Link></li>
-        <li><Link href="/recipes">Recipes</Link></li>
-        <li><Link href="/recipes/new">Create Recipe</Link></li>
-        <li><Link href="/about">About</Link></li>
-        <li><Link href="/login">Login</Link></li>
-      </ul>
-    </nav>
   );
 }
 

@@ -1,5 +1,6 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
+import DarkModeScript from "./components/DarkModeScript";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -13,10 +14,32 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              (function() {
+                try {
+                  // Default is ALWAYS light mode (white/beige background)
+                  // Force remove dark class first to ensure light mode
+                  document.documentElement.classList.remove('dark');
+                  
+                  // Only activate dark mode if user explicitly enabled it
+                  const darkMode = localStorage.getItem('darkMode');
+                  if (darkMode === 'true') {
+                    document.documentElement.classList.add('dark');
+                  }
+                } catch (e) {}
+              })();
+            `,
+          }}
+        />
+      </head>
       <body
         className={`${inter.variable} font-sans antialiased`}
       >
+        <DarkModeScript />
         {children}
       </body>
     </html>
