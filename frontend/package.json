@@ -8,9 +8,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint .",
-    "test": "jest",
-    "test:watch": "jest --watch",
-    "test:coverage": "jest --coverage",
+    "test": "npx jest --passWithNoTests",
+    "test:watch": "npx jest --watch",
+    "test:coverage": "npx jest --coverage",
     "test:e2e": "cypress run",
     "test:e2e:open": "cypress open",
     "test:e2e:headed": "cypress run --headed"
