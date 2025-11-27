@@ -261,20 +261,39 @@ if (process.env.NODE_ENV !== 'test') {
       .catch((error) => {
         console.error('✗ Unable to connect to the database');
         console.error(`  Error: ${error.message}`);
-        console.error(`  DB Host: ${process.env.PGHOST || process.env.DB_HOST || 'not set'}`);
-        console.error(`  DB Port: ${process.env.PGPORT || process.env.DB_PORT || 'not set'}`);
-        console.error(`  DB Name: ${process.env.PGDATABASE || process.env.DB_NAME || 'not set'}`);
-        console.error(`  DB User: ${process.env.PGUSER || process.env.DB_USER || 'not set'}`);
-        console.error(`  Has PGPASSWORD: ${!!process.env.PGPASSWORD}`);
-        console.error(`  Has DB_PASSWORD: ${!!process.env.DB_PASSWORD}`);
+        if (process.env.DATABASE_URL) {
+          console.error('  Using DATABASE_URL (connection string provided)');
+          // Don't log the full URL as it contains password
+          const url = new URL(process.env.DATABASE_URL);
+          console.error(`  DB Host: ${url.hostname}`);
+          console.error(`  DB Port: ${url.port || 'default'}`);
+          console.error(`  DB Name: ${url.pathname.replace('/', '') || 'not set'}`);
+          console.error(`  DB User: ${url.username || 'not set'}`);
+        } else {
+          console.error(`  DB Host: ${process.env.PGHOST || process.env.DB_HOST || 'not set'}`);
+          console.error(`  DB Port: ${process.env.PGPORT || process.env.DB_PORT || 'not set'}`);
+          console.error(`  DB Name: ${process.env.PGDATABASE || process.env.DB_NAME || 'not set'}`);
+          console.error(`  DB User: ${process.env.PGUSER || process.env.DB_USER || 'not set'}`);
+          console.error(`  Has PGPASSWORD: ${!!process.env.PGPASSWORD}`);
+          console.error(`  Has DB_PASSWORD: ${!!process.env.DB_PASSWORD}`);
+        }
 
         logger.error('Unable to connect to the database', {
           error: error.message,
           stack: error.stack,
-          dbHost: process.env.PGHOST || process.env.DB_HOST,
-          dbPort: process.env.PGPORT || process.env.DB_PORT,
-          dbName: process.env.PGDATABASE || process.env.DB_NAME,
-          dbUser: process.env.PGUSER || process.env.DB_USER,
+          hasDatabaseUrl: !!process.env.DATABASE_URL,
+          dbHost: process.env.DATABASE_URL
+            ? new URL(process.env.DATABASE_URL).hostname
+            : (process.env.PGHOST || process.env.DB_HOST),
+          dbPort: process.env.DATABASE_URL
+            ? new URL(process.env.DATABASE_URL).port
+            : (process.env.PGPORT || process.env.DB_PORT),
+          dbName: process.env.DATABASE_URL
+            ? new URL(process.env.DATABASE_URL).pathname.replace('/', '')
+            : (process.env.PGDATABASE || process.env.DB_NAME),
+          dbUser: process.env.DATABASE_URL
+            ? new URL(process.env.DATABASE_URL).username
+            : (process.env.PGUSER || process.env.DB_USER),
           hasPGPassword: !!process.env.PGPASSWORD,
           hasDBPassword: !!process.env.DB_PASSWORD
         });
