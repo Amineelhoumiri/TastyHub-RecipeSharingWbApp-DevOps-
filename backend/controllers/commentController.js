@@ -1,5 +1,5 @@
-﻿// I'll import the 'Review' model from my main models/index.js file,
-// since that's where I decided to store my comments.
+﻿// Import models needed for comment operations
+// Comments are stored in the Review model
 const { Review, Recipe, User, sequelize } = require('../models');
 
 /**

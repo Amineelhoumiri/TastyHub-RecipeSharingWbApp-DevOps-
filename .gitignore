@@ -66,6 +66,10 @@ yarn-error.log*
 *_ENV_SETUP.md
 *DEPLOYMENT*.md
 
+# Temporary diagnostic scripts
+**/check-server.js
+**/RESTART_SERVER.md
+
 # vercel
 .vercel
 

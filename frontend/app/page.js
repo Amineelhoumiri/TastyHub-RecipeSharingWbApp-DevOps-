@@ -4,9 +4,9 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { api } from './lib/api';
-import Navbar from './components/Navbar';
-import Footer from './components/Footer';
+import { api } from '@/lib/api';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 export default function Home() {
   const [recipes, setRecipes] = useState([]);

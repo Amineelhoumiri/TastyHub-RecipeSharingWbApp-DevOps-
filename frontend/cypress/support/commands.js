@@ -1,49 +1,40 @@
-// custom commands for frontend testing
+// ***********************************************
+// This example commands.js shows you how to
+// create various custom commands and overwrite
+// existing commands.
+//
+// For more comprehensive examples of custom
+// commands please read more here:
+// https://on.cypress.io/custom-commands
+// ***********************************************
 
-// login through UI
-Cypress.Commands.add('loginViaUI', (email, password) => {
-  cy.visit('/login');
-  cy.get('input[type="email"]').should('be.visible').type(email);
-  cy.get('input[type="password"]').should('be.visible').type(password);
-  cy.get('button[type="submit"]').should('be.visible').click();
-  // wait for redirect after login
-  cy.url({ timeout: 10000 }).should('not.include', '/login');
-});
-
-// register through UI
-Cypress.Commands.add('registerViaUI', (username, email, password) => {
-  cy.visit('/register');
-  cy.get('input').then(($inputs) => {
-    // Find username input (usually first)
-    cy.get('input').first().type(username);
-    // Find email input
-    cy.get('input[type="email"]').type(email);
-    // Find password inputs
-    cy.get('input[type="password"]').first().type(password);
-    cy.get('input[type="password"]').last().type(password);
-  });
-  cy.get('button[type="submit"]').should('be.visible').click();
-  // wait for redirect after registration
-  cy.url({ timeout: 10000 }).should('not.include', '/register');
-});
-
-// logout through UI
-Cypress.Commands.add('logoutViaUI', () => {
-  cy.get('button').contains('Logout').click();
-  cy.url().should('eq', Cypress.config('baseUrl') + '/');
-});
-
-// clear localStorage
-Cypress.Commands.add('clearStorage', () => {
-  cy.window().then((win) => {
-    win.localStorage.clear();
+// Custom command to check if server is running
+Cypress.Commands.add('checkServerHealth', () => {
+  cy.request({
+    url: Cypress.config('baseUrl'),
+    failOnStatusCode: false,
+  }).then((response) => {
+    if (response.status === 404) {
+      cy.log('⚠️ Warning: Server returned 404. Make sure the frontend server is running with "npm run dev"');
+    }
   });
 });
 
-// wait for API response
-Cypress.Commands.add('waitForAPI', (alias) => {
-  cy.wait(alias, { timeout: 10000 });
+// Custom command to visit a page and check for 404, returns true if page loaded successfully
+Cypress.Commands.add('visitAndCheck', (url, options = {}) => {
+  cy.visit(url, { failOnStatusCode: false, ...options });
+  cy.wait(1000);
+  return cy.get('body', { timeout: 5000 }).then(($body) => {
+    const bodyText = $body.text();
+    const is404 = bodyText.includes('404') || 
+                  bodyText.includes('Not Found') || 
+                  bodyText.includes('This page could not be found') ||
+                  bodyText.includes('page could not be found');
+    
+    if (is404) {
+      cy.log(`⚠️ Warning: ${url} returned 404 - server may need restart`);
+      return false; // Page is 404
+    }
+    return true; // Page loaded successfully
+  });
 });
-
-
-

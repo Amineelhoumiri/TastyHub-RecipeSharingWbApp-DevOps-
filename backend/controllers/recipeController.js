@@ -1,4 +1,4 @@
-﻿// I'll import all the models I'll need for recipes from my main models/index.js file
+﻿// Import models needed for recipe operations
 const { Recipe, RecipeIngredient, RecipeStep, Review, Like, Favorite, User, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
