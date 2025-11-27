@@ -64,7 +64,7 @@ yarn-error.log*
 *-railway-vars.json
 *env-vars*.json
 *_ENV_SETUP.md
-*DEPLOYMENT*.md
+# Keep RAILWAY_DEPLOYMENT.md as it's our deployment guide
 
 # Temporary diagnostic scripts
 **/check-server.js

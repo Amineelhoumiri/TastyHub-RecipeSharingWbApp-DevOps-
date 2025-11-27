@@ -254,9 +254,23 @@ if (process.env.NODE_ENV !== 'test') {
 
     // Try to connect to database after server starts
     sequelize.authenticate()
-      .then(() => {
+      .then(async () => {
         console.log('✓ Database connection established successfully');
         logger.info('Database connection established successfully');
+        
+        // Auto-sync database schema on startup (only in production/Railway)
+        // This ensures tables are created automatically
+        if (process.env.NODE_ENV === 'production' && process.env.RAILWAY_ENVIRONMENT) {
+          try {
+            console.log('🔄 Auto-syncing database schema...');
+            await sequelize.sync({ alter: true, force: false });
+            console.log('✅ Database schema synced successfully');
+          } catch (syncError) {
+            console.error('⚠️  Database sync warning (non-fatal):', syncError.message);
+            logger.warn('Database sync warning', { error: syncError.message });
+            // Don't exit - server can still run
+          }
+        }
       })
       .catch((error) => {
         console.error('✗ Unable to connect to the database');
