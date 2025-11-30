@@ -51,8 +51,12 @@ const optionalAuthMiddleware = async (req, res, next) => {
       // Verify the token using the secret
       const decoded = jwt.verify(token, jwtSecret);
 
-      // Find the user in the database
-      const user = await User.findByPk(decoded.id);
+      // Find the user in the database with a timeout
+      // If the DB is slow, we don't want to block the main content
+      const userPromise = User.findByPk(decoded.id);
+      const timeoutPromise = new Promise((resolve) => setTimeout(() => resolve(null), 1000));
+
+      const user = await Promise.race([userPromise, timeoutPromise]);
 
       if (user) {
         // Attach the user info to the request object
@@ -61,6 +65,9 @@ const optionalAuthMiddleware = async (req, res, next) => {
           username: user.username,
           email: user.email
         };
+      } else if (!user && await userPromise === null) {
+        // If we timed out (user is null from timeout), log it
+        console.warn('ΓÜá∩╕Å  Optional auth DB lookup timed out - proceeding as guest');
       }
     } catch (_tokenError) {
       // Token is invalid or expired, but that's okay - just continue without req.user

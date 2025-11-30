@@ -23,7 +23,7 @@ export default function MyRecipesPage() {
       setIsAuthenticated(true);
       fetchRecipes();
     };
-    
+
     checkAuth();
   }, [router]);
 
@@ -71,17 +71,17 @@ export default function MyRecipesPage() {
   return (
     <main className="min-h-screen flex flex-col bg-gradient-to-b from-orange-50 to-white dark:from-gray-900 dark:to-gray-800">
       <Navbar />
-      
+
       <div className="flex-1 max-w-6xl mx-auto px-6 py-12 w-full">
-        <div className="flex justify-between items-center mb-8">
-          <h1 className="text-4xl font-bold text-orange-600 dark:text-orange-400">
+        <div className="flex flex-col items-center mb-10 text-center">
+          <h1 className="text-4xl font-bold text-orange-600 dark:text-orange-400 mb-6">
             My Recipes
           </h1>
           <Link
             href="/recipes/new"
-            className="px-6 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition font-semibold"
+            className="px-8 py-3 bg-orange-500 text-white rounded-xl hover:bg-orange-600 transition font-semibold shadow-lg hover:shadow-orange-500/30 flex items-center gap-2"
           >
-            + Create New Recipe
+            <span>+</span> Create New Recipe
           </Link>
         </div>
 
@@ -134,7 +134,7 @@ export default function MyRecipesPage() {
                   <p className="text-gray-600 dark:text-gray-400 text-sm mb-3 line-clamp-2">
                     {recipe.description || 'No description'}
                   </p>
-                  
+
                   <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-4">
                     <span>⭐ {
                       (() => {

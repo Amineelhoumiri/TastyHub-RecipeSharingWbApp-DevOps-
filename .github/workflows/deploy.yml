@@ -1,0 +1,142 @@
+name: TastyHub Deployment
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - "frontend/**"
+      - ".github/workflows/deploy.yml"
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  # Backend deployment job
+  deploy-backend:
+    name: Deploy Backend
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: backend/package-lock.json
+
+      - name: Install backend dependencies
+        working-directory: ./backend
+        run: npm ci
+
+      - name: Run backend tests
+        working-directory: ./backend
+        env:
+          DB_NAME: TastyHub
+          DB_USER: postgres
+          DB_PASSWORD: Amine
+          DB_HOST: localhost
+          DB_PORT: 5500
+          JWT_SECRET: test_jwt_secret_for_ci_minimum_32_characters_long
+          NODE_ENV: test
+        run: npm run test:unit
+
+      - name: Build backend (if needed)
+        working-directory: ./backend
+        run: echo "Backend is ready for deployment"
+
+      # Deployment step - customize based on your hosting platform
+      # Example for Railway/Render/Heroku:
+      - name: Deploy to production
+        working-directory: ./backend
+        env:
+          # Add your deployment platform credentials as GitHub secrets
+          # DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
+        run: |
+          echo "Backend deployment would happen here"
+          echo "Configure deployment based on your hosting platform:"
+          echo "- Railway: Use Railway CLI"
+          echo "- Render: Use Render API"
+          echo "- Heroku: Use Heroku CLI"
+          echo "- AWS: Use AWS CLI or GitHub Actions AWS deploy action"
+
+  # Frontend deployment job
+  deploy-frontend:
+    name: Deploy Frontend
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "18"
+          cache: "npm"
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install frontend dependencies
+        working-directory: ./frontend
+        run: npm ci
+
+      - name: Run frontend tests
+        working-directory: ./frontend
+        run: npm test -- --watchAll=false --passWithNoTests
+
+      - name: Build Next.js app
+        working-directory: ./frontend
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.PRODUCTION_API_URL || 'https://api.tastyhub.com' }}
+        run: npm run build
+
+      # Deployment step - customize based on your hosting platform
+      # Example for Vercel:
+      - name: Deploy to Vercel
+        uses: amondnet/vercel-action@v25
+        if: false # Set to true when Vercel is configured
+        with:
+          vercel-token: ${{ secrets.VERCEL_TOKEN }}
+          vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
+          vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
+          working-directory: ./frontend
+
+      # Alternative: Generic deployment step
+      - name: Deploy to production
+        working-directory: ./frontend
+        env:
+          # Add your deployment platform credentials as GitHub secrets
+        run: |
+          echo "Frontend deployment would happen here"
+          echo "Configure deployment based on your hosting platform:"
+          echo "- Vercel: Use Vercel GitHub Action (configured above)"
+          echo "- Netlify: Use Netlify CLI or GitHub Action"
+          echo "- AWS S3/CloudFront: Use AWS CLI"
+          echo "- Custom server: Use SSH deployment"
+
+  # Post-deployment verification
+  verify-deployment:
+    name: Verify Deployment
+    runs-on: ubuntu-latest
+    needs: [deploy-backend, deploy-frontend]
+    if: always()
+
+    steps:
+      - name: Check backend health
+        run: |
+          echo "Backend health check would run here"
+          # curl -f ${{ secrets.PRODUCTION_API_URL }}/api/health || exit 1
+
+      - name: Check frontend availability
+        run: |
+          echo "Frontend availability check would run here"
+          # curl -f ${{ secrets.PRODUCTION_FRONTEND_URL }} || exit 1
+
+      - name: Deployment status
+        run: |
+          echo "Deployment verification complete"
+          echo "Configure health checks based on your production URLs"

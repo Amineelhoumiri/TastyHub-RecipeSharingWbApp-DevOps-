@@ -67,7 +67,18 @@ const Recipe = sequelize.define(
   },
   {
     tableName: 'recipes',
-    timestamps: false
+    timestamps: false,
+    indexes: [
+      {
+        fields: ['created_at']
+      },
+      {
+        fields: ['user_id']
+      },
+      {
+        fields: ['title']
+      }
+    ]
   }
 );
 

@@ -1,5 +1,5 @@
 ﻿// Import models needed for recipe operations
-const { Recipe, RecipeIngredient, RecipeStep, Review, Like, Favorite, User, sequelize } = require('../models');
+const { Recipe, RecipeIngredient, RecipeStep, Review, Like, Favorite, User, Tag, RecipeTag, sequelize } = require('../models');
 const { Op } = require('sequelize');
 
 /**
@@ -8,21 +8,17 @@ const { Op } = require('sequelize');
  * @access  Public (but shows more if authenticated)
  */
 exports.getAllRecipes = async (req, res) => {
+  console.log('getAllRecipes called');
   try {
     // Add pagination support to handle large numbers of recipes efficiently
-    // This prevents loading thousands of recipes at once, which would be slow
-    // Users can request specific pages of results
-
-    // Get page number and page size from query parameters
-    // Default to page 1 with 20 recipes per page (reasonable defaults)
     const page = parseInt(req.query.page) || 1;
     const pageSize = parseInt(req.query.pageSize) || 20;
 
     // Get search parameter from query string
     const search = req.query.search || '';
+    console.log('Pagination:', { page, pageSize, search });
 
     // Validate pagination parameters
-    // Page must be at least 1, and page size should be between 1 and 100
     if (page < 1) {
       return res.status(400).json({ message: 'Page number must be at least 1' });
     }
@@ -31,77 +27,92 @@ exports.getAllRecipes = async (req, res) => {
       return res.status(400).json({ message: 'Page size must be between 1 and 100' });
     }
 
-    // Calculate offset (how many recipes to skip)
-    // For page 1: skip 0, for page 2: skip 20, for page 3: skip 40, etc.
+    // Calculate offset
     const offset = (page - 1) * pageSize;
 
     // Build where clause for search
     const whereClause = {};
     if (search && search.trim()) {
+      // Enhanced search: Title OR Description OR Tags
+
+      // 1. Find tags that match the search term
+      const matchingTags = await Tag.findAll({
+        where: { tagName: { [Op.iLike]: `%${search.trim()}%` } },
+        attributes: ['id']
+      });
+      const tagIds = matchingTags.map(t => t.id);
+
+      // 2. Find recipes associated with these tags
+      let recipeIdsFromTags = [];
+      if (tagIds.length > 0) {
+        const recipeTags = await RecipeTag.findAll({
+          where: { tagId: tagIds },
+          attributes: ['recipeId']
+        });
+        recipeIdsFromTags = recipeTags.map(rt => rt.recipeId);
+      }
+
+      // 3. Combine conditions
       whereClause[Op.or] = [
         { title: { [Op.iLike]: `%${search.trim()}%` } },
         { description: { [Op.iLike]: `%${search.trim()}%` } }
       ];
+
+      // If we found recipes by tag, add them to the OR condition
+      if (recipeIdsFromTags.length > 0) {
+        whereClause[Op.or].push({ id: recipeIdsFromTags });
+      }
     }
 
     // Fetch recipes with pagination, ordered by most recent first
-    // This gives users the newest recipes first, which is usually what they want
-    let recipes;
-    let totalCount;
+    // Optimization: Run count and find separately to avoid "distinct: true" performance penalty
+    console.time('countQuery');
+    const totalCount = await Recipe.count({ where: whereClause });
+    console.timeEnd('countQuery');
 
-    try {
-      // Get total count of recipes for pagination metadata (with search filter)
-      // This helps the frontend know how many pages are available
-      totalCount = await Recipe.count({ where: whereClause });
-
-      // Fetch only the recipes for the current page
-      // We use limit and offset to get just the recipes we need
-      recipes = await Recipe.findAll({
-        where: whereClause,   // Add search filter
-        limit: pageSize,      // Maximum number of recipes to return
-        offset: offset,        // Number of recipes to skip
-        order: [['createdAt', 'DESC']] // Newest recipes first
-      });
-    } catch (queryError) {
-      console.error('Recipe.findAll failed:', queryError.message);
-      throw queryError;
-    }
-
-    // Try to fetch user info separately (but don't fail if it doesn't work)
-    let userMap = {};
-    try {
-      if (recipes && recipes.length > 0) {
-        const userIds = [...new Set(recipes.map(r => r.userId).filter(Boolean))];
-        if (userIds.length > 0) {
-          const users = await User.findAll({
-            where: { id: userIds },
-            attributes: ['id', 'username', 'profilePicture']
-          });
-          users.forEach(u => { userMap[u.id] = u; });
+    console.time('findQuery');
+    const recipes = await Recipe.findAll({
+      where: whereClause,
+      limit: pageSize,
+      offset: offset,
+      order: [['createdAt', 'DESC']],
+      include: [
+        {
+          model: Tag,
+          through: { attributes: [] },
+          attributes: ['tagName']
+        },
+        {
+          model: User,
+          attributes: ['id', 'username', 'profilePicture']
         }
-      }
-    } catch (userError) {
-      console.error('Could not fetch user info:', userError.message);
-      // Continue without user info
-    }
+      ]
+    });
+    console.timeEnd('findQuery');
 
-    // Build response safely
-    const recipeList = (recipes || []).map(recipe => {
+    console.log(`Fetched ${recipes.length} recipes out of ${totalCount} total`);
+
+    // Build response
+    const recipeList = recipes.map(recipe => {
       try {
+        // User is now included in the recipe object
+        const user = recipe.User || {};
+
         return {
-          id: recipe.id || null,
+          id: recipe.id,
           title: recipe.title || 'Untitled',
           description: recipe.description || '',
-          author: userMap[recipe.userId] ? {
-            id: userMap[recipe.userId].id,
-            username: userMap[recipe.userId].username,
-            profilePicture: userMap[recipe.userId].profilePicture
-          } : { id: recipe.userId || null, username: 'Unknown', profilePicture: null },
+          author: {
+            id: user.id || recipe.userId,
+            username: user.username || 'Unknown',
+            profilePicture: user.profilePicture || null
+          },
           imageUrl: recipe.imageUrl || null,
           cookingTime: recipe.cookingTime || null,
           servings: recipe.servings || null,
           totalLikes: recipe.totalLikes || 0,
           averageRating: recipe.averageRating || 0,
+          tags: recipe.Tags ? recipe.Tags.map(tag => tag.tagName) : [],
           createdAt: recipe.createdAt || null
         };
       } catch (mapError) {
@@ -111,36 +122,26 @@ exports.getAllRecipes = async (req, res) => {
     }).filter(r => r !== null);
 
     // Calculate pagination metadata
-    // This helps the frontend build pagination controls
     const totalPages = Math.ceil(totalCount / pageSize);
     const hasNextPage = page < totalPages;
     const hasPreviousPage = page > 1;
 
     res.json({
       message: 'Recipes fetched successfully',
-      count: recipeList.length,           // Number of recipes in this page
-      totalCount: totalCount,              // Total number of recipes in database
-      page: page,                          // Current page number
-      pageSize: pageSize,                  // Number of recipes per page
-      totalPages: totalPages,              // Total number of pages
-      hasNextPage: hasNextPage,            // Whether there's a next page
-      hasPreviousPage: hasPreviousPage,    // Whether there's a previous page
+      count: recipeList.length,
+      totalCount: totalCount,
+      page: page,
+      pageSize: pageSize,
+      totalPages: totalPages,
+      hasNextPage: hasNextPage,
+      hasPreviousPage: hasPreviousPage,
       recipes: recipeList
     });
   } catch (error) {
     console.error('Get all recipes error:', error);
-    console.error('Error details:', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
-    });
     res.status(500).json({
       message: 'Server error while fetching recipes',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined,
-      details: process.env.NODE_ENV === 'development' ? {
-        name: error.name,
-        message: error.message
-      } : undefined
+      error: error.message
     });
   }
 };
@@ -172,6 +173,11 @@ exports.getRecipeById = async (req, res) => {
           as: 'steps',
           attributes: ['id', 'stepNumber', 'instruction', 'stepImage'],
           order: [['stepNumber', 'ASC']] // Order steps by step number
+        },
+        {
+          model: Tag,
+          through: { attributes: [] },
+          attributes: ['tagName']
         },
         {
           model: Review,
@@ -219,6 +225,7 @@ exports.getRecipeById = async (req, res) => {
         },
         ingredients: recipe.ingredients || [],
         steps: recipe.steps || [],
+        tags: recipe.Tags ? recipe.Tags.map(tag => tag.tagName) : [],
         cookingTime: recipe.cookingTime,
         servings: recipe.servings,
         totalLikes: recipe.totalLikes,
@@ -348,9 +355,28 @@ exports.createRecipe = async (req, res) => {
     }
 
     // Handle tags if provided (many-to-many relationship)
-    // Note: Tag association will be implemented when the tag system is ready
     if (tags && Array.isArray(tags) && tags.length > 0) {
-      // Tag association logic will be added here
+      const tagPromises = tags
+        .filter(tagName => tagName && tagName.trim())
+        .map(async (tagName) => {
+          // Normalize tag name (lowercase, trimmed)
+          const normalizedTagName = tagName.trim().toLowerCase();
+
+          // Find or create the tag
+          const [tag] = await Tag.findOrCreate({
+            where: { tagName: normalizedTagName },
+            defaults: { tagName: normalizedTagName },
+            transaction
+          });
+
+          // Create the association
+          return RecipeTag.create({
+            recipeId: newRecipe.id,
+            tagId: tag.id
+          }, { transaction });
+        });
+
+      await Promise.all(tagPromises);
     }
 
     // If we made it here, everything succeeded! Commit the transaction
@@ -404,6 +430,7 @@ exports.createRecipe = async (req, res) => {
  * @access  Private (requires authentication and ownership)
  */
 exports.updateRecipe = async (req, res) => {
+  const transaction = await sequelize.transaction();
   try {
     const { recipeId } = req.params;
     const {
@@ -411,18 +438,21 @@ exports.updateRecipe = async (req, res) => {
       description,
       cookingTime,
       servings,
-      imageUrl
+      imageUrl,
+      tags
     } = req.body;
 
     // Find the recipe first
     const recipe = await Recipe.findByPk(recipeId);
 
     if (!recipe) {
+      await transaction.rollback();
       return res.status(404).json({ message: 'Recipe not found' });
     }
 
     // Check if the user owns this recipe
     if (recipe.userId !== req.user.id) {
+      await transaction.rollback();
       return res.status(403).json({
         message: 'Access denied. You can only update your own recipes.'
       });
@@ -438,7 +468,42 @@ exports.updateRecipe = async (req, res) => {
     updateData.updatedAt = new Date(); // Update the timestamp
 
     // Update the recipe
-    await recipe.update(updateData);
+    await recipe.update(updateData, { transaction });
+
+    // Handle tags update if provided
+    if (tags !== undefined) {
+      // First, remove all existing tag associations
+      await RecipeTag.destroy({
+        where: { recipeId: recipe.id },
+        transaction
+      });
+
+      if (Array.isArray(tags) && tags.length > 0) {
+        const tagPromises = tags
+          .filter(tagName => tagName && tagName.trim())
+          .map(async (tagName) => {
+            // Normalize tag name (lowercase, trimmed)
+            const normalizedTagName = tagName.trim().toLowerCase();
+
+            // Find or create the tag
+            const [tag] = await Tag.findOrCreate({
+              where: { tagName: normalizedTagName },
+              defaults: { tagName: normalizedTagName },
+              transaction
+            });
+
+            // Create the association
+            return RecipeTag.create({
+              recipeId: recipe.id,
+              tagId: tag.id
+            }, { transaction });
+          });
+
+        await Promise.all(tagPromises);
+      }
+    }
+
+    await transaction.commit();
 
     // Fetch the updated recipe with all relations
     const updatedRecipe = await Recipe.findByPk(recipeId, {
@@ -456,15 +521,24 @@ exports.updateRecipe = async (req, res) => {
           model: RecipeStep,
           as: 'steps',
           order: [['stepNumber', 'ASC']]
+        },
+        {
+          model: Tag,
+          through: { attributes: [] },
+          attributes: ['tagName']
         }
       ]
     });
 
     res.json({
       message: 'Recipe updated successfully',
-      recipe: updatedRecipe
+      recipe: {
+        ...updatedRecipe.toJSON(),
+        tags: updatedRecipe.Tags ? updatedRecipe.Tags.map(t => t.tagName) : []
+      }
     });
   } catch (error) {
+    await transaction.rollback();
     console.error('Update recipe error:', error);
     res.status(500).json({ message: 'Server error while updating recipe' });
   }
@@ -761,5 +835,130 @@ exports.createComment = async (req, res) => {
   } catch (error) {
     console.error('Create comment error:', error);
     res.status(500).json({ message: 'Server error while creating comment' });
+  }
+};
+
+/**
+ * @route   POST /api/recipes/upload-image
+ * @desc    Upload a recipe image
+ * @access  Private
+ */
+exports.uploadImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    // Build the URL
+    const forwardedProto = req.headers['x-forwarded-proto'];
+    const forwardedHost = req.headers['x-forwarded-host'];
+    const protocol = forwardedProto || req.protocol;
+    const host = forwardedHost || req.get('host');
+    const baseUrl = process.env.BASE_URL || `${protocol}://${host}`;
+    const imageUrl = `${baseUrl}/uploads/recipe-images/${req.file.filename}`;
+
+    res.json({
+      message: 'Image uploaded successfully',
+      imageUrl: imageUrl
+    });
+  } catch (error) {
+    console.error('Upload image error:', error);
+    res.status(500).json({ message: 'Server error while uploading image' });
+  }
+};
+
+/**
+ * @route   GET /api/recipes/tags/popular
+ * @desc    Get popular tags based on usage count
+ * @access  Public
+ */
+exports.getPopularTags = async (req, res) => {
+  try {
+    // Try to get popular tags with count
+    try {
+      const tags = await Tag.findAll({
+        attributes: [
+          'id',
+          'tagName',
+          [sequelize.fn('COUNT', sequelize.col('Recipes.id')), 'recipeCount']
+        ],
+        include: [{
+          model: Recipe,
+          attributes: [],
+          through: { attributes: [] }
+        }],
+        group: ['Tag.id', 'Tag.tagName'],
+        order: [[sequelize.literal('"recipeCount"'), 'DESC']],
+        limit: 12,
+        subQuery: false
+      });
+
+      const popularTags = tags
+        .map(tag => ({
+          id: tag.id,
+          name: tag.tagName,
+          count: parseInt(tag.getDataValue('recipeCount') || 0)
+        }))
+        .filter(tag => tag.count > 0);
+
+      if (popularTags.length > 0) {
+        return res.json({
+          message: 'Popular tags fetched successfully',
+          tags: popularTags
+        });
+      }
+    } catch (innerError) {
+      console.warn('Complex tag query failed, falling back to simple fetch:', innerError);
+    }
+
+    // Fallback: Just fetch the first 12 tags if the complex query fails or returns nothing
+    const simpleTags = await Tag.findAll({
+      limit: 12,
+      attributes: ['id', 'tagName']
+    });
+
+    const fallbackTags = simpleTags.map(tag => ({
+      id: tag.id,
+      name: tag.tagName,
+      count: 0
+    }));
+
+    res.json({
+      message: 'Tags fetched successfully (fallback)',
+      tags: fallbackTags
+    });
+  } catch (error) {
+    console.error('Get popular tags error:', error);
+    res.json({ tags: [] });
+  }
+};
+
+
+/**
+ * @route   POST /api/recipes/upload-image
+ * @desc    Upload a recipe image
+ * @access  Private
+ */
+exports.uploadImage = async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+
+    // Build the URL
+    const forwardedProto = req.headers['x-forwarded-proto'];
+    const forwardedHost = req.headers['x-forwarded-host'];
+    const protocol = forwardedProto || req.protocol;
+    const host = forwardedHost || req.get('host');
+    const baseUrl = process.env.BASE_URL || `${protocol}://${host}`;
+    const imageUrl = `${baseUrl}/uploads/recipe-images/${req.file.filename}`;
+
+    res.json({
+      message: 'Image uploaded successfully',
+      imageUrl: imageUrl
+    });
+  } catch (error) {
+    console.error('Upload image error:', error);
+    res.status(500).json({ message: 'Server error while uploading image' });
   }
 };

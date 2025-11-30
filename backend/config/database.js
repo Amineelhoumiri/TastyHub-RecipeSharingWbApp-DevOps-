@@ -1,6 +1,12 @@
 ﻿// Load environment variables first
 require('dotenv').config();
 
+// Default Railway connection string (used when DATABASE_URL isn't set locally)
+const DEFAULT_DATABASE_PUBLIC_URL =
+  process.env.DATABASE_PUBLIC_URL ||
+  process.env.RAILWAY_DATABASE_URL ||
+  'postgresql://postgres:ACPhdpjZnAsDaBsfOwFOHSFyZUiHShQV@trolley.proxy.rlwy.net:35417/railway';
+
 const { Sequelize } = require('sequelize');
 
 // ===================================================
@@ -21,11 +27,22 @@ const { Sequelize } = require('sequelize');
 
 let sequelize;
 
-// Check if DATABASE_URL is provided (Railway, Heroku, etc.)
-if (process.env.DATABASE_URL) {
+let resolvedDatabaseUrl = process.env.DATABASE_URL;
+
+if (resolvedDatabaseUrl && resolvedDatabaseUrl.includes('public-host')) {
+  resolvedDatabaseUrl = DEFAULT_DATABASE_PUBLIC_URL;
+}
+
+resolvedDatabaseUrl = resolvedDatabaseUrl || DEFAULT_DATABASE_PUBLIC_URL;
+
+// Ensure downstream code sees the resolved value (used in logging/etc.)
+process.env.DATABASE_URL = resolvedDatabaseUrl;
+
+// Check if DATABASE_URL (or fallback) is provided (Railway, Heroku, etc.)
+if (resolvedDatabaseUrl) {
   // Sequelize can use DATABASE_URL directly
   // Format: postgresql://username:password@host:port/database
-  sequelize = new Sequelize(process.env.DATABASE_URL, {
+  sequelize = new Sequelize(resolvedDatabaseUrl, {
     dialect: 'postgres',
     dialectOptions: {
       ssl: process.env.NODE_ENV === 'production' ? {

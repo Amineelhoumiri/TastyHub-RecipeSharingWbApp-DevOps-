@@ -23,7 +23,7 @@ export default function ProfilePage() {
       setIsAuthenticated(true);
       fetchProfile();
     };
-    
+
     checkAuth();
   }, [router]);
 
@@ -32,7 +32,7 @@ export default function ProfilePage() {
       setLoading(true);
       const userData = await api.getUserProfile();
       setUser(userData);
-      
+
       // Also check localStorage for profile picture
       const localUser = localStorage.getItem('user');
       if (localUser) {
@@ -85,7 +85,7 @@ export default function ProfilePage() {
   return (
     <main className="min-h-screen flex flex-col bg-gradient-to-b from-orange-50 to-white dark:from-gray-900 dark:to-gray-800">
       <Navbar />
-      
+
       <div className="flex-1 max-w-4xl mx-auto px-6 py-12 w-full">
         <h1 className="text-4xl font-bold text-orange-600 dark:text-orange-400 mb-8 text-center">
           My Profile
@@ -94,7 +94,7 @@ export default function ProfilePage() {
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-6">
           <div className="flex flex-col md:flex-row items-center md:items-start gap-6">
             {/* Profile Picture */}
-            <div className="w-32 h-32 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center text-4xl font-bold text-orange-600 dark:text-orange-400 overflow-hidden border-4 border-orange-300 dark:border-orange-700 shadow-lg">
+            <div className="w-32 h-32 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center text-4xl font-bold text-orange-600 dark:text-orange-400 overflow-hidden border-4 border-orange-300 dark:border-orange-700 shadow-lg relative">
               {user?.profilePicture ? (
                 <img
                   src={user.profilePicture}
@@ -103,13 +103,11 @@ export default function ProfilePage() {
                   onError={(e) => {
                     // Hide image and show initial on error
                     e.target.style.display = 'none';
-                    const parent = e.target.parentElement;
-                    const initial = parent.querySelector('.profile-initial');
-                    if (initial) initial.style.display = 'flex';
+                    e.target.nextSibling.style.display = 'flex';
                   }}
                 />
               ) : null}
-              <span className={`profile-initial ${user?.profilePicture ? 'hidden' : 'flex'}`}>
+              <span className={`profile-initial absolute inset-0 flex items-center justify-center ${user?.profilePicture ? 'hidden' : 'flex'}`}>
                 {user?.username?.charAt(0).toUpperCase() || 'U'}
               </span>
             </div>

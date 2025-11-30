@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect } from "react";
+/* eslint-disable @next/next/no-img-element */
+import { useState, useEffect, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import { api } from "@/lib/api";
@@ -10,28 +11,20 @@ export default function RecipeDetailPage() {
   const params = useParams();
   const router = useRouter();
   const recipeId = params.id;
-  
+
   const [recipe, setRecipe] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
+
   // Comment form state
   const [commentText, setCommentText] = useState('');
   const [commentRating, setCommentRating] = useState(5);
   const [submittingComment, setSubmittingComment] = useState(false);
   const [likeLoading, setLikeLoading] = useState(false);
+  const [favoriteLoading, setFavoriteLoading] = useState(false);
 
-  useEffect(() => {
-    if (recipeId) {
-      fetchRecipe();
-    }
-    // Check authentication
-    const token = localStorage.getItem('token');
-    setIsAuthenticated(!!token);
-  }, [recipeId]);
-
-  const fetchRecipe = async () => {
+  const fetchRecipe = useCallback(async () => {
     try {
       setLoading(true);
       const data = await api.getRecipe(recipeId);
@@ -42,7 +35,15 @@ export default function RecipeDetailPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [recipeId]);
+
+  useEffect(() => {
+    if (recipeId) {
+      fetchRecipe();
+    }
+    const token = localStorage.getItem('token');
+    setIsAuthenticated(!!token);
+  }, [recipeId, fetchRecipe]);
 
   const handleLike = async () => {
     if (!isAuthenticated) {
@@ -67,9 +68,30 @@ export default function RecipeDetailPage() {
     }
   };
 
+  const handleFavorite = async () => {
+    if (!isAuthenticated) {
+      router.push(`/login?redirect=/recipes/${recipeId}`);
+      return;
+    }
+
+    try {
+      setFavoriteLoading(true);
+      const result = await api.favoriteRecipe(recipeId);
+      setRecipe(prev => ({
+        ...prev,
+        isFavorited: result.isFavorited
+      }));
+    } catch (err) {
+      console.error('Error favoriting recipe:', err);
+      alert(err.message || 'Failed to update favorites');
+    } finally {
+      setFavoriteLoading(false);
+    }
+  };
+
   const handleSubmitComment = async (e) => {
     e.preventDefault();
-    
+
     if (!isAuthenticated) {
       router.push(`/login?redirect=/recipes/${recipeId}`);
       return;
@@ -83,10 +105,10 @@ export default function RecipeDetailPage() {
     try {
       setSubmittingComment(true);
       const result = await api.createComment(recipeId, commentText.trim(), commentRating);
-      
+
       // Refresh recipe to get updated reviews and rating
       await fetchRecipe();
-      
+
       // Clear form
       setCommentText('');
       setCommentRating(5);
@@ -128,7 +150,7 @@ export default function RecipeDetailPage() {
   return (
     <main className="min-h-screen bg-gradient-to-b from-orange-50 to-white dark:from-gray-900 dark:to-gray-800">
       <Navbar />
-      
+
       <div className="max-w-4xl mx-auto px-6 py-12">
         {/* Back Button */}
         <Link href="/recipes" className="text-orange-600 hover:underline mb-6 inline-block">
@@ -144,10 +166,10 @@ export default function RecipeDetailPage() {
               className="w-full h-96 object-cover"
             />
           )}
-          
+
           <div className="p-8">
             <h1 className="text-4xl font-bold text-gray-800 dark:text-gray-200 mb-4">{recipe.title}</h1>
-            
+
             {recipe.description && (
               <p className="text-gray-600 dark:text-gray-400 text-lg mb-6">{recipe.description}</p>
             )}
@@ -174,25 +196,50 @@ export default function RecipeDetailPage() {
                   return isNaN(numRating) ? 'No ratings' : numRating.toFixed(1);
                 })()}</span>
               </div>
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-3 flex-wrap">
                 <button
                   onClick={handleLike}
                   disabled={likeLoading}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
-                    recipe.isLiked
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${recipe.isLiked
                       ? 'bg-red-100 text-red-600 hover:bg-red-200'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                  } ${likeLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                    } ${likeLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                   <span className="text-2xl">{recipe.isLiked ? '❤️' : '🤍'}</span>
                   <span>{recipe.total_likes || 0} likes</span>
                 </button>
+                <button
+                  onClick={handleFavorite}
+                  disabled={favoriteLoading}
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${recipe.isFavorited
+                      ? 'bg-pink-100 text-pink-600 hover:bg-pink-200'
+                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    } ${favoriteLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                >
+                  <span className="text-2xl">{recipe.isFavorited ? '💖' : '🤍'}</span>
+                  <span>{recipe.isFavorited ? 'In favorites' : 'Add to favorites'}</span>
+                </button>
               </div>
             </div>
 
+            {/* Tags */}
+            {recipe.tags && recipe.tags.length > 0 && (
+              <div className="flex flex-wrap gap-2 mb-6">
+                {recipe.tags.map((tag, index) => (
+                  <Link
+                    key={index}
+                    href={`/recipes?search=${encodeURIComponent(tag)}`}
+                    className="bg-orange-100 dark:bg-orange-900/40 text-orange-700 dark:text-orange-300 px-3 py-1 rounded-full text-sm font-medium hover:bg-orange-200 dark:hover:bg-orange-900/60 transition"
+                  >
+                    #{tag}
+                  </Link>
+                ))}
+              </div>
+            )}
+
             <div className="text-gray-600 dark:text-gray-400">
               By {recipe.userId ? (
-                <Link 
+                <Link
                   href={`/users/${recipe.userId}`}
                   className="font-semibold text-gray-800 dark:text-gray-200 hover:text-orange-600 dark:hover:text-orange-400 hover:underline"
                 >
@@ -216,7 +263,7 @@ export default function RecipeDetailPage() {
                 const unit = ingredient.unit;
                 // If quantity is 1 and unit is 'piece', just show the name
                 const showQuantity = !(quantity === 1 && unit === 'piece');
-                
+
                 return (
                   <li key={index} className="flex items-start gap-3">
                     <span className="text-orange-500 mt-1">•</span>
@@ -242,15 +289,15 @@ export default function RecipeDetailPage() {
               {recipe.steps
                 .sort((a, b) => (a.stepNumber || 0) - (b.stepNumber || 0))
                 .map((step, index) => (
-                <li key={index} className="flex gap-4">
-                  <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-orange-500 text-white font-bold rounded-full">
-                    {step.stepNumber || index + 1}
-                  </span>
-                  <p className="text-gray-700 dark:text-gray-300 flex-1 pt-1">
-                    {step.instruction || step.text}
-                  </p>
-                </li>
-              ))}
+                  <li key={index} className="flex gap-4">
+                    <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-orange-500 text-white font-bold rounded-full">
+                      {step.stepNumber || index + 1}
+                    </span>
+                    <p className="text-gray-700 dark:text-gray-300 flex-1 pt-1">
+                      {step.instruction || step.text}
+                    </p>
+                  </li>
+                ))}
             </ol>
           </div>
         )}
@@ -310,7 +357,7 @@ export default function RecipeDetailPage() {
                 const rating = review.rating;
                 const comment = review.comment;
                 const createdAt = review.createdAt ? new Date(review.createdAt).toLocaleDateString() : '';
-                
+
                 return (
                   <div key={review.id || index} className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-0">
                     <div className="flex items-start justify-between mb-2">
@@ -364,7 +411,7 @@ export default function RecipeDetailPage() {
           )}
         </div>
       </div>
-      
+
       <Footer />
     </main>
   );

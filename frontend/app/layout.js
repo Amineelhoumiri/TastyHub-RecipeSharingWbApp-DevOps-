@@ -1,6 +1,7 @@
 import { Inter } from "next/font/google";
 import "./globals.css";
 import DarkModeScript from "./components/DarkModeScript";
+import Script from "next/script";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -41,6 +42,10 @@ export default function RootLayout({ children }) {
       >
         <DarkModeScript />
         {children}
+        <Script
+          src="https://t.contentsquare.net/uxa/2dc16f9899acb.js"
+          strategy="afterInteractive"
+        />
       </body>
     </html>
   );

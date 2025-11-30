@@ -5,6 +5,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { api } from "@/lib/api";
+import { compressImage } from "@/lib/imageUtils";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -13,7 +14,7 @@ export default function SettingsPage() {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
-  
+
   // Settings state
   const [darkMode, setDarkMode] = useState(false);
   const [units, setUnits] = useState('metric');
@@ -21,6 +22,8 @@ export default function SettingsPage() {
   const [email, setEmail] = useState('');
   const [profilePicture, setProfilePicture] = useState('');
   const [uploadingPicture, setUploadingPicture] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [editingEmail, setEditingEmail] = useState(false);
 
   useEffect(() => {
     const checkAuth = () => {
@@ -32,24 +35,24 @@ export default function SettingsPage() {
       setIsAuthenticated(true);
       loadSettings();
     };
-    
+
     checkAuth();
   }, [router]);
 
   const loadSettings = async () => {
     try {
       setLoading(true);
-      
+
       // Load user profile
       const user = await api.getUserProfile();
       setUsername(user.username || '');
       setEmail(user.email || '');
       setProfilePicture(user.profilePicture || user.profile_picture || '');
-      
+
       // Load preferences from localStorage (will sync with backend later)
       const savedDarkMode = localStorage.getItem('darkMode') === 'true';
       const savedUnits = localStorage.getItem('units') || 'metric';
-      
+
       setDarkMode(savedDarkMode);
       setUnits(savedUnits);
     } catch (err) {
@@ -60,25 +63,28 @@ export default function SettingsPage() {
     }
   };
 
-  const handleSaveProfile = async (e) => {
+  const handleSaveProfile = async (e, field) => {
     e.preventDefault();
     setError('');
     setSuccess('');
     setSaving(true);
 
     try {
-      await api.updateUserProfile({ username, email });
-      setSuccess('Profile updated successfully!');
-      
+      const updateData = {};
+      if (field === 'username') updateData.username = username;
+      if (field === 'email') updateData.email = email;
+
+      await api.updateUserProfile(updateData);
+      setSuccess(`${field === 'username' ? 'Name' : 'Email'} updated successfully!`);
+      if (field === 'username') setEditingName(false);
+      if (field === 'email') setEditingEmail(false);
+
       // Update localStorage user data
       const userData = localStorage.getItem('user');
       if (userData) {
         const user = JSON.parse(userData);
-        user.username = username;
-        user.email = email;
-        if (profilePicture) {
-          user.profilePicture = profilePicture;
-        }
+        if (field === 'username') user.username = username;
+        if (field === 'email') user.email = email;
         localStorage.setItem('user', JSON.stringify(user));
       }
     } catch (err) {
@@ -93,12 +99,12 @@ export default function SettingsPage() {
     setError('');
     setSuccess('');
     setSaving(true);
-    
+
     try {
       // Save to localStorage first for immediate effect
       localStorage.setItem('darkMode', darkMode.toString());
       localStorage.setItem('units', units);
-      
+
       // Apply dark mode immediately - ensure light mode by default
       if (darkMode) {
         document.documentElement.classList.add('dark');
@@ -106,7 +112,7 @@ export default function SettingsPage() {
         // Explicitly remove dark class to ensure light mode
         document.documentElement.classList.remove('dark');
       }
-      
+
       // Try to sync with backend if endpoint exists
       try {
         // Check if updateUserPreferences exists in api
@@ -117,7 +123,7 @@ export default function SettingsPage() {
         // Backend sync is optional - preferences are saved locally
         console.log('Preferences saved locally. Backend sync not available.');
       }
-      
+
       setSuccess('Preferences saved!');
     } catch (err) {
       console.error('Error saving preferences:', err);
@@ -146,12 +152,16 @@ export default function SettingsPage() {
     try {
       setUploadingPicture(true);
       setError('');
-      const result = await api.uploadProfilePicture(file);
-      
+
+      // Compress image before upload (smaller size for profile pics)
+      const compressedFile = await compressImage(file, 500);
+
+      const result = await api.uploadProfilePicture(compressedFile);
+
       // Update profile picture URL
       const newPictureUrl = result.profilePicture || result.profile_picture || result.url;
       setProfilePicture(newPictureUrl);
-      
+
       // Update localStorage
       const userData = localStorage.getItem('user');
       if (userData) {
@@ -159,15 +169,15 @@ export default function SettingsPage() {
         user.profilePicture = newPictureUrl;
         localStorage.setItem('user', JSON.stringify(user));
       }
-      
+
       setSuccess('Profile picture uploaded successfully!');
-      
+
       // Reload user profile to get updated picture
       try {
         const updatedUser = await api.getUserProfile();
         setUser(updatedUser);
         setProfilePicture(updatedUser.profilePicture || updatedUser.profile_picture || newPictureUrl);
-        
+
         // Update localStorage
         const userData = localStorage.getItem('user');
         if (userData) {
@@ -209,7 +219,7 @@ export default function SettingsPage() {
   return (
     <main className="min-h-screen flex flex-col bg-gradient-to-b from-orange-50 to-white dark:from-gray-900 dark:to-gray-800">
       <Navbar />
-      
+
       <div className="flex-1 max-w-4xl mx-auto px-6 py-12 w-full">
         <h1 className="text-4xl font-bold text-orange-600 dark:text-orange-400 mb-8 text-center">
           Settings
@@ -230,22 +240,30 @@ export default function SettingsPage() {
         {/* Profile Settings */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-6">
           <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-6">Profile Settings</h2>
-          
+
           {/* Profile Picture Upload */}
           <div className="mb-6">
             <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">Profile Picture</label>
             <div className="flex items-center gap-4">
-              <div className="w-24 h-24 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center overflow-hidden">
+              <div className="w-24 h-24 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center overflow-hidden border-2 border-orange-200 dark:border-orange-700 relative">
                 {profilePicture ? (
                   <img
                     src={profilePicture}
                     alt="Profile"
                     className="w-full h-full object-cover"
+                    onError={(e) => {
+                      e.target.style.display = 'none';
+                      e.target.nextSibling.style.display = 'flex';
+                    }}
                   />
-                ) : (
-                  <span className="text-3xl font-bold text-orange-600 dark:text-orange-400">
-                    {username.charAt(0).toUpperCase() || 'U'}
-                  </span>
+                ) : null}
+                <span className={`text-3xl font-bold text-orange-600 dark:text-orange-400 absolute inset-0 flex items-center justify-center ${profilePicture ? 'hidden' : 'flex'}`}>
+                  {username.charAt(0).toUpperCase() || 'U'}
+                </span>
+                {uploadingPicture && (
+                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                    <div className="w-6 h-6 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                  </div>
                 )}
               </div>
               <div>
@@ -268,45 +286,115 @@ export default function SettingsPage() {
             </div>
           </div>
 
-          <form onSubmit={handleSaveProfile} className="space-y-4">
-            <div>
-              <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">Username</label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                required
-                className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none"
-                placeholder="Your username"
-              />
+          <div className="space-y-8">
+            {/* Username Update */}
+            <div className="border-b dark:border-gray-700 pb-6">
+              <div className="flex justify-between items-center mb-2">
+                <label className="font-medium text-gray-700 dark:text-gray-300">Display Name</label>
+                {!editingName && (
+                  <button
+                    onClick={() => setEditingName(true)}
+                    className="text-orange-600 dark:text-orange-400 hover:underline text-sm font-medium"
+                  >
+                    Change Name
+                  </button>
+                )}
+              </div>
+
+              {!editingName ? (
+                <p className="text-gray-900 dark:text-gray-100 text-lg">{username}</p>
+              ) : (
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSaveProfile(e, 'username');
+                }} className="flex gap-4 animate-fade-in">
+                  <input
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    required
+                    autoFocus
+                    className="flex-1 px-4 py-3 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none"
+                    placeholder="Your username"
+                  />
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="px-6 py-3 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition disabled:opacity-50 whitespace-nowrap"
+                  >
+                    {saving ? 'Saving...' : 'Save'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingName(false)}
+                    className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                  >
+                    Cancel
+                  </button>
+                </form>
+              )}
             </div>
 
+            {/* Email Update */}
             <div>
-              <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">Email</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none"
-                placeholder="your@email.com"
-              />
-            </div>
+              <div className="flex justify-between items-center mb-2">
+                <label className="font-medium text-gray-700 dark:text-gray-300">Email Address</label>
+                {!editingEmail && (
+                  <button
+                    onClick={() => setEditingEmail(true)}
+                    className="text-orange-600 dark:text-orange-400 hover:underline text-sm font-medium"
+                  >
+                    Change Email
+                  </button>
+                )}
+              </div>
 
-            <button
-              type="submit"
-              disabled={saving}
-              className="px-6 py-3 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition disabled:opacity-50"
-            >
-              {saving ? 'Saving...' : 'Save Profile'}
-            </button>
-          </form>
+              {!editingEmail ? (
+                <p className="text-gray-900 dark:text-gray-100 text-lg">{email}</p>
+              ) : (
+                <form onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSaveProfile(e, 'email');
+                }} className="flex gap-4 animate-fade-in">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    autoFocus
+                    className="flex-1 px-4 py-3 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none"
+                    placeholder="your@email.com"
+                  />
+                  <button
+                    type="submit"
+                    disabled={saving}
+                    className="px-6 py-3 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition disabled:opacity-50 whitespace-nowrap"
+                  >
+                    {saving ? 'Saving...' : 'Save'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setEditingEmail(false)}
+                    className="px-4 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+                  >
+                    Cancel
+                  </button>
+                </form>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Security Settings */}
+        <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-6">
+          <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-6">Security</h2>
+          <ChangePasswordForm />
         </div>
 
         {/* Preferences */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-6">
           <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-6">Preferences</h2>
-          
+
           <div className="space-y-6">
             {/* Dark Mode */}
             <div className="flex items-center justify-between">
@@ -320,14 +408,12 @@ export default function SettingsPage() {
               </div>
               <button
                 onClick={() => setDarkMode(!darkMode)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-                  darkMode ? 'bg-orange-500' : 'bg-gray-300'
-                }`}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${darkMode ? 'bg-orange-500' : 'bg-gray-300'
+                  }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                    darkMode ? 'translate-x-6' : 'translate-x-1'
-                  }`}
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-1'
+                    }`}
                 />
               </button>
             </div>
@@ -390,7 +476,137 @@ export default function SettingsPage() {
       </div>
 
       <Footer />
-    </main>
+    </main >
+  );
+}
+
+function ChangePasswordForm() {
+  const [isEditing, setIsEditing] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState({ type: '', text: '' });
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setMessage({ type: '', text: '' });
+
+    if (newPassword !== confirmPassword) {
+      setMessage({ type: 'error', text: 'New passwords do not match' });
+      return;
+    }
+
+    if (newPassword.length < 8) {
+      setMessage({ type: 'error', text: 'Password must be at least 8 characters long' });
+      return;
+    }
+
+    setLoading(true);
+    try {
+      await api.changePassword(currentPassword, newPassword);
+      setMessage({ type: 'success', text: 'Password changed successfully' });
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setTimeout(() => {
+        setIsEditing(false);
+        setMessage({ type: '', text: '' });
+      }, 2000);
+    } catch (err) {
+      setMessage({ type: 'error', text: err.message || 'Failed to change password' });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div>
+      <div className="flex justify-between items-center mb-4">
+        <label className="font-medium text-gray-700 dark:text-gray-300">Password</label>
+        {!isEditing && (
+          <button
+            onClick={() => setIsEditing(true)}
+            className="text-orange-600 dark:text-orange-400 hover:underline text-sm font-medium"
+          >
+            Change Password
+          </button>
+        )}
+      </div>
+
+      {!isEditing ? (
+        <p className="text-gray-500 dark:text-gray-400">••••••••</p>
+      ) : (
+        <form onSubmit={handleSubmit} className="space-y-4 animate-fade-in bg-gray-50 dark:bg-gray-700/50 p-6 rounded-xl">
+          {message.text && (
+            <div className={`px-4 py-3 rounded ${message.type === 'success'
+              ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border border-green-400 dark:border-green-600'
+              : 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 border border-red-400 dark:border-red-600'
+              }`}>
+              {message.text}
+            </div>
+          )}
+
+          <div>
+            <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">Current Password</label>
+            <input
+              type="password"
+              value={currentPassword}
+              onChange={(e) => setCurrentPassword(e.target.value)}
+              required
+              className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">New Password</label>
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              required
+              minLength={8}
+              className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none"
+            />
+          </div>
+
+          <div>
+            <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">Confirm New Password</label>
+            <input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              minLength={8}
+              className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none"
+            />
+          </div>
+
+          <div className="flex gap-4">
+            <button
+              type="submit"
+              disabled={loading}
+              className="px-6 py-3 bg-orange-500 text-white rounded-lg font-semibold hover:bg-orange-600 transition disabled:opacity-50"
+            >
+              {loading ? 'Updating...' : 'Update Password'}
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setIsEditing(false);
+                setMessage({ type: '', text: '' });
+                setCurrentPassword('');
+                setNewPassword('');
+                setConfirmPassword('');
+              }}
+              className="px-6 py-3 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-lg font-semibold hover:bg-gray-300 dark:hover:bg-gray-600 transition"
+            >
+              Cancel
+            </button>
+          </div>
+        </form>
+      )}
+    </div>
   );
 }
 

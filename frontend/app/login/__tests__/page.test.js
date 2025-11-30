@@ -109,7 +109,7 @@ describe('LoginPage', () => {
         'user',
         JSON.stringify(mockResponse.user)
       );
-      expect(mockPush).toHaveBeenCalledWith('/recipes');
+      expect(mockPush).toHaveBeenCalledWith('/');
     });
   });
 

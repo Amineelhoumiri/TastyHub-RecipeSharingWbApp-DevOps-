@@ -12,49 +12,50 @@ const getHeaders = (includeAuth = false) => {
   const headers = {
     'Content-Type': 'application/json',
   };
-  
+
   if (includeAuth) {
     const token = getAuthToken();
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
   }
-  
+
   return headers;
 };
 
 export const api = {
-  getRecipes: async (search = '', tag = '') => {
+  getRecipes: async (search = '', tag = '', limit = null) => {
     const params = new URLSearchParams();
     if (search) params.append('search', search);
     if (tag) params.append('tag', tag);
-    
+    if (limit) params.append('pageSize', limit);
+
     const url = `${API_BASE_URL}/api/recipes${params.toString() ? '?' + params.toString() : ''}`;
     const response = await fetch(url, {
       headers: getHeaders(true),
     });
     if (!response.ok) throw new Error('Failed to fetch recipes');
     const data = await response.json();
-    
+
     // Filter out test recipes
     const isTestRecipe = (recipe) => {
       const username = recipe.author?.username || recipe.username || '';
       const title = recipe.title || '';
       const description = recipe.description || '';
       const email = recipe.author?.email || recipe.email || '';
-      
+
       const usernameLower = username.toLowerCase();
       const titleLower = title.toLowerCase();
       const descriptionLower = description.toLowerCase();
       const emailLower = email.toLowerCase();
-      
+
       // Test keywords
       const testKeywords = [
         'test', 'testuser', 'test_user', 'testuser1', 'testuser2', 'testuser3',
         'admin', 'administrator', 'demo', 'sample', 'example', 'tester',
         'test recipe', 'test data', 'dummy', 'fake', 'mock', 'collection_'
       ];
-      
+
       // Generic test patterns
       const genericTestPatterns = [
         /^my recipe\s*\d+$/i,
@@ -67,45 +68,45 @@ export const api = {
         /^recipe created$/i,
         /^new recipe$/i,
       ];
-      
+
       // Timestamp patterns (10-13 digit numbers)
       const timestampPattern = /^\d{10,13}$/;
       const hasTimestampInTitle = timestampPattern.test(title.trim());
       const hasTimestampInUsername = timestampPattern.test(username.trim());
-      
+
       // Collection pattern
       const collectionPattern = /^collection_\d{10,13}$/i;
       const isCollectionTest = collectionPattern.test(username);
-      
+
       // Title ends with timestamp
       const titleEndsWithTimestamp = /^\w+.*\s+\d{10,13}$/i.test(title);
-      
+
       // Generic test text
-      const hasGenericTestText = genericTestPatterns.some(pattern => 
+      const hasGenericTestText = genericTestPatterns.some(pattern =>
         pattern.test(title.trim()) || pattern.test(description.trim())
       );
-      
+
       // Generic descriptions
-      const isGenericDescription = descriptionLower === '' || 
+      const isGenericDescription = descriptionLower === '' ||
         descriptionLower === 'a recipe i created' ||
         descriptionLower === 'test' ||
         descriptionLower.length < 10;
-      
+
       // Check keywords
-      const hasTestKeywords = testKeywords.some(keyword => 
-        usernameLower.includes(keyword) || 
-        titleLower.includes(keyword) || 
+      const hasTestKeywords = testKeywords.some(keyword =>
+        usernameLower.includes(keyword) ||
+        titleLower.includes(keyword) ||
         descriptionLower.includes(keyword) ||
         emailLower.includes(keyword)
       );
-      
-      return hasTestKeywords || 
-             hasGenericTestText || 
-             hasTimestampInTitle || 
-             hasTimestampInUsername || 
-             isCollectionTest ||
-             titleEndsWithTimestamp ||
-             (isGenericDescription && titleLower.includes('recipe'));
+
+      return hasTestKeywords ||
+        hasGenericTestText ||
+        hasTimestampInTitle ||
+        hasTimestampInUsername ||
+        isCollectionTest ||
+        titleEndsWithTimestamp ||
+        (isGenericDescription && titleLower.includes('recipe'));
     };
 
     // Transform and filter recipes
@@ -133,13 +134,23 @@ export const api = {
     return Array.isArray(data) ? data.filter(recipe => !isTestRecipe(recipe)) : [];
   },
 
+
+  getPopularTags: async () => {
+    const response = await fetch(`${API_BASE_URL}/api/recipes/tags/popular`, {
+      headers: getHeaders(false),
+    });
+    if (!response.ok) throw new Error('Failed to fetch popular tags');
+    const data = await response.json();
+    return data.tags || [];
+  },
+
   getRecipe: async (id) => {
     const response = await fetch(`${API_BASE_URL}/api/recipes/${id}`, {
       headers: getHeaders(true),
     });
     if (!response.ok) throw new Error('Failed to fetch recipe');
     const data = await response.json();
-    
+
     if (data.recipe) {
       const recipe = data.recipe;
       return {
@@ -184,7 +195,7 @@ export const api = {
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || data.error || 'Failed to create recipe');
-    
+
     // Handle Sequelize model format
     if (data.recipe) {
       if (!data.recipe.id) {
@@ -198,12 +209,12 @@ export const api = {
           }
         }
       }
-      
+
       if (data.recipe.id && typeof data.recipe.id !== 'string') {
         data.recipe.id = String(data.recipe.id);
       }
     }
-    
+
     return data;
   },
 
@@ -277,14 +288,14 @@ export const api = {
       method: 'POST',
       headers: getHeaders(true),
     });
-    
+
     // Verify JSON response
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
       const text = await response.text();
       throw new Error(`Server returned non-JSON response. Status: ${response.status}. ${text.substring(0, 100)}`);
     }
-    
+
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.message || data.error || 'Failed to toggle favorite');
@@ -298,13 +309,13 @@ export const api = {
       method: 'POST',
       headers: getHeaders(true),
     });
-    
+
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
       const text = await response.text();
       throw new Error(`Server returned non-JSON response. Status: ${response.status}. ${text.substring(0, 100)}`);
     }
-    
+
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.message || data.error || 'Failed to toggle favorite');
@@ -346,13 +357,13 @@ export const api = {
     const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
       headers: getHeaders(false), // Public endpoint
     });
-    
+
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
       const text = await response.text();
       throw new Error(`Server returned non-JSON response. Status: ${response.status}. ${text.substring(0, 100)}`);
     }
-    
+
     const data = await response.json();
     if (!response.ok) {
       throw new Error(data.message || data.error || 'Failed to fetch user profile');
@@ -374,33 +385,63 @@ export const api = {
   uploadProfilePicture: async (file) => {
     const formData = new FormData();
     formData.append('profilePicture', file);
-    
+
     const token = getAuthToken();
     const headers = {};
     if (token) {
       headers['Authorization'] = `Bearer ${token}`;
     }
-    
+
     const response = await fetch(`${API_BASE_URL}/api/users/profile/picture`, {
       method: 'PUT',
       headers,
       body: formData,
     });
-    
+
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
       const text = await response.text();
       throw new Error(`Server returned non-JSON response. Status: ${response.status}. ${text.substring(0, 100)}`);
     }
-    
+
     const data = await response.json();
-    
+
     if (response.status === 501) {
       throw new Error('Profile picture upload is not yet implemented on the backend. Please contact the development team.');
     }
-    
+
     if (!response.ok) {
       throw new Error(data.message || data.error || 'Failed to upload profile picture');
+    }
+    return data;
+  },
+
+  uploadRecipeImage: async (file) => {
+    const formData = new FormData();
+    formData.append('recipeImage', file);
+
+    const token = getAuthToken();
+    const headers = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_BASE_URL}/api/recipes/upload-image`, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    const contentType = response.headers.get('content-type');
+    if (!contentType || !contentType.includes('application/json')) {
+      const text = await response.text();
+      throw new Error(`Server returned non-JSON response. Status: ${response.status}. ${text.substring(0, 100)}`);
+    }
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      throw new Error(data.message || data.error || 'Failed to upload recipe image');
     }
     return data;
   },
@@ -432,6 +473,28 @@ export const api = {
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || data.error || 'Failed to update preferences');
+    return data;
+  },
+
+  changePassword: async (currentPassword, newPassword) => {
+    const response = await fetch(`${API_BASE_URL}/api/users/change-password`, {
+      method: 'PUT',
+      headers: getHeaders(true),
+      body: JSON.stringify({ currentPassword, newPassword }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || data.error || 'Failed to change password');
+    return data;
+  },
+
+  googleLogin: async (token) => {
+    const response = await fetch(`${API_BASE_URL}/api/users/google-login`, {
+      method: 'POST',
+      headers: getHeaders(false),
+      body: JSON.stringify({ token }),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || data.error || 'Google login failed');
     return data;
   },
 };

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { api } from "@/lib/api";
 
@@ -12,6 +12,33 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    // Check for token in URL (from Google Auth redirect)
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    const userData = params.get('user');
+    const errorMsg = params.get('error');
+
+    if (errorMsg) {
+      setError('Google authentication failed. Please try again.');
+      router.replace('/login'); // Clear URL params
+    } else if (token && userData) {
+      try {
+        localStorage.setItem('token', token);
+        localStorage.setItem('user', userData); // userData is already a JSON string from backend
+        router.push('/');
+      } catch (err) {
+        console.error('Error parsing user data:', err);
+        setError('Login failed');
+      }
+    }
+  }, [router]);
+
+  const handleGoogleLogin = () => {
+    // Redirect to backend Google Auth endpoint
+    window.location.href = `${api.API_BASE_URL || 'http://localhost:5000'}/api/users/auth/google`;
+  };
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -32,7 +59,7 @@ export default function LoginPage() {
       if (data.user) {
         localStorage.setItem('user', JSON.stringify(data.user));
       }
-      router.push("/recipes");
+      router.push("/");
     } catch (err) {
       setError(err.message || "Login failed. Please check your credentials and try again.");
     } finally {
@@ -54,14 +81,14 @@ export default function LoginPage() {
         >
           {/* Email field: label is linked to input via htmlFor/id */}
           <div>
-            <label htmlFor="email" className="block mb-1 font-medium text-gray-700">
+            <label htmlFor="email" className="block mb-1 font-medium text-gray-900">
               Email
             </label>
             <input
               id="email"
               name="email"
               type="email"
-              className="w-full px-4 py-3 border rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 outline-none"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-black focus:ring-2 focus:ring-orange-500 outline-none"
               placeholder="Enter your email"
               required
               value={email}
@@ -72,14 +99,14 @@ export default function LoginPage() {
 
           {/* Password field: label is linked to input via htmlFor/id */}
           <div>
-            <label htmlFor="password" className="block mb-1 font-medium text-gray-700">
+            <label htmlFor="password" className="block mb-1 font-medium text-black">
               Password
             </label>
             <input
               id="password"
               name="password"
               type="password"
-              className="w-full px-4 py-3 border rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 outline-none"
+              className="w-full px-4 py-3 border border-gray-300 rounded-lg text-black focus:ring-2 focus:ring-orange-500 outline-none"
               placeholder="Enter your password"
               required
               value={password}
@@ -94,6 +121,22 @@ export default function LoginPage() {
             disabled={loading}
           >
             {loading ? "Logging in..." : "Login"}
+          </button>
+
+          <div className="relative flex py-2 items-center">
+            <div className="flex-grow border-t border-gray-300"></div>
+            <span className="flex-shrink-0 mx-4 text-gray-500 text-sm">Or continue with</span>
+            <div className="flex-grow border-t border-gray-300"></div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleGoogleLogin}
+            className="w-full bg-white border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2"
+            disabled={loading}
+          >
+            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
+            Sign in with Google
           </button>
 
           {error && (

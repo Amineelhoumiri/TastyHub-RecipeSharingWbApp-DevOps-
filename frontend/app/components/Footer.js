@@ -12,7 +12,7 @@ export default function Footer() {
               About TastyHub
             </h3>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Share and discover amazing recipes with the TastyHub community. 
+              Share and discover amazing recipes with the TastyHub community.
               Connect with fellow food lovers and explore culinary delights.
             </p>
           </div>
@@ -48,7 +48,7 @@ export default function Footer() {
               Connect
             </h3>
             <p className="text-gray-600 dark:text-gray-400 text-sm">
-              Have questions or feedback? We'd love to hear from you!
+              Have questions or feedback? We&apos;d love to hear from you!
             </p>
           </div>
         </div>

@@ -1,5 +1,7 @@
 # TastyHub - Recipe Sharing Application
 
+**Live Demo:** [Click here to view on Vercel](INSERT_VERCEL_LINK_HERE)
+
 A full-stack recipe sharing platform built with Next.js frontend and Express.js backend, featuring PostgreSQL database, comprehensive testing, and CI/CD automation.
 
 ## Architecture
