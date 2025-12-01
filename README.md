@@ -1,5 +1,7 @@
 # TastyHub - Recipe Sharing Application
 
+**Live Demo:** [Click here to view on Vercel](INSERT_VERCEL_LINK_HERE)
+
 A full-stack recipe sharing platform built with Next.js frontend and Express.js backend, featuring PostgreSQL database, comprehensive testing, and CI/CD automation.
 
 ## Architecture
@@ -89,6 +91,7 @@ npm run lint          # ESLint
 ```
 
 Or from root:
+
 ```bash
 npm run test:frontend
 npm run test:frontend:watch
@@ -100,6 +103,7 @@ npm run test:frontend:coverage
 We use Cypress for end-to-end testing of the frontend. See `cypress/README.md` for detailed testing documentation.
 
 **Quick Start:**
+
 ```bash
 # Make sure both servers are running first!
 # Backend: cd backend && npm run dev
@@ -111,6 +115,7 @@ npm run test:e2e       # Headless mode
 ```
 
 **Test Coverage:**
+
 - Home page navigation and content
 - User login and registration
 - Recipes listing and detail pages
@@ -164,18 +169,23 @@ See `frontend/TESTING.md` for detailed frontend testing documentation.
 
 ## Documentation
 
-- [Backend API Documentation](backend/README.md)
-- [Frontend Testing Guide](frontend/TESTING.md)
+- [Backend API Documentation](backend/README.md) - Complete backend API reference
+- [Frontend Documentation](frontend/README.md) - Frontend setup and features guide
+- [Frontend Testing Guide](frontend/TESTING.md) - Frontend testing documentation
 - Database schema: `backend/database/Tasty-Hub.sql`
 
 ## Contributing
 
-1. Branch from `develop`
-2. Make changes
-3. Run tests and linter
-4. Commit with descriptive messages
-5. Open PR to `develop`
+We welcome contributions! Here's how you can help:
+
+1. Fork the repository and create a branch from `develop`
+2. Make your changes
+3. Run tests and linter to make sure everything works
+4. Commit with clear, descriptive messages
+5. Open a pull request to `develop` for review
+
+For more details, check out our contribution guidelines in the repository.
 
 ## License
 
-ISC
+This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.

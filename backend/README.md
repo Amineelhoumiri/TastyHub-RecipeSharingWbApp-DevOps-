@@ -68,41 +68,55 @@ psql -U postgres -d TastyHub -f database/Tasty-Hub.sql
 ## Running the Server
 
 ```bash
-npm run dev      # Development mode
+npm run dev      # Development mode (uses cross-env for Windows compatibility)
 npm start        # Production mode
+npm run prod     # Same as start
 ```
 
 Server runs on `http://localhost:5000` (or configured PORT).
 
+The server includes:
+- Request logging middleware (Winston)
+- Error handling with Sentry integration (production only)
+- Health check endpoint at `/api/health`
+- Static file serving for uploaded images at `/uploads`
+
 ## API Endpoints
+
+### Health Check
+- `GET /api/health` - Health check endpoint for monitoring (returns database connection status)
 
 ### Authentication
 - `POST /api/users/register` - Register new user
 - `POST /api/users/login` - Login user
 
 ### User Management
-- `GET /api/users/profile` - Get user profile (Protected)
-- `PUT /api/users/profile` - Update profile (Protected)
-- `PUT /api/users/preferences` - Update preferences (Protected)
-- `GET /api/users/recipes` - Get user's recipes (Protected)
-- `GET /api/users/favorites` - Get user's favorites (Protected)
-- `GET /api/users/liked` - Get user's liked recipes (Protected)
+- `GET /api/users/profile` - Get current user profile (Protected)
+- `PUT /api/users/profile` - Update current user profile (Protected)
+- `PUT /api/users/profile/picture` - Upload/update profile picture (Protected, multipart/form-data)
+- `PUT /api/users/preferences` - Update user preferences (Protected)
+- `GET /api/users/recipes` - Get current user's recipes (Protected)
+- `GET /api/users/favorites` - Get current user's favorited recipes (Protected)
+- `GET /api/users/liked` - Get current user's liked recipes (Protected)
+- `GET /api/users/:userId` - Get public user profile by ID (Public)
 
 ### Recipes
-- `GET /api/recipes` - Get all recipes (pagination)
-- `GET /api/recipes/:recipeId` - Get recipe by ID
-- `POST /api/recipes` - Create recipe (Protected)
+- `GET /api/recipes` - Get all recipes (supports pagination and search)
+- `GET /api/recipes/:recipeId` - Get recipe by ID (Public, but private recipes require ownership)
+- `POST /api/recipes` - Create new recipe (Protected)
 - `PUT /api/recipes/:recipeId` - Update recipe (Protected, Owner only)
 - `DELETE /api/recipes/:recipeId` - Delete recipe (Protected, Owner only)
 - `POST /api/recipes/:recipeId/like` - Like/unlike recipe (Protected)
 - `POST /api/recipes/:recipeId/favourite` - Favorite/unfavorite recipe (Protected)
 
 ### Comments
-- `POST /api/recipes/:recipeId/comments` - Create comment (Protected)
+- `POST /api/recipes/:recipeId/comments` - Create comment on recipe (Protected)
 - `PUT /api/comments/:commentId` - Update comment (Protected, Owner only)
 - `DELETE /api/comments/:commentId` - Delete comment (Protected, Owner only)
 
-**Protected endpoints** require `Authorization: Bearer <token>` header.
+**Protected endpoints** require `Authorization: Bearer <token>` header in the request.
+
+**File Uploads:** Profile picture uploads accept `multipart/form-data` with a `picture` field. Maximum file size is 5MB.
 
 ## Testing
 
@@ -150,7 +164,9 @@ backend/
 │   └── commentController.js
 ├── middleware/
 │   ├── authMiddleware.js
-│   └── optionalAuthMiddleware.js
+│   ├── optionalAuthMiddleware.js
+│   ├── logger.js              # Winston logging setup
+│   └── uploadMiddleware.js    # File upload handling
 ├── models/
 │   ├── userModel.js
 │   ├── recipeModel.js
@@ -168,6 +184,13 @@ backend/
 ├── cypress/
 │   ├── e2e/api/             # API endpoint tests
 │   └── support/             # Custom commands
+├── uploads/                  # Uploaded files (profile pictures)
+│   └── profile-pictures/
+├── logs/                     # Application logs (generated at runtime)
+│   ├── combined.log
+│   ├── error.log
+│   ├── exceptions.log
+│   └── rejections.log
 ├── index.js                 # Server entry point
 ├── jest.config.js
 ├── cypress.config.js
@@ -196,12 +219,34 @@ Standardized error responses:
 
 ## Security Features
 
-- Password hashing with bcrypt
+- Password hashing with bcryptjs
 - JWT token authentication
 - Input validation on all endpoints
 - SQL injection protection via Sequelize ORM
 - Environment variables for sensitive data
-- CORS configuration
+- CORS configuration for frontend access
+- File upload validation (size limits, file type checking)
+- Request logging and error tracking (Winston + Sentry)
+
+## Logging and Monitoring
+
+The backend uses Winston for logging and Sentry for error tracking in production.
+
+### Logging
+
+Logs are written to the `logs/` directory:
+- `combined.log` - All logs
+- `error.log` - Error level and above
+- `exceptions.log` - Uncaught exceptions
+- `rejections.log` - Unhandled promise rejections
+
+Log levels: `error`, `warn`, `info`, `debug` (development only)
+
+### Monitoring
+
+- **Health Check:** `GET /api/health` - Returns server and database status
+- **Sentry Integration:** Automatic error tracking in production (requires `SENTRY_DSN` env var)
+- **Request Logging:** All HTTP requests are logged with method, path, status, and duration
 
 ## Environment Variables
 
@@ -214,9 +259,11 @@ Standardized error responses:
 | `DB_HOST` | No | Database host (default: localhost) |
 | `DB_PORT` | No | Database port (default: 5500) |
 | `PORT` | No | Server port (default: 5000) |
-| `FRONTEND_URL` | No | Frontend URL for CORS |
+| `FRONTEND_URL` | No | Frontend URL for CORS (default: http://localhost:3000) |
 | `NODE_ENV` | No | Environment (development/production/test) |
+| `SENTRY_DSN` | No | Sentry DSN for error tracking (production only) |
+| `LOG_LEVEL` | No | Logging level (default: info in prod, debug in dev) |
 
 ## License
 
-ISC
+This project is licensed under the Apache License 2.0. See the root [LICENSE](../LICENSE) file for details.

@@ -39,6 +39,11 @@ const User = sequelize.define(
       type: DataTypes.DATE,
       defaultValue: () => new Date(),
       field: 'created_at'
+    },
+    isAdmin: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      field: 'is_admin'
     }
   },
   {

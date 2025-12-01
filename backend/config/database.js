@@ -1,6 +1,12 @@
 ﻿// Load environment variables first
 require('dotenv').config();
 
+// Default Railway connection string (used when DATABASE_URL isn't set locally)
+const DEFAULT_DATABASE_PUBLIC_URL =
+  process.env.DATABASE_PUBLIC_URL ||
+  process.env.RAILWAY_DATABASE_URL ||
+  'postgresql://postgres:ACPhdpjZnAsDaBsfOwFOHSFyZUiHShQV@trolley.proxy.rlwy.net:35417/railway';
+
 const { Sequelize } = require('sequelize');
 
 // ===================================================
@@ -13,45 +19,81 @@ const { Sequelize } = require('sequelize');
 // Always use environment variables, especially in production.
 // ===================================================
 
-// Database name - safe to have a default for local development
-const DB_NAME = process.env.DB_NAME || 'TastyHub';
+// Priority order for database configuration:
+// 1. DATABASE_URL (Railway, Heroku, etc. - single connection string)
+// 2. Individual PG* variables (Railway PostgreSQL service)
+// 3. Individual DB_* variables (custom format)
+// 4. Defaults for local development
 
-// Database user - safe to have a default for local development
-const DB_USER = process.env.DB_USER || 'postgres';
+let sequelize;
 
-// Database password - CRITICAL: Must be set via environment variable!
-// We don't provide a fallback because hardcoded passwords are a security risk.
-// If you're running locally, create a .env file with: DB_PASSWORD=your_password
-const DB_PASSWORD = process.env.DB_PASSWORD;
+let resolvedDatabaseUrl = process.env.DATABASE_URL;
 
-if (!DB_PASSWORD) {
-  console.error('Γ¥î ERROR: DB_PASSWORD environment variable is required!');
-  console.error('≡ƒÆí Please create a .env file in the server directory with:');
-  console.error('   DB_PASSWORD=your_database_password');
-  console.error('   (And other required variables like DB_NAME, DB_USER, etc.)');
-  process.exit(1); // Stop the server if password is missing
+if (resolvedDatabaseUrl && resolvedDatabaseUrl.includes('public-host')) {
+  resolvedDatabaseUrl = DEFAULT_DATABASE_PUBLIC_URL;
 }
 
-// Database host - safe to default to localhost for local development
-const DB_HOST = process.env.DB_HOST || 'localhost';
+resolvedDatabaseUrl = resolvedDatabaseUrl || DEFAULT_DATABASE_PUBLIC_URL;
 
-// Database port - safe to have a default
-const DB_PORT = process.env.DB_PORT || 5500;
+// Ensure downstream code sees the resolved value (used in logging/etc.)
+process.env.DATABASE_URL = resolvedDatabaseUrl;
 
-// This creates the new Sequelize connection instance
-// We're telling Sequelize we use PostgreSQL as our database
-const sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
-  host: DB_HOST,
-  port: DB_PORT,
-  dialect: 'postgres', // We're using PostgreSQL
-  logging: process.env.NODE_ENV === 'development' ? console.log : false, // Only log SQL queries in development mode
-  pool: {
-    max: 5, // Maximum number of connections in the pool
-    min: 0, // Minimum number of connections
-    acquire: 30000, // Maximum time (ms) to wait for a connection
-    idle: 10000 // Maximum time (ms) a connection can be idle
+// Check if DATABASE_URL (or fallback) is provided (Railway, Heroku, etc.)
+if (resolvedDatabaseUrl) {
+  // Sequelize can use DATABASE_URL directly
+  // Format: postgresql://username:password@host:port/database
+  sequelize = new Sequelize(resolvedDatabaseUrl, {
+    dialect: 'postgres',
+    dialectOptions: {
+      ssl: process.env.NODE_ENV === 'production' ? {
+        require: true,
+        rejectUnauthorized: false
+      } : false
+    },
+    logging: process.env.NODE_ENV === 'development' ? console.log : false,
+    pool: {
+      max: 5,
+      min: 0,
+      acquire: 30000,
+      idle: 10000
+    }
+  });
+} else {
+  // Fall back to individual environment variables
+  // Support both Railway (PG*) and custom (DB_*) environment variables
+  const DB_NAME = process.env.PGDATABASE || process.env.DB_NAME || 'TastyHub';
+  const DB_USER = process.env.PGUSER || process.env.DB_USER || 'postgres';
+  const DB_PASSWORD = process.env.PGPASSWORD || process.env.DB_PASSWORD;
+  const DB_HOST = process.env.PGHOST || process.env.DB_HOST || 'localhost';
+  const DB_PORT = process.env.PGPORT
+    ? parseInt(process.env.PGPORT, 10)
+    : (process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 5500);
+
+  // Validate password is set
+  if (!DB_PASSWORD) {
+    console.error('ERROR: Database password environment variable is required!');
+    console.error('Please set one of the following:');
+    console.error('  - DATABASE_URL (recommended for Railway/Heroku)');
+    console.error('  - PGPASSWORD (Railway PostgreSQL service)');
+    console.error('  - DB_PASSWORD (custom format)');
+    console.error('Local: Create a .env file with DB_PASSWORD=your_database_password');
+    process.exit(1);
   }
-});
+
+  // Create Sequelize instance with individual variables
+  sequelize = new Sequelize(DB_NAME, DB_USER, DB_PASSWORD, {
+    host: DB_HOST,
+    port: DB_PORT,
+    dialect: 'postgres',
+    logging: process.env.NODE_ENV === 'development' ? console.log : false,
+    pool: {
+      max: 5,
+      min: 0,
+      acquire: 30000,
+      idle: 10000
+    }
+  });
+}
 
 // We export this 'sequelize' connection to be used by all our models
 module.exports = sequelize;

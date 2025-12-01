@@ -2,10 +2,29 @@
 const router = express.Router();
 const multer = require('multer');
 const userController = require('../controllers/userController');
+const passport = require('passport');
 const authMiddleware = require('../middleware/authMiddleware'); // Import our authentication middleware
 const { uploadProfilePicture } = require('../middleware/uploadMiddleware');
 
 //  AUTH / USER ACCOUNT ROUTES (Public - no authentication required)
+
+// @route   GET /api/users/ping
+router.get('/ping', (req, res) => res.json({ message: 'User routes working' }));
+
+// @route   GET /api/users/auth/google
+// Initiates the Google OAuth flow
+router.get('/auth/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
+
+// @route   GET /api/users/auth/google/callback
+// Handles the callback from Google
+router.get(
+  '/auth/google/callback',
+  passport.authenticate('google', { session: false, failureRedirect: '/login?error=GoogleAuthFailed' }),
+  userController.googleCallback
+);
+
+// @route   POST /api/users/google-login (Legacy/Mock - kept for reference or mobile)
+router.post('/google-login', userController.googleLogin);
 
 // @route   POST /api/users/register
 router.post('/register', userController.registerUser);
@@ -58,6 +77,9 @@ router.get('/favorites', authMiddleware, userController.getUserFavorites);
 // @route   GET /api/users/liked
 // Get all recipes liked by the logged-in user
 router.get('/liked', authMiddleware, userController.getUserLikedRecipes);
+
+// @route   PUT /api/users/change-password
+router.put('/change-password', authMiddleware, userController.changePassword);
 
 // @route   GET /api/users/:userId
 // Public endpoint to view any user's profile (keep this last to avoid route conflicts)

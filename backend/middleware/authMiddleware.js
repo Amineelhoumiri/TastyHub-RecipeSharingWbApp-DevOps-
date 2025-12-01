@@ -66,7 +66,8 @@ const authMiddleware = async (req, res, next) => {
     req.user = {
       id: user.id,
       username: user.username,
-      email: user.email
+      email: user.email,
+      isAdmin: user.isAdmin
     };
 
     // Call next() to continue to the next middleware or route handler

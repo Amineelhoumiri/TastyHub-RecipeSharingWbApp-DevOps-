@@ -1,5 +1,5 @@
-﻿// I'll import the 'Review' model from my main models/index.js file,
-// since that's where I decided to store my comments.
+﻿// Import models needed for comment operations
+// Comments are stored in the Review model
 const { Review, Recipe, User, sequelize } = require('../models');
 
 /**
@@ -101,8 +101,8 @@ exports.deleteComment = async (req, res) => {
       return res.status(404).json({ message: 'Comment not found' });
     }
 
-    // Check if the user owns this comment
-    if (review.userId !== req.user.id) {
+    // Check if the user owns this comment OR is an admin
+    if (review.userId !== req.user.id && !req.user.isAdmin) {
       return res.status(403).json({
         message: 'Access denied. You can only delete your own comments.'
       });
