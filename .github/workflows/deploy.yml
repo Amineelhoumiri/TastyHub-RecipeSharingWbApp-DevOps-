@@ -48,20 +48,7 @@ jobs:
         working-directory: ./backend
         run: echo "Backend is ready for deployment"
 
-      # Deployment step - customize based on your hosting platform
-      # Example for Railway/Render/Heroku:
-      - name: Deploy to production
-        working-directory: ./backend
-        env:
-          # Add your deployment platform credentials as GitHub secrets
-          # DEPLOY_TOKEN: ${{ secrets.DEPLOY_TOKEN }}
-        run: |
-          echo "Backend deployment would happen here"
-          echo "Configure deployment based on your hosting platform:"
-          echo "- Railway: Use Railway CLI"
-          echo "- Render: Use Render API"
-          echo "- Heroku: Use Heroku CLI"
-          echo "- AWS: Use AWS CLI or GitHub Actions AWS deploy action"
+
 
   # Frontend deployment job
   deploy-frontend:
@@ -94,29 +81,14 @@ jobs:
           NEXT_PUBLIC_API_URL: ${{ secrets.PRODUCTION_API_URL || 'https://api.tastyhub.com' }}
         run: npm run build
 
-      # Deployment step - customize based on your hosting platform
-      # Example for Vercel:
+      # Deploy to Vercel
       - name: Deploy to Vercel
         uses: amondnet/vercel-action@v25
-        if: false # Set to true when Vercel is configured
         with:
           vercel-token: ${{ secrets.VERCEL_TOKEN }}
           vercel-org-id: ${{ secrets.VERCEL_ORG_ID }}
           vercel-project-id: ${{ secrets.VERCEL_PROJECT_ID }}
           working-directory: ./frontend
-
-      # Alternative: Generic deployment step
-      - name: Deploy to production
-        working-directory: ./frontend
-        env:
-          # Add your deployment platform credentials as GitHub secrets
-        run: |
-          echo "Frontend deployment would happen here"
-          echo "Configure deployment based on your hosting platform:"
-          echo "- Vercel: Use Vercel GitHub Action (configured above)"
-          echo "- Netlify: Use Netlify CLI or GitHub Action"
-          echo "- AWS S3/CloudFront: Use AWS CLI"
-          echo "- Custom server: Use SSH deployment"
 
   # Post-deployment verification
   verify-deployment:
@@ -126,17 +98,5 @@ jobs:
     if: always()
 
     steps:
-      - name: Check backend health
-        run: |
-          echo "Backend health check would run here"
-          # curl -f ${{ secrets.PRODUCTION_API_URL }}/api/health || exit 1
-
-      - name: Check frontend availability
-        run: |
-          echo "Frontend availability check would run here"
-          # curl -f ${{ secrets.PRODUCTION_FRONTEND_URL }} || exit 1
-
       - name: Deployment status
-        run: |
-          echo "Deployment verification complete"
-          echo "Configure health checks based on your production URLs"
+        run: echo "Deployment verification complete"
