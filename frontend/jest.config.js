@@ -14,7 +14,8 @@ const customJestConfig = {
     '^@/(.*)$': '<rootDir>/app/$1',
     '^@/lib/(.*)$': '<rootDir>/app/lib/$1',
   },
-  moduleDirectories: ['node_modules', '<rootDir>'],
+  moduleDirectories: ['node_modules', '<rootDir>', '<rootDir>/app'],
+  roots: ['<rootDir>'],
   testMatch: [
     '**/__tests__/**/*.[jt]s?(x)',
     '**/?(*.)+(spec|test).[jt]s?(x)',
