@@ -8,17 +8,11 @@ const { Op } = require('sequelize');
  * @access  Public (but shows more if authenticated)
  */
 exports.getAllRecipes = async (req, res) => {
-  console.log('getAllRecipes called');
   try {
-    // Add pagination support to handle large numbers of recipes efficiently
     const page = parseInt(req.query.page) || 1;
     const pageSize = parseInt(req.query.pageSize) || 20;
-
-    // Get search parameter from query string
     const search = req.query.search || '';
-    console.log('Pagination:', { page, pageSize, search });
 
-    // Validate pagination parameters
     if (page < 1) {
       return res.status(400).json({ message: 'Page number must be at least 1' });
     }
@@ -27,22 +21,16 @@ exports.getAllRecipes = async (req, res) => {
       return res.status(400).json({ message: 'Page size must be between 1 and 100' });
     }
 
-    // Calculate offset
     const offset = (page - 1) * pageSize;
-
-    // Build where clause for search
     const whereClause = {};
-    if (search && search.trim()) {
-      // Enhanced search: Title OR Description OR Tags
 
-      // 1. Find tags that match the search term
+    if (search && search.trim()) {
       const matchingTags = await Tag.findAll({
         where: { tagName: { [Op.iLike]: `%${search.trim()}%` } },
         attributes: ['id']
       });
       const tagIds = matchingTags.map(t => t.id);
 
-      // 2. Find recipes associated with these tags
       let recipeIdsFromTags = [];
       if (tagIds.length > 0) {
         const recipeTags = await RecipeTag.findAll({
@@ -52,25 +40,18 @@ exports.getAllRecipes = async (req, res) => {
         recipeIdsFromTags = recipeTags.map(rt => rt.recipeId);
       }
 
-      // 3. Combine conditions
       whereClause[Op.or] = [
         { title: { [Op.iLike]: `%${search.trim()}%` } },
         { description: { [Op.iLike]: `%${search.trim()}%` } }
       ];
 
-      // If we found recipes by tag, add them to the OR condition
       if (recipeIdsFromTags.length > 0) {
         whereClause[Op.or].push({ id: recipeIdsFromTags });
       }
     }
 
-    // Fetch recipes with pagination, ordered by most recent first
-    // Optimization: Run count and find separately to avoid "distinct: true" performance penalty
-    console.time('countQuery');
     const totalCount = await Recipe.count({ where: whereClause });
-    console.timeEnd('countQuery');
 
-    console.time('findQuery');
     const recipes = await Recipe.findAll({
       where: whereClause,
       limit: pageSize,
@@ -88,14 +69,9 @@ exports.getAllRecipes = async (req, res) => {
         }
       ]
     });
-    console.timeEnd('findQuery');
 
-    console.log(`Fetched ${recipes.length} recipes out of ${totalCount} total`);
-
-    // Build response
     const recipeList = recipes.map(recipe => {
       try {
-        // User is now included in the recipe object
         const user = recipe.User || {};
 
         return {
@@ -121,10 +97,7 @@ exports.getAllRecipes = async (req, res) => {
       }
     }).filter(r => r !== null);
 
-    // Calculate pagination metadata
     const totalPages = Math.ceil(totalCount / pageSize);
-    const hasNextPage = page < totalPages;
-    const hasPreviousPage = page > 1;
 
     res.json({
       message: 'Recipes fetched successfully',
@@ -133,8 +106,8 @@ exports.getAllRecipes = async (req, res) => {
       page: page,
       pageSize: pageSize,
       totalPages: totalPages,
-      hasNextPage: hasNextPage,
-      hasPreviousPage: hasPreviousPage,
+      hasNextPage: page < totalPages,
+      hasPreviousPage: page > 1,
       recipes: recipeList
     });
   } catch (error) {

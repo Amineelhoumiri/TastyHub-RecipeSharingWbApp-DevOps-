@@ -41,72 +41,34 @@ export const api = {
     const isTestRecipe = (recipe) => {
       const username = recipe.author?.username || recipe.username || '';
       const title = recipe.title || '';
-      const description = recipe.description || '';
-      const email = recipe.author?.email || recipe.email || '';
 
       const usernameLower = username.toLowerCase();
       const titleLower = title.toLowerCase();
-      const descriptionLower = description.toLowerCase();
-      const emailLower = email.toLowerCase();
 
-      // Test keywords
-      const testKeywords = [
-        'test', 'testuser', 'test_user', 'testuser1', 'testuser2', 'testuser3',
-        'admin', 'administrator', 'demo', 'sample', 'example', 'tester',
-        'test recipe', 'test data', 'dummy', 'fake', 'mock', 'collection_'
-      ];
+      // 1. Filter out users that are clearly test users
+      if (usernameLower.includes('test') ||
+        usernameLower.includes('dummy') ||
+        usernameLower.includes('mock')) {
+        return true;
+      }
 
-      // Generic test patterns
-      const genericTestPatterns = [
-        /^my recipe\s*\d+$/i,
-        /^a recipe i created$/i,
-        /^recipe\s*\d+$/i,
-        /^test recipe\s*\d+$/i,
-        /^sample recipe/i,
-        /^demo recipe/i,
-        /^my recipe$/i,
-        /^recipe created$/i,
-        /^new recipe$/i,
-      ];
+      // 2. Filter out obvious "automated" test recipes
+      // Matches "My Recipe 1234567890" or "Recipe 1234567890"
+      if (/^(my )?recipe\s*\d{5,}/i.test(title)) {
+        return true;
+      }
 
-      // Timestamp patterns (10-13 digit numbers)
-      const timestampPattern = /^\d{10,13}$/;
-      const hasTimestampInTitle = timestampPattern.test(title.trim());
-      const hasTimestampInUsername = timestampPattern.test(username.trim());
+      // Matches titles that are just a long number (timestamp)
+      if (/^\d{10,}$/.test(title)) {
+        return true;
+      }
 
-      // Collection pattern
-      const collectionPattern = /^collection_\d{10,13}$/i;
-      const isCollectionTest = collectionPattern.test(username);
+      // Matches "Test Recipe" or "Demo Recipe" exactly or with numbers
+      if (/^(test|demo)\s*recipe/i.test(title)) {
+        return true;
+      }
 
-      // Title ends with timestamp
-      const titleEndsWithTimestamp = /^\w+.*\s+\d{10,13}$/i.test(title);
-
-      // Generic test text
-      const hasGenericTestText = genericTestPatterns.some(pattern =>
-        pattern.test(title.trim()) || pattern.test(description.trim())
-      );
-
-      // Generic descriptions
-      const isGenericDescription = descriptionLower === '' ||
-        descriptionLower === 'a recipe i created' ||
-        descriptionLower === 'test' ||
-        descriptionLower.length < 10;
-
-      // Check keywords
-      const hasTestKeywords = testKeywords.some(keyword =>
-        usernameLower.includes(keyword) ||
-        titleLower.includes(keyword) ||
-        descriptionLower.includes(keyword) ||
-        emailLower.includes(keyword)
-      );
-
-      return hasTestKeywords ||
-        hasGenericTestText ||
-        hasTimestampInTitle ||
-        hasTimestampInUsername ||
-        isCollectionTest ||
-        titleEndsWithTimestamp ||
-        (isGenericDescription && titleLower.includes('recipe'));
+      return false;
     };
 
     // Transform and filter recipes

@@ -20,4 +20,16 @@ router.delete('/users/:userId', adminController.deleteUser);
 // @desc    Update a user (including password)
 router.put('/users/:userId', adminController.updateUser);
 
+// @route   POST /api/admin/users
+// @desc    Create a new user
+router.post('/users', adminController.createUser);
+
+// @route   DELETE /api/admin/recipes/:recipeId
+// @desc    Delete any recipe
+router.delete('/recipes/:recipeId', adminController.deleteRecipe);
+
+// @route   DELETE /api/admin/comments/:commentId
+// @desc    Delete any comment
+router.delete('/comments/:commentId', adminController.deleteComment);
+
 module.exports = router;

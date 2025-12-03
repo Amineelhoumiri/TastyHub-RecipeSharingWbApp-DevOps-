@@ -19,8 +19,15 @@ export default function RecipeCard({ recipe }) {
         event.preventDefault();
         event.stopPropagation();
 
-        const token = localStorage.getItem('token');
-        if (!token) {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                router.push('/login?redirect=/recipes');
+                return;
+            }
+        } catch (e) {
+            console.error("Storage access error:", e);
+            // Fallback or just redirect to login if we can't check token
             router.push('/login?redirect=/recipes');
             return;
         }
@@ -47,8 +54,6 @@ export default function RecipeCard({ recipe }) {
         setImgSrc(recipe.image_url || recipe.imageUrl || '/placeholder-recipe.png');
         setImgError(false);
     }, [recipe.image_url, recipe.imageUrl]);
-
-    // ... handleFavoriteToggle
 
     return (
         <Link
@@ -124,14 +129,17 @@ export default function RecipeCard({ recipe }) {
 
                 <div className="flex flex-wrap gap-1 mb-4 h-6 overflow-hidden">
                     {recipe.tags?.filter(tag => tag).slice(0, 3).map((tag, index) => (
-                        <Link
+                        <span
                             key={index}
-                            href={`/recipes?search=${encodeURIComponent(tag)}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300 text-xs px-2 py-0.5 rounded-full border border-orange-100 dark:border-orange-800 hover:bg-orange-100 dark:hover:bg-orange-900/50 transition-colors z-10 relative"
+                            onClick={(e) => {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                router.push(`/recipes?search=${encodeURIComponent(tag)}`);
+                            }}
+                            className="bg-orange-50 dark:bg-orange-900/30 text-orange-600 dark:text-orange-300 text-xs px-2 py-0.5 rounded-full border border-orange-100 dark:border-orange-800 hover:bg-orange-100 dark:hover:bg-orange-900/50 transition-colors z-10 relative cursor-pointer"
                         >
                             {tag}
-                        </Link>
+                        </span>
                     ))}
                 </div>
 

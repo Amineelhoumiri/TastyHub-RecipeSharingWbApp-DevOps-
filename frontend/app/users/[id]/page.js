@@ -10,7 +10,7 @@ export default function UserProfilePage() {
   const params = useParams();
   const router = useRouter();
   const userId = params.id;
-  
+
   const [user, setUser] = useState(null);
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -93,7 +93,7 @@ export default function UserProfilePage() {
   return (
     <main className="min-h-screen flex flex-col bg-gradient-to-b from-orange-50 to-white dark:from-gray-900 dark:to-gray-800">
       <Navbar />
-      
+
       <div className="flex-1 max-w-4xl mx-auto px-6 py-12 w-full">
         <Link href="/recipes" className="text-orange-600 dark:text-orange-400 hover:underline mb-6 inline-block">
           ← Back to Recipes
@@ -140,11 +140,11 @@ export default function UserProfilePage() {
           <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
             Recipes by {user.username}
           </h2>
-          
+
           {recipes.length === 0 ? (
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 text-center">
               <p className="text-gray-600 dark:text-gray-400">
-                This user hasn't shared any recipes yet.
+                This user hasn&apos;t shared any recipes yet.
               </p>
             </div>
           ) : (
