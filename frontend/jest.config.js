@@ -11,8 +11,9 @@ const customJestConfig = {
   testEnvironment: 'jest-environment-jsdom',
   moduleFileExtensions: ['js', 'jsx', 'json', 'ts', 'tsx'],
   moduleNameMapper: {
-    '^@/(.*)$': '<rootDir>/app/$1',
+    '^@/lib/api$': '<rootDir>/app/lib/api.js',
     '^@/lib/(.*)$': '<rootDir>/app/lib/$1',
+    '^@/(.*)$': '<rootDir>/app/$1',
   },
   moduleDirectories: ['node_modules', '<rootDir>', '<rootDir>/app'],
   roots: ['<rootDir>'],
