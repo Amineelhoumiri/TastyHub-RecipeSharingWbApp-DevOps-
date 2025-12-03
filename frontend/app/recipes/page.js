@@ -160,7 +160,7 @@ function RecipesContent() {
                 ? 'No other recipes found (all recipes belong to popular categories).'
                 : currentSearchTerm === 'Untagged Recipes'
                   ? 'No untagged recipes found.'
-                  : <span>Sorry, no recipes found with this tag: <span className="text-orange-600 dark:text-orange-400">&ldquo;{currentSearchTerm}&rdquo;</span></span>
+                  : <span>Sorry, no recipes found with this tag: <span className="text-orange-600 dark:text-orange-400">&quot;{currentSearchTerm}&quot;</span></span>
               }
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">

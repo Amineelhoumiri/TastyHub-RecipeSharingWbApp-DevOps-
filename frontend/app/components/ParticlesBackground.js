@@ -8,6 +8,7 @@ export default function ParticlesBackground() {
     useEffect(() => {
         const canvas = canvasRef.current;
         const container = containerRef.current;
+        const currentContainer = containerRef.current; // Capture ref for cleanup
         const ctx = canvas.getContext('2d');
         let animationFrameId;
         let particles = [];
@@ -133,7 +134,6 @@ export default function ParticlesBackground() {
 
         // Initialize
         window.addEventListener('resize', handleResize);
-        const currentContainer = container; // Capture container ref for cleanup
         if (currentContainer) {
             currentContainer.addEventListener('mousemove', handleMouseMove);
             currentContainer.addEventListener('mouseleave', handleMouseLeave);
