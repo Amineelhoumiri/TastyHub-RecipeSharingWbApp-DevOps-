@@ -172,6 +172,7 @@ export default function Navbar() {
                   <Link href="/profile" className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center overflow-hidden border-2 border-orange-300 dark:border-orange-700 relative">
                       {user?.profilePicture ? (
+                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={user.profilePicture}
                           alt={user.username || 'User'}
@@ -254,6 +255,7 @@ export default function Navbar() {
                 <div className="flex items-center gap-3 px-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center overflow-hidden border-2 border-orange-300 dark:border-orange-700 relative flex-shrink-0">
                     {user?.profilePicture ? (
+                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={user.profilePicture}
                         alt={user.username || 'User'}

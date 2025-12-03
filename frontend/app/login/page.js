@@ -135,6 +135,7 @@ export default function LoginPage() {
             className="w-full bg-white border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2"
             disabled={loading}
           >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
             Sign in with Google
           </button>
