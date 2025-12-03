@@ -7,10 +7,11 @@ import { compressImage } from "@/lib/imageUtils";
 
 export default function CreateRecipePage() {
   const router = useRouter();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(true); // Start with loading true to check auth
   const [error, setError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
+  // Recipe basic info
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [cookingTime, setCookingTime] = useState('');
@@ -65,6 +66,7 @@ export default function CreateRecipePage() {
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState('');
 
+  // Check authentication on component mount
   useEffect(() => {
     const checkAuth = () => {
       const token = localStorage.getItem('token');
@@ -80,6 +82,7 @@ export default function CreateRecipePage() {
     checkAuth();
   }, [router]);
 
+  // Don't render form if not authenticated or still checking
   if (loading || !isAuthenticated) {
     return (
       <main className="min-h-screen bg-gradient-to-b from-orange-50 to-white">
