@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
@@ -69,23 +69,7 @@ export default function EditRecipePage() {
     }
   };
 
-  useEffect(() => {
-    const checkAuth = () => {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        router.push(`/login?redirect=/recipes/${recipeId}/edit`);
-        return;
-      }
-      setIsAuthenticated(true);
-      fetchRecipe();
-    };
-
-    if (recipeId) {
-      checkAuth();
-    }
-  }, [recipeId, router]);
-
-  const fetchRecipe = async () => {
+  const fetchRecipe = useCallback(async () => {
     try {
       setLoading(true);
       const recipe = await api.getRecipe(recipeId);
@@ -131,7 +115,24 @@ export default function EditRecipePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [recipeId]);
+
+  useEffect(() => {
+    const checkAuth = () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        router.push(`/login?redirect=/recipes/${recipeId}/edit`);
+        return;
+      }
+      setIsAuthenticated(true);
+      fetchRecipe();
+    };
+
+    if (recipeId) {
+      checkAuth();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [recipeId, router]);
 
   const parseIngredients = (text) => {
     if (!text || !text.trim()) return [];

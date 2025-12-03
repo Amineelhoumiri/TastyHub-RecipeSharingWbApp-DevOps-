@@ -1,7 +1,7 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import Navbar from "@/components/Navbar";
@@ -18,14 +18,7 @@ function RecipesContent() {
   const [loading, setLoading] = useState(true);
   const [currentSearchTerm, setCurrentSearchTerm] = useState('');
 
-  useEffect(() => {
-    const query = searchParams.get('search') || '';
-    setSearch(query);
-    setCurrentSearchTerm(query);
-    fetchRecipes(query);
-  }, [searchParams]);
-
-  const fetchRecipes = async (searchTerm = '') => {
+  const fetchRecipes = useCallback(async (searchTerm = '') => {
     setLoading(true);
     try {
       // Check for special filter
@@ -82,7 +75,15 @@ function RecipesContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchParams]);
+
+  useEffect(() => {
+    const query = searchParams.get('search') || '';
+    setSearch(query);
+    setCurrentSearchTerm(query);
+    fetchRecipes(query);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -159,11 +160,11 @@ function RecipesContent() {
                 ? 'No other recipes found (all recipes belong to popular categories).'
                 : currentSearchTerm === 'Untagged Recipes'
                   ? 'No untagged recipes found.'
-                  : <span>Sorry, no recipes found with this tag: <span className="text-orange-600 dark:text-orange-400">"{currentSearchTerm}"</span></span>
+                  : <span>Sorry, no recipes found with this tag: <span className="text-orange-600 dark:text-orange-400">&ldquo;{currentSearchTerm}&rdquo;</span></span>
               }
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              But don't worry! Here are some other delicious recipes you might like:
+              But don&apos;t worry! Here are some other delicious recipes you might like:
             </p>
             <button
               onClick={clearSearch}

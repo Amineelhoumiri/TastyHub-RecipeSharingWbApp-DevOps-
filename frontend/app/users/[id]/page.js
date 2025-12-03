@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
@@ -16,14 +16,7 @@ export default function UserProfilePage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    if (userId) {
-      fetchUserProfile();
-      fetchUserRecipes();
-    }
-  }, [userId]);
-
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     try {
       const userData = await api.getUserProfileById(userId);
       setUser(userData);
@@ -33,9 +26,9 @@ export default function UserProfilePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
-  const fetchUserRecipes = async () => {
+  const fetchUserRecipes = useCallback(async () => {
     try {
       // Get all recipes and filter by userId
       const allRecipes = await api.getRecipes();
@@ -53,12 +46,20 @@ export default function UserProfilePage() {
     } catch (err) {
       console.error('Error fetching user recipes:', err);
     }
-  };
+  }, [user]);
+
+  useEffect(() => {
+    if (userId) {
+      fetchUserProfile();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   useEffect(() => {
     if (user) {
       fetchUserRecipes();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
   if (loading) {
@@ -144,7 +145,7 @@ export default function UserProfilePage() {
           {recipes.length === 0 ? (
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 text-center">
               <p className="text-gray-600 dark:text-gray-400">
-                This user hasn't shared any recipes yet.
+                This user hasn&apos;t shared any recipes yet.
               </p>
             </div>
           ) : (
