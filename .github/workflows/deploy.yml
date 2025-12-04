@@ -83,7 +83,7 @@ jobs:
       - name: Build Next.js app
         working-directory: ./frontend
         env:
-          NEXT_PUBLIC_API_URL: ${{ secrets.PRODUCTION_API_URL || 'https://api.tastyhub.com' }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.PRODUCTION_API_URL || 'https://recipesharingwebapp.vercel.app/' }}
         run: npm run build
 
       # Deploy to Vercel
