@@ -22,7 +22,7 @@ function RecipesContent() {
     const query = searchParams.get('search') || '';
     setSearch(query);
     setCurrentSearchTerm(query);
-    // fetchRecipes(query);
+    fetchRecipes(query);
   }, [searchParams]);
 
   const fetchRecipes = async (searchTerm = '') => {
@@ -159,11 +159,11 @@ function RecipesContent() {
                 ? 'No other recipes found (all recipes belong to popular categories).'
                 : currentSearchTerm === 'Untagged Recipes'
                   ? 'No untagged recipes found.'
-                  : <span>Sorry, no recipes found with this tag: <span className="text-orange-600 dark:text-orange-400">&quot;{currentSearchTerm}&quot;</span></span>
+                  : <span>Sorry, no recipes found with this tag: <span className="text-orange-600 dark:text-orange-400">"{currentSearchTerm}"</span></span>
               }
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
-              But don&apos;t worry! Here are some other delicious recipes you might like:
+              But don't worry! Here are some other delicious recipes you might like:
             </p>
             <button
               onClick={clearSearch}

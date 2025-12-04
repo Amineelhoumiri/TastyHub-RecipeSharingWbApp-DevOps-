@@ -1,6 +1,5 @@
-/* eslint-disable @next/next/no-img-element */
 'use client';
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { api } from '@/lib/api';
@@ -12,21 +11,6 @@ export default function Navbar() {
   const [user, setUser] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false); // Default is false (light mode)
-
-  const applyDarkMode = useCallback((enabled) => {
-    if (enabled) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  }, []);
-
-  const toggleDarkMode = useCallback(() => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    localStorage.setItem('darkMode', newDarkMode.toString());
-    applyDarkMode(newDarkMode);
-  }, [darkMode, applyDarkMode]);
 
   useEffect(() => {
     // Check authentication
@@ -41,16 +25,6 @@ export default function Navbar() {
         // Ignore parse errors
       }
     }
-
-    const loadUserProfile = async () => {
-      try {
-        const userData = await api.getUserProfile();
-        setUser(userData);
-        localStorage.setItem('user', JSON.stringify(userData));
-      } catch (err) {
-        console.error('Error loading user profile:', err);
-      }
-    };
 
     // Load user profile if authenticated
     if (token) {
@@ -67,7 +41,32 @@ export default function Navbar() {
     } else {
       applyDarkMode(false); // Explicitly set light mode
     }
-  }, [applyDarkMode]);
+  }, []);
+
+  const loadUserProfile = async () => {
+    try {
+      const userData = await api.getUserProfile();
+      setUser(userData);
+      localStorage.setItem('user', JSON.stringify(userData));
+    } catch (err) {
+      console.error('Error loading user profile:', err);
+    }
+  };
+
+  const applyDarkMode = (enabled) => {
+    if (enabled) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
+  const toggleDarkMode = () => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('darkMode', newDarkMode.toString());
+    applyDarkMode(newDarkMode);
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('token');

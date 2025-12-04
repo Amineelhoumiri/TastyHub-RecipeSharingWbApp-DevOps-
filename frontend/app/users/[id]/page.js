@@ -10,56 +10,56 @@ export default function UserProfilePage() {
   const params = useParams();
   const router = useRouter();
   const userId = params.id;
-
+  
   const [user, setUser] = useState(null);
   const [recipes, setRecipes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchUserProfile = async () => {
-      try {
-        const userData = await api.getUserProfileById(userId);
-        setUser(userData);
-      } catch (err) {
-        console.error('Error fetching user profile:', err);
-        setError(err.message || 'Failed to load user profile');
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (userId) {
       fetchUserProfile();
+      fetchUserRecipes();
     }
   }, [userId]);
 
-  useEffect(() => {
-    const fetchUserRecipes = async () => {
-      try {
-        // Get all recipes and filter by userId
-        const allRecipes = await api.getRecipes();
-        // Filter recipes by userId if available, otherwise fallback to username
-        const userRecipes = allRecipes.filter(recipe => {
-          if (user?.id && recipe.userId) {
-            return recipe.userId === user.id;
-          }
-          // Fallback to username matching
-          const recipeUsername = recipe.author?.username || recipe.username || '';
-          const profileUsername = user?.username || '';
-          return recipeUsername.toLowerCase() === profileUsername.toLowerCase();
-        });
-        setRecipes(userRecipes);
-      } catch (err) {
-        console.error('Error fetching user recipes:', err);
-      }
-    };
+  const fetchUserProfile = async () => {
+    try {
+      const userData = await api.getUserProfileById(userId);
+      setUser(userData);
+    } catch (err) {
+      console.error('Error fetching user profile:', err);
+      setError(err.message || 'Failed to load user profile');
+    } finally {
+      setLoading(false);
+    }
+  };
 
+  const fetchUserRecipes = async () => {
+    try {
+      // Get all recipes and filter by userId
+      const allRecipes = await api.getRecipes();
+      // Filter recipes by userId if available, otherwise fallback to username
+      const userRecipes = allRecipes.filter(recipe => {
+        if (user?.id && recipe.userId) {
+          return recipe.userId === user.id;
+        }
+        // Fallback to username matching
+        const recipeUsername = recipe.author?.username || recipe.username || '';
+        const profileUsername = user?.username || '';
+        return recipeUsername.toLowerCase() === profileUsername.toLowerCase();
+      });
+      setRecipes(userRecipes);
+    } catch (err) {
+      console.error('Error fetching user recipes:', err);
+    }
+  };
+
+  useEffect(() => {
     if (user) {
       fetchUserRecipes();
     }
   }, [user]);
-
 
   if (loading) {
     return (
@@ -93,7 +93,7 @@ export default function UserProfilePage() {
   return (
     <main className="min-h-screen flex flex-col bg-gradient-to-b from-orange-50 to-white dark:from-gray-900 dark:to-gray-800">
       <Navbar />
-
+      
       <div className="flex-1 max-w-4xl mx-auto px-6 py-12 w-full">
         <Link href="/recipes" className="text-orange-600 dark:text-orange-400 hover:underline mb-6 inline-block">
           ← Back to Recipes
@@ -140,11 +140,11 @@ export default function UserProfilePage() {
           <h2 className="text-2xl font-bold text-gray-800 dark:text-gray-200 mb-4">
             Recipes by {user.username}
           </h2>
-
+          
           {recipes.length === 0 ? (
             <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 text-center">
               <p className="text-gray-600 dark:text-gray-400">
-                This user hasn&apos;t shared any recipes yet.
+                This user hasn't shared any recipes yet.
               </p>
             </div>
           ) : (

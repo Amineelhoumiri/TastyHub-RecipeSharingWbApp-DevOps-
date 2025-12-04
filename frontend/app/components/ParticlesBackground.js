@@ -132,10 +132,9 @@ export default function ParticlesBackground() {
 
         // Initialize
         window.addEventListener('resize', handleResize);
-        const currentContainer = containerRef.current;
-        if (currentContainer) {
-            currentContainer.addEventListener('mousemove', handleMouseMove);
-            currentContainer.addEventListener('mouseleave', handleMouseLeave);
+        if (containerRef.current) {
+            containerRef.current.addEventListener('mousemove', handleMouseMove);
+            containerRef.current.addEventListener('mouseleave', handleMouseLeave);
         }
 
         handleResize();
@@ -143,9 +142,9 @@ export default function ParticlesBackground() {
 
         return () => {
             window.removeEventListener('resize', handleResize);
-            if (currentContainer) {
-                currentContainer.removeEventListener('mousemove', handleMouseMove);
-                currentContainer.removeEventListener('mouseleave', handleMouseLeave);
+            if (containerRef.current) {
+                containerRef.current.removeEventListener('mousemove', handleMouseMove);
+                containerRef.current.removeEventListener('mouseleave', handleMouseLeave);
             }
             cancelAnimationFrame(animationFrameId);
         };
