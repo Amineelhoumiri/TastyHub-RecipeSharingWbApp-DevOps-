@@ -168,7 +168,8 @@ exports.getUserProfile = async (req, res) => {
         username: user.username,
         email: user.email,
         profilePicture: user.profilePicture,
-        createdAt: user.createdAt
+        createdAt: user.createdAt,
+        isAdmin: user.isAdmin
       }
     });
   } catch (error) {

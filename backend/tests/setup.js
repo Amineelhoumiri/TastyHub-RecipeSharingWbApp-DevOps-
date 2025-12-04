@@ -12,3 +12,9 @@ process.env.DB_HOST = process.env.DB_HOST || 'localhost';
 process.env.DB_PORT = process.env.DB_PORT || '5432';
 process.env.PORT = process.env.PORT || '5001'; // Use different port for tests
 process.env.FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
+
+const { sequelize } = require('../models');
+
+afterAll(async () => {
+  await sequelize.close();
+});
