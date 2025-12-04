@@ -7,24 +7,22 @@ export default function ParticlesBackground() {
 
     useEffect(() => {
         const canvas = canvasRef.current;
-        const container = containerRef.current;
-        const currentContainer = containerRef.current; // Capture ref for cleanup
         const ctx = canvas.getContext('2d');
         let animationFrameId;
         let particles = [];
         let mouse = { x: null, y: null, radius: 150 };
 
         const handleResize = () => {
-            if (container && canvas) {
-                canvas.width = container.offsetWidth;
-                canvas.height = container.offsetHeight;
+            if (containerRef.current && canvas) {
+                canvas.width = containerRef.current.offsetWidth;
+                canvas.height = containerRef.current.offsetHeight;
                 initParticles();
             }
         };
 
         const handleMouseMove = (event) => {
-            if (container) {
-                const rect = container.getBoundingClientRect();
+            if (containerRef.current) {
+                const rect = containerRef.current.getBoundingClientRect();
                 mouse.x = event.clientX - rect.left;
                 mouse.y = event.clientY - rect.top;
             }
@@ -134,9 +132,9 @@ export default function ParticlesBackground() {
 
         // Initialize
         window.addEventListener('resize', handleResize);
-        if (currentContainer) {
-            currentContainer.addEventListener('mousemove', handleMouseMove);
-            currentContainer.addEventListener('mouseleave', handleMouseLeave);
+        if (containerRef.current) {
+            containerRef.current.addEventListener('mousemove', handleMouseMove);
+            containerRef.current.addEventListener('mouseleave', handleMouseLeave);
         }
 
         handleResize();
@@ -144,9 +142,9 @@ export default function ParticlesBackground() {
 
         return () => {
             window.removeEventListener('resize', handleResize);
-            if (currentContainer) {
-                currentContainer.removeEventListener('mousemove', handleMouseMove);
-                currentContainer.removeEventListener('mouseleave', handleMouseLeave);
+            if (containerRef.current) {
+                containerRef.current.removeEventListener('mousemove', handleMouseMove);
+                containerRef.current.removeEventListener('mouseleave', handleMouseLeave);
             }
             cancelAnimationFrame(animationFrameId);
         };

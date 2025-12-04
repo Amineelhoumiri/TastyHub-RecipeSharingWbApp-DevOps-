@@ -3,17 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "license": "Apache-2.0",
-  "eslintConfig": {
-    "extends": "next/core-web-vitals",
-    "rules": {
-      "@next/next/no-img-element": "off"
-    }
-  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "next lint .",
     "test": "npx jest --passWithNoTests",
     "test:watch": "npx jest --watch",
     "test:coverage": "npx jest --coverage",
@@ -22,7 +16,6 @@
     "test:e2e:headed": "cypress run --headed"
   },
   "dependencies": {
-    "@sentry/nextjs": "^10.28.0",
     "autoprefixer": "^10.4.22",
     "bcrypt": "^5.1.1",
     "framer-motion": "^12.23.24",
