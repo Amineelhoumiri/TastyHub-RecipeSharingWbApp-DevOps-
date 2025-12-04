@@ -1,10 +1,10 @@
 import { render, screen, waitFor, act } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import LoginPage from '../page';
-import { api } from '@/lib/api';
+import { api } from '../../lib/api';
 
 // Mock the API
-jest.mock('@/lib/api', () => ({
+jest.mock('../../lib/api', () => ({
   api: {
     login: jest.fn(),
   },

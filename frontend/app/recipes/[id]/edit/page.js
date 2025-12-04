@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
@@ -69,55 +69,55 @@ export default function EditRecipePage() {
     }
   };
 
-  const fetchRecipe = useCallback(async () => {
-    try {
-      setLoading(true);
-      const recipe = await api.getRecipe(recipeId);
-
-      // Populate form fields
-      setTitle(recipe.title || '');
-      setDescription(recipe.description || '');
-      setCookingTime(recipe.cooking_time?.toString() || '');
-      setServings(recipe.servings?.toString() || '');
-      setImageUrl(recipe.image_url || '');
-      setIsPrivate(recipe.isPrivate || recipe.is_private || false);
-
-      // Convert ingredients to text
-      if (recipe.ingredients && recipe.ingredients.length > 0) {
-        const ingredientsText = recipe.ingredients
-          .map(ing => {
-            const name = ing.ingredientName || ing.name || '';
-            const qty = ing.quantity;
-            const unit = ing.unit;
-            if (qty === 1 && unit === 'piece') {
-              return name;
-            }
-            return `${qty} ${unit} ${name}`;
-          })
-          .join('\n');
-        setIngredientsText(ingredientsText);
-      }
-
-      // Set steps
-      if (recipe.steps && recipe.steps.length > 0) {
-        setSteps(recipe.steps
-          .sort((a, b) => (a.stepNumber || 0) - (b.stepNumber || 0))
-          .map(step => ({ instruction: step.instruction || step.text || '' })));
-      }
-
-      // Set tags
-      if (recipe.tags && Array.isArray(recipe.tags)) {
-        setTags(recipe.tags);
-      }
-    } catch (err) {
-      console.error('Error fetching recipe:', err);
-      setError(err.message || 'Failed to load recipe');
-    } finally {
-      setLoading(false);
-    }
-  }, [recipeId]);
-
   useEffect(() => {
+    const fetchRecipe = async () => {
+      try {
+        setLoading(true);
+        const recipe = await api.getRecipe(recipeId);
+
+        // Populate form fields
+        setTitle(recipe.title || '');
+        setDescription(recipe.description || '');
+        setCookingTime(recipe.cooking_time?.toString() || '');
+        setServings(recipe.servings?.toString() || '');
+        setImageUrl(recipe.image_url || '');
+        setIsPrivate(recipe.isPrivate || recipe.is_private || false);
+
+        // Convert ingredients to text
+        if (recipe.ingredients && recipe.ingredients.length > 0) {
+          const ingredientsText = recipe.ingredients
+            .map(ing => {
+              const name = ing.ingredientName || ing.name || '';
+              const qty = ing.quantity;
+              const unit = ing.unit;
+              if (qty === 1 && unit === 'piece') {
+                return name;
+              }
+              return `${qty} ${unit} ${name}`;
+            })
+            .join('\n');
+          setIngredientsText(ingredientsText);
+        }
+
+        // Set steps
+        if (recipe.steps && recipe.steps.length > 0) {
+          setSteps(recipe.steps
+            .sort((a, b) => (a.stepNumber || 0) - (b.stepNumber || 0))
+            .map(step => ({ instruction: step.instruction || step.text || '' })));
+        }
+
+        // Set tags
+        if (recipe.tags && Array.isArray(recipe.tags)) {
+          setTags(recipe.tags);
+        }
+      } catch (err) {
+        console.error('Error fetching recipe:', err);
+        setError(err.message || 'Failed to load recipe');
+      } finally {
+        setLoading(false);
+      }
+    };
+
     const checkAuth = () => {
       const token = localStorage.getItem('token');
       if (!token) {
@@ -131,7 +131,6 @@ export default function EditRecipePage() {
     if (recipeId) {
       checkAuth();
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [recipeId, router]);
 
   const parseIngredients = (text) => {

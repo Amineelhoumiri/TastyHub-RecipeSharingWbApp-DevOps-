@@ -1,5 +1,6 @@
+/* eslint-disable @next/next/no-img-element */
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter, usePathname } from 'next/navigation';
 import { api } from '@/lib/api';
@@ -11,6 +12,21 @@ export default function Navbar() {
   const [user, setUser] = useState(null);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [darkMode, setDarkMode] = useState(false); // Default is false (light mode)
+
+  const applyDarkMode = useCallback((enabled) => {
+    if (enabled) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  }, []);
+
+  const toggleDarkMode = useCallback(() => {
+    const newDarkMode = !darkMode;
+    setDarkMode(newDarkMode);
+    localStorage.setItem('darkMode', newDarkMode.toString());
+    applyDarkMode(newDarkMode);
+  }, [darkMode, applyDarkMode]);
 
   useEffect(() => {
     // Check authentication
@@ -25,6 +41,16 @@ export default function Navbar() {
         // Ignore parse errors
       }
     }
+
+    const loadUserProfile = async () => {
+      try {
+        const userData = await api.getUserProfile();
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
+      } catch (err) {
+        console.error('Error loading user profile:', err);
+      }
+    };
 
     // Load user profile if authenticated
     if (token) {
@@ -41,32 +67,7 @@ export default function Navbar() {
     } else {
       applyDarkMode(false); // Explicitly set light mode
     }
-  }, []);
-
-  const loadUserProfile = async () => {
-    try {
-      const userData = await api.getUserProfile();
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-    } catch (err) {
-      console.error('Error loading user profile:', err);
-    }
-  };
-
-  const applyDarkMode = (enabled) => {
-    if (enabled) {
-      document.documentElement.classList.add('dark');
-    } else {
-      document.documentElement.classList.remove('dark');
-    }
-  };
-
-  const toggleDarkMode = () => {
-    const newDarkMode = !darkMode;
-    setDarkMode(newDarkMode);
-    localStorage.setItem('darkMode', newDarkMode.toString());
-    applyDarkMode(newDarkMode);
-  };
+  }, [applyDarkMode]);
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -172,7 +173,6 @@ export default function Navbar() {
                   <Link href="/profile" className="flex items-center gap-2">
                     <div className="w-8 h-8 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center overflow-hidden border-2 border-orange-300 dark:border-orange-700 relative">
                       {user?.profilePicture ? (
-                        // eslint-disable-next-line @next/next/no-img-element
                         <img
                           src={user.profilePicture}
                           alt={user.username || 'User'}
@@ -255,7 +255,6 @@ export default function Navbar() {
                 <div className="flex items-center gap-3 px-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center overflow-hidden border-2 border-orange-300 dark:border-orange-700 relative flex-shrink-0">
                     {user?.profilePicture ? (
-                      // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={user.profilePicture}
                         alt={user.username || 'User'}

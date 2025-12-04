@@ -1,7 +1,7 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
-import { useState, useEffect, Suspense, useCallback } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import Navbar from "@/components/Navbar";
@@ -18,7 +18,14 @@ function RecipesContent() {
   const [loading, setLoading] = useState(true);
   const [currentSearchTerm, setCurrentSearchTerm] = useState('');
 
-  const fetchRecipes = useCallback(async (searchTerm = '') => {
+  useEffect(() => {
+    const query = searchParams.get('search') || '';
+    setSearch(query);
+    setCurrentSearchTerm(query);
+    // fetchRecipes(query);
+  }, [searchParams]);
+
+  const fetchRecipes = async (searchTerm = '') => {
     setLoading(true);
     try {
       // Check for special filter
@@ -75,15 +82,7 @@ function RecipesContent() {
     } finally {
       setLoading(false);
     }
-  }, [searchParams]);
-
-  useEffect(() => {
-    const query = searchParams.get('search') || '';
-    setSearch(query);
-    setCurrentSearchTerm(query);
-    fetchRecipes(query);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [searchParams]);
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();
