@@ -1,6 +1,9 @@
 // API client for backend communication
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
 
+// Export API_BASE_URL for use in Google OAuth and other external redirects
+export { API_BASE_URL };
+
 const getAuthToken = () => {
   if (typeof window !== 'undefined') {
     return localStorage.getItem('token');

@@ -21,7 +21,7 @@ export default function Navbar() {
     if (userData) {
       try {
         setUser(JSON.parse(userData));
-      } catch (e) {
+      } catch {
         // Ignore parse errors
       }
     }
