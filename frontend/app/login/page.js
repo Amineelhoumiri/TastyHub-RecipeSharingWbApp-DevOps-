@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { api } from "@/lib/api";
+import { api, API_BASE_URL } from "@/lib/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -36,8 +36,7 @@ export default function LoginPage() {
   }, [router]);
 
   const handleGoogleLogin = () => {
-    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-    window.location.href = `${API_URL}/api/users/auth/google`;
+    window.location.href = `${API_BASE_URL}/api/users/auth/google`;
   };
 
   async function handleSubmit(event) {

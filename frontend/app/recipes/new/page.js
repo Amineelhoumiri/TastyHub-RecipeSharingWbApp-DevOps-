@@ -2,8 +2,9 @@
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { api } from "@/lib/api";
-import { compressImage } from "@/lib/imageUtils";
+import { api, API_BASE_URL } from "@/lib/api";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 export default function CreateRecipePage() {
   const router = useRouter();
@@ -17,50 +18,12 @@ export default function CreateRecipePage() {
   const [cookingTime, setCookingTime] = useState('');
   const [servings, setServings] = useState('');
   const [imageUrl, setImageUrl] = useState('');
-  const [imageMode, setImageMode] = useState('url'); // 'url' or 'upload'
-  const [uploadingImage, setUploadingImage] = useState(false);
-
-  const handleImageUpload = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
-    // Validate file type
-    if (!file.type.startsWith('image/')) {
-      setError('Please select an image file');
-      return;
-    }
-
-    // Validate file size (max 5MB)
-    if (file.size > 5 * 1024 * 1024) {
-      setError('Image size must be less than 5MB');
-      return;
-    }
-
-    try {
-      setUploadingImage(true);
-      setError('');
-
-      // Compress image before upload
-      const compressedFile = await compressImage(file);
-
-      const result = await api.uploadRecipeImage(compressedFile);
-      setImageUrl(result.imageUrl);
-
-    } catch (err) {
-      console.error('Error uploading image:', err);
-      setError(err.message || 'Failed to upload image');
-    } finally {
-      setUploadingImage(false);
-    }
-  };
 
   // Ingredients - simple text input
   const [ingredientsText, setIngredientsText] = useState('');
 
-  // Steps
-  const [steps, setSteps] = useState([
-    { instruction: '' }
-  ]);
+  // Steps - simple textarea
+  const [stepsText, setStepsText] = useState('');
 
   // Tags
   const [tags, setTags] = useState([]);
@@ -113,18 +76,20 @@ export default function CreateRecipePage() {
     }));
   };
 
-  const addStep = () => {
-    setSteps([...steps, { instruction: '' }]);
-  };
+  // Parse steps text into array format for backend
+  const parseSteps = (text) => {
+    if (!text || !text.trim()) return [];
 
-  const removeStep = (index) => {
-    setSteps(steps.filter((_, i) => i !== index));
-  };
+    // Split by newlines and filter empty lines
+    const lines = text.split('\n')
+      .map(line => line.trim())
+      .filter(line => line.length > 0);
 
-  const updateStep = (index, value) => {
-    const updated = [...steps];
-    updated[index].instruction = value;
-    setSteps(updated);
+    // Convert each line to a step object
+    return lines.map((line, index) => ({
+      stepNumber: index + 1,
+      instruction: line
+    }));
   };
 
   const addTag = () => {
@@ -160,8 +125,9 @@ export default function CreateRecipePage() {
     }
 
     try {
-      // Parse ingredients from text
+      // Parse ingredients and steps from text
       const parsedIngredients = parseIngredients(ingredientsText);
+      const parsedSteps = parseSteps(stepsText);
 
       // Prepare recipe data according to backend expectations
       const recipeData = {
@@ -171,12 +137,7 @@ export default function CreateRecipePage() {
         servings: servings ? parseInt(servings) : null,
         imageUrl: imageUrl.trim() || null,
         ingredients: parsedIngredients,
-        steps: steps
-          .filter(step => step.instruction.trim())
-          .map((step, index) => ({
-            stepNumber: index + 1,
-            instruction: step.instruction.trim()
-          })),
+        steps: parsedSteps,
         tags: tags
       };
 
@@ -272,62 +233,14 @@ export default function CreateRecipePage() {
               </div>
 
               <div>
-                <label className="block mb-2 font-medium text-gray-700">Recipe Image</label>
-
-                <div className="flex gap-4 mb-4">
-                  <button
-                    type="button"
-                    onClick={() => setImageMode('url')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition ${imageMode === 'url'
-                      ? 'bg-orange-100 text-orange-700 border border-orange-200'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                  >
-                    Image URL
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setImageMode('upload')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition ${imageMode === 'upload'
-                      ? 'bg-orange-100 text-orange-700 border border-orange-200'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-                      }`}
-                  >
-                    Upload Image
-                  </button>
-                </div>
-
-                {imageMode === 'url' ? (
-                  <input
-                    type="url"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    className="w-full px-4 py-3 border rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 outline-none"
-                    placeholder="https://example.com/image.jpg"
-                  />
-                ) : (
-                  <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center hover:border-orange-400 transition bg-gray-50">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      disabled={uploadingImage}
-                      className="hidden"
-                      id="recipe-image-upload"
-                    />
-                    <label htmlFor="recipe-image-upload" className="cursor-pointer block">
-                      {uploadingImage ? (
-                        <div className="text-orange-600 font-medium">Uploading...</div>
-                      ) : (
-                        <>
-                          <div className="text-4xl mb-2">📷</div>
-                          <div className="text-gray-700 font-medium mb-1">Click to upload image</div>
-                          <div className="text-sm text-gray-500">JPG, PNG, GIF up to 5MB</div>
-                        </>
-                      )}
-                    </label>
-                  </div>
-                )}
+                <label className="block mb-2 font-medium text-gray-700">Recipe Image URL</label>
+                <input
+                  type="url"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  className="w-full px-4 py-3 border rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 outline-none"
+                  placeholder="https://example.com/image.jpg"
+                />
 
                 {imageUrl && (
                   <div className="mt-4 relative w-full h-48 bg-gray-100 rounded-lg overflow-hidden border border-gray-200">
@@ -435,41 +348,21 @@ export default function CreateRecipePage() {
 
           {/* Steps */}
           <section className="mb-8">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-2xl font-semibold text-gray-800">Instructions</h2>
-              <button
-                type="button"
-                onClick={addStep}
-                className="px-4 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
-              >
-                + Add Step
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {steps.map((step, index) => (
-                <div key={index} className="flex gap-2">
-                  <span className="flex-shrink-0 w-8 h-10 flex items-center justify-center bg-orange-100 text-orange-600 font-bold rounded-lg">
-                    {index + 1}
-                  </span>
-                  <textarea
-                    value={step.instruction}
-                    onChange={(e) => updateStep(index, e.target.value)}
-                    placeholder={`Step ${index + 1} instruction...`}
-                    rows={2}
-                    className="flex-1 px-4 py-2 border rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 outline-none"
-                  />
-                  {steps.length > 1 && (
-                    <button
-                      type="button"
-                      onClick={() => removeStep(index)}
-                      className="px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
-                    >
-                      Remove
-                    </button>
-                  )}
-                </div>
-              ))}
+            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Instructions</h2>
+            <div className="mb-2">
+              <label className="block mb-1 font-medium text-gray-700">
+                List instructions (one step per line)
+              </label>
+              <textarea
+                value={stepsText}
+                onChange={(e) => setStepsText(e.target.value)}
+                rows={10}
+                className="w-full px-4 py-3 border rounded-lg text-gray-900 focus:ring-2 focus:ring-orange-500 outline-none"
+                placeholder="Enter cooking instructions, one step per line:&#10;Preheat oven to 350°F&#10;Mix dry ingredients in a bowl&#10;Add wet ingredients and stir until combined&#10;Pour into greased pan&#10;Bake for 25-30 minutes"
+              />
+              <p className="text-sm text-gray-500 mt-2">
+                Enter each step on a new line. They will be automatically numbered.
+              </p>
             </div>
           </section>
 
@@ -491,24 +384,7 @@ export default function CreateRecipePage() {
           </div>
         </form>
       </div>
+      <Footer />
     </main>
   );
 }
-
-function Navbar() {
-  return (
-    <nav className="flex justify-between items-center px-8 py-4 bg-white shadow-sm">
-      <Link href="/" className="text-2xl font-bold text-orange-600">
-        🍽️ TastyHub
-      </Link>
-      <ul className="flex gap-6 text-gray-700 font-medium">
-        <li><Link href="/">Home</Link></li>
-        <li><Link href="/recipes">Recipes</Link></li>
-        <li><Link href="/recipes/new">Create Recipe</Link></li>
-        <li><Link href="/about">About</Link></li>
-        <li><Link href="/login">Login</Link></li>
-      </ul>
-    </nav>
-  );
-}
-
