@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint .",
+    "lint": "next lint . --max-warnings=50",
     "test": "npx jest --passWithNoTests",
     "test:watch": "npx jest --watch",
     "test:coverage": "npx jest --coverage",
@@ -16,6 +16,7 @@
     "test:e2e:headed": "cypress run --headed"
   },
   "dependencies": {
+    "@sentry/nextjs": "^10.29.0",
     "autoprefixer": "^10.4.22",
     "bcrypt": "^5.1.1",
     "framer-motion": "^12.23.24",

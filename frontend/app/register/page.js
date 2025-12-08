@@ -37,7 +37,8 @@ export default function RegisterPage() {
   }, [router]);
 
   const handleGoogleLogin = () => {
-    window.location.href = `${api.API_BASE_URL || 'http://localhost:5000'}/api/users/auth/google`;
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+    window.location.href = `${API_URL}/api/users/auth/google`;
   };
 
   const handleSubmit = async (e) => {

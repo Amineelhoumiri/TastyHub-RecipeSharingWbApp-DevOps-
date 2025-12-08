@@ -121,6 +121,7 @@ app.get('/api/health', async (req, res) => {
 app.use('/api/users', userRoutes);
 app.use('/api/recipes', recipeRoutes);
 app.use('/api/comments', commentRoutes);
+app.use('/api/admin', require('./routes/adminRoutes'));
 
 // 404 Handler
 app.use((req, res) => {

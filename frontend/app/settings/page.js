@@ -119,7 +119,7 @@ export default function SettingsPage() {
         if (api.updateUserPreferences) {
           await api.updateUserPreferences({ darkMode, units });
         }
-      } catch (err) {
+      } catch {
         // Backend sync is optional - preferences are saved locally
         console.log('Preferences saved locally. Backend sync not available.');
       }
@@ -175,7 +175,6 @@ export default function SettingsPage() {
       // Reload user profile to get updated picture
       try {
         const updatedUser = await api.getUserProfile();
-        setUser(updatedUser);
         setProfilePicture(updatedUser.profilePicture || updatedUser.profile_picture || newPictureUrl);
 
         // Update localStorage

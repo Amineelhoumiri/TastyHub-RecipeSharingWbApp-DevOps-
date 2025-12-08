@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter, useParams } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
@@ -26,8 +26,7 @@ export default function EditRecipePage() {
   const [imageMode, setImageMode] = useState('url'); // 'url' or 'upload'
   const [uploadingImage, setUploadingImage] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
-  const [ingredientsText, setIngredientsText] = useState('');
-  const [steps, setSteps] = useState([{ instruction: '' }]);
+
 
   // Tags
   const [tags, setTags] = useState([]);
@@ -83,9 +82,9 @@ export default function EditRecipePage() {
     if (recipeId) {
       checkAuth();
     }
-  }, [recipeId, router]);
+  }, [recipeId, router, fetchRecipe]);
 
-  const fetchRecipe = async () => {
+  const fetchRecipe = useCallback(async () => {
     try {
       setLoading(true);
       const recipe = await api.getRecipe(recipeId);
@@ -98,28 +97,7 @@ export default function EditRecipePage() {
       setImageUrl(recipe.image_url || '');
       setIsPrivate(recipe.isPrivate || recipe.is_private || false);
 
-      // Convert ingredients to text
-      if (recipe.ingredients && recipe.ingredients.length > 0) {
-        const ingredientsText = recipe.ingredients
-          .map(ing => {
-            const name = ing.ingredientName || ing.name || '';
-            const qty = ing.quantity;
-            const unit = ing.unit;
-            if (qty === 1 && unit === 'piece') {
-              return name;
-            }
-            return `${qty} ${unit} ${name}`;
-          })
-          .join('\n');
-        setIngredientsText(ingredientsText);
-      }
 
-      // Set steps
-      if (recipe.steps && recipe.steps.length > 0) {
-        setSteps(recipe.steps
-          .sort((a, b) => (a.stepNumber || 0) - (b.stepNumber || 0))
-          .map(step => ({ instruction: step.instruction || step.text || '' })));
-      }
 
       // Set tags
       if (recipe.tags && Array.isArray(recipe.tags)) {
@@ -131,36 +109,11 @@ export default function EditRecipePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [recipeId]);
 
-  const parseIngredients = (text) => {
-    if (!text || !text.trim()) return [];
 
-    const lines = text.split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
 
-    return lines.map(line => ({
-      name: line,
-      quantity: 1,
-      unit: 'piece',
-      notes: null
-    }));
-  };
 
-  const addStep = () => {
-    setSteps([...steps, { instruction: '' }]);
-  };
-
-  const removeStep = (index) => {
-    setSteps(steps.filter((_, i) => i !== index));
-  };
-
-  const updateStep = (index, value) => {
-    const updated = [...steps];
-    updated[index].instruction = value;
-    setSteps(updated);
-  };
 
   const addTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
@@ -194,7 +147,7 @@ export default function EditRecipePage() {
     }
 
     try {
-      const parsedIngredients = parseIngredients(ingredientsText);
+      // const parsedIngredients = parseIngredients(ingredientsText);
 
       const recipeData = {
         title: title.trim(),

@@ -1,7 +1,7 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import Navbar from "@/components/Navbar";
@@ -18,61 +18,61 @@ function RecipesContent() {
   const [loading, setLoading] = useState(true);
   const [currentSearchTerm, setCurrentSearchTerm] = useState('');
 
-  useEffect(() => {
-    const query = searchParams.get('search') || '';
-    setSearch(query);
-    setCurrentSearchTerm(query);
-    fetchRecipes(query);
-  }, [searchParams]);
-
-  const fetchRecipes = async (searchTerm = '') => {
+  const fetchRecipes = useCallback(async (searchTerm = '') => {
     setLoading(true);
     try {
-      // Check for special filter
       const isUntaggedFilter = searchParams.get('filter') === 'untagged';
       const isOtherFilter = searchParams.get('filter') === 'other';
 
       let data;
       if (isOtherFilter) {
-        // Fetch all recipes
-        const allRecipes = await api.getRecipes('');
-
-        // Calculate popular tags (must match Home page logic to be consistent)
+        const allRecipes = await api.getRecipes('', '', 100);
         const allTags = allRecipes.flatMap(r => r.tags || []);
         const uniqueTags = [...new Set(allTags)].slice(0, 8);
         const defaultTags = ['Italian', 'Dessert', 'Healthy', 'Quick', 'Breakfast', 'Vegan', 'Dinner', 'Spicy'];
         const popularTags = [...new Set([...uniqueTags, ...defaultTags])].slice(0, 8);
 
-        // Filter recipes: Keep if NO tags OR has at least one tag NOT in popularTags
         data = allRecipes.filter(recipe => {
           const recipeTags = recipe.tags || [];
-          // If no tags, it's "other" (untagged)
           if (recipeTags.length === 0) return true;
-
-          // If it has tags, check if ANY of them are NOT in the popular list
-          // This ensures recipes with "Italian" AND "Mexican" show up in "Other" (because of Mexican)
           return recipeTags.some(tag => !popularTags.includes(tag));
         });
-
-        // Set a display friendly search term for the UI
         setCurrentSearchTerm('Other Recipes');
       } else if (isUntaggedFilter) {
-        // Fetch all recipes and filter client-side for now
-        const allRecipes = await api.getRecipes('');
+        const allRecipes = await api.getRecipes('', '', 100);
         data = allRecipes.filter(recipe => !recipe.tags || recipe.tags.length === 0);
-        // Set a display friendly search term for the UI
         setCurrentSearchTerm('Untagged Recipes');
       } else {
-        data = await api.getRecipes(searchTerm);
+        data = await api.getRecipes(searchTerm, '', 100);
       }
 
-      setRecipes(data);
+      // STRICT FILTER: Filter out test recipes
+      const filteredData = data.filter(recipe => {
+        const title = (recipe.title || '').toLowerCase();
+        const desc = (recipe.description || '').toLowerCase();
+        const username = (recipe.username || recipe.User?.username || '').toLowerCase();
 
-      // If no results found and we were searching, fetch suggestions
-      if (data.length === 0 && (searchTerm || isUntaggedFilter || isOtherFilter)) {
+        // Hide if ANY field contains "test"
+        return !title.includes('test') &&
+          !desc.includes('test') &&
+          !username.includes('test');
+      });
+
+      setRecipes(filteredData);
+
+      if (filteredData.length === 0 && (searchTerm || isUntaggedFilter || isOtherFilter)) {
         const allData = await api.getRecipes('');
-        // Filter out any that might somehow match (unlikely if search failed) and limit to 6
-        setSuggestedRecipes(allData.slice(0, 6));
+        // Filter suggestions too
+        const validSuggestions = allData.filter(recipe => {
+          const title = (recipe.title || '').toLowerCase();
+          const desc = (recipe.description || '').toLowerCase();
+          const username = (recipe.username || recipe.User?.username || '').toLowerCase();
+
+          return !title.includes('test') &&
+            !desc.includes('test') &&
+            !username.includes('test');
+        });
+        setSuggestedRecipes(validSuggestions.slice(0, 6));
       } else {
         setSuggestedRecipes([]);
       }
@@ -82,7 +82,14 @@ function RecipesContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchParams]);
+
+  useEffect(() => {
+    const query = searchParams.get('search') || '';
+    setSearch(query);
+    setCurrentSearchTerm(query);
+    fetchRecipes(query);
+  }, [searchParams, fetchRecipes]);
 
   const handleSearch = (e) => {
     e.preventDefault();
@@ -203,9 +210,13 @@ function RecipesContent() {
 export default function RecipesPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
-        <div className="text-orange-600 text-lg">Loading...</div>
-      </div>
+      <main className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-orange-600 text-lg">Loading...</div>
+        </div>
+        <Footer />
+      </main>
     }>
       <RecipesContent />
     </Suspense>

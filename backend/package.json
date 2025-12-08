@@ -14,7 +14,6 @@
     "test:e2e": "cypress run",
     "test:e2e:open": "cypress open",
     "test:api": "cypress run --spec \"cypress/e2e/api/**/*.cy.js\"",
-    "test:connection": "node test-connection.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write \"**/*.{js,json}\"",

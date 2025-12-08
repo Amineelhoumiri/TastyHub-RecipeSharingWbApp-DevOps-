@@ -53,8 +53,6 @@ jobs:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
         run: railway up --detach
 
-
-
   # Frontend deployment job
   deploy-frontend:
     name: Deploy Frontend
@@ -83,7 +81,7 @@ jobs:
       - name: Build Next.js app
         working-directory: ./frontend
         env:
-          NEXT_PUBLIC_API_URL: ${{ secrets.PRODUCTION_API_URL || 'https://recipesharingwebapp.vercel.app/' }}
+          NEXT_PUBLIC_API_URL: ${{ secrets.PRODUCTION_API_URL }}
         run: npm run build
 
       # Deploy to Vercel

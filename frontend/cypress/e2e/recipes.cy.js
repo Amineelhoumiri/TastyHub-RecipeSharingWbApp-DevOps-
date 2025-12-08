@@ -1,6 +1,6 @@
 // recipes listing page tests
 describe('Recipes Page', () => {
-  beforeEach(function() {
+  beforeEach(function () {
     cy.visitAndCheck('/recipes').then((loaded) => {
       if (!loaded) {
         this.skip(); // Skip all tests in this suite if 404
@@ -9,13 +9,16 @@ describe('Recipes Page', () => {
   });
 
   it('should display recipes page', () => {
+    // Wait for page to load
+    cy.get('input[placeholder*="Search"]', { timeout: 15000 }).should('be.visible');
     cy.contains('Recipes', { matchCase: false }).should('be.visible');
   });
 
   it('should display recipe cards if recipes exist', () => {
-    // Wait for API call to complete and page to render
-    cy.wait(3000);
-    
+    // Wait for the page to fully load by checking for the search input
+    cy.get('input[placeholder*="Search"]', { timeout: 15000 }).should('be.visible');
+    cy.wait(2000); // Additional wait for API call
+
     // Check if recipes are loaded or empty state is shown
     cy.get('body', { timeout: 10000 }).then(($body) => {
       const bodyText = $body.text();
@@ -31,8 +34,10 @@ describe('Recipes Page', () => {
   });
 
   it('should navigate to recipe detail page when clicking a recipe', () => {
-    cy.wait(3000);
-    
+    // Wait for page to load
+    cy.get('input[placeholder*="Search"]', { timeout: 15000 }).should('be.visible');
+    cy.wait(2000);
+
     cy.get('body', { timeout: 10000 }).then(($body) => {
       const bodyText = $body.text();
       if (!bodyText.includes('No recipes') && !bodyText.includes('No recipes found') && !bodyText.includes('available yet')) {
@@ -48,6 +53,8 @@ describe('Recipes Page', () => {
   });
 
   it('should have navigation back to home', () => {
+    // Wait for page to load
+    cy.get('input[placeholder*="Search"]', { timeout: 15000 }).should('be.visible');
     cy.get('nav').contains('Home').click();
     cy.url({ timeout: 10000 }).should('eq', Cypress.config('baseUrl') + '/');
     cy.wait(500);

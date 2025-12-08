@@ -1,6 +1,6 @@
 // navigation tests
 describe('Navigation', () => {
-  beforeEach(function() {
+  beforeEach(function () {
     cy.visitAndCheck('/').then((loaded) => {
       if (!loaded) {
         this.skip(); // Skip all tests in this suite if 404
@@ -13,22 +13,24 @@ describe('Navigation', () => {
     cy.contains('Recipes').click();
     cy.url({ timeout: 10000 }).should('include', '/recipes');
     cy.wait(500);
-    
+
     // Navigate back to Home
     cy.contains('Home').click();
     cy.url({ timeout: 10000 }).should('eq', Cypress.config('baseUrl') + '/');
     cy.wait(500);
-    
+
     // Navigate to Login
-    cy.contains('Login').click();
+    cy.contains('Log in').click();
     cy.url({ timeout: 10000 }).should('include', '/login');
     cy.wait(500);
   });
 
-  it('should maintain navigation state', function() {
+  it('should maintain navigation state', function () {
     // Home page should have nav
     cy.get('nav').should('be.visible');
     cy.visitAndCheck('/recipes').then((loaded) => {
+      // Wait for loading to finish
+      cy.get('input[placeholder*="Search"]', { timeout: 15000 }).should('be.visible');
       if (!loaded) {
         this.skip();
         return;
@@ -48,7 +50,7 @@ describe('Navigation', () => {
     });
   });
 
-  it('should navigate using browser back button', function() {
+  it('should navigate using browser back button', function () {
     cy.visitAndCheck('/recipes').then((loaded) => {
       if (!loaded) {
         this.skip();
