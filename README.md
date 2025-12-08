@@ -1,6 +1,6 @@
 # 🍳 TastyHub - Recipe Sharing Application
 
-**Live Demo:** [Click here to view on Vercel](INSERT_VERCEL_LINK_HERE)
+**Live Demo:** https://recipesharingwebapp.vercel.app
 
 Welcome to TastyHub! 👋 We're building a community-driven recipe sharing platform where food lovers can discover, share, and celebrate amazing recipes from around the world.
 
@@ -211,3 +211,5 @@ New to open source? No worries! Check out our contribution guidelines, and don't
 ## 📄 License
 
 This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
+
+<!-- Trigger workflows -->
