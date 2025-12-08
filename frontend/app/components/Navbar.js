@@ -214,6 +214,26 @@ export default function Navbar() {
       {isMobileMenuOpen && (
         <div className="md:hidden bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-800 absolute top-20 left-0 right-0 shadow-xl min-h-screen animate-in slide-in-from-top-5 duration-200">
           <div className="p-4 space-y-4">
+            {/* User Profile Section - FIRST for authenticated users */}
+            {isAuthenticated && (
+              <div className="border-b border-gray-100 dark:border-gray-800 pb-4 mb-4">
+                <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-orange-50 to-orange-100/50 dark:from-gray-800 dark:to-gray-800/50 rounded-xl border border-orange-200 dark:border-orange-900/30">
+                  <div className="w-14 h-14 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center border-2 border-orange-300 dark:border-orange-700 overflow-hidden">
+                    {user?.profilePicture ? (
+                      <img src={user.profilePicture} alt={user.username} className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-xl font-bold text-orange-600 dark:text-orange-400">{user?.username?.charAt(0).toUpperCase()}</span>
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-bold text-xl text-gray-900 dark:text-white">{user?.username}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{user?.email}</p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Navigation Links */}
             <div className="space-y-2">
               <MobileNavLink href="/" active={isActive('/')} icon="🏠">Home</MobileNavLink>
               <MobileNavLink href="/recipes" active={isActive('/recipes')} icon="📖">Recipes</MobileNavLink>
@@ -223,32 +243,18 @@ export default function Navbar() {
               <MobileNavLink href="/about" active={isActive('/about')} icon="ℹ️">About</MobileNavLink>
             </div>
 
+            {/* User Options Section */}
             <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
               {isAuthenticated ? (
                 <div className="space-y-2">
-                  <div className="flex items-center gap-3 px-4 py-3 mb-2 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
-                    <div className="w-12 h-12 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center border border-orange-200 dark:border-orange-700">
-                      {user?.profilePicture ? (
-                        <img src={user.profilePicture} alt={user.username} className="w-full h-full object-cover rounded-full" />
-                      ) : (
-                        <span className="text-lg font-bold text-orange-600 dark:text-orange-400">{user?.username?.charAt(0).toUpperCase()}</span>
-                      )}
-                    </div>
-                    <div>
-                      <p className="font-semibold text-lg text-gray-900 dark:text-white">{user?.username}</p>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">Logged in</p>
-                    </div>
-                  </div>
-
-                  {user?.isAdmin && <MobileNavLink href="/admin" active={isActive('/admin')} icon="🛡️">Admin</MobileNavLink>}
+                  {user?.isAdmin && <MobileNavLink href="/admin" active={isActive('/admin')} icon="🛡️">Admin Dashboard</MobileNavLink>}
                   <MobileNavLink href="/my-recipes" active={isActive('/my-recipes')} icon="👨‍🍳">My Recipes</MobileNavLink>
-                  {/* Favorites is already in top section for mobile too, but can be here as well if preferred. Keeping it in top section for consistency. */}
                   <MobileNavLink href="/profile" active={isActive('/profile')} icon="👤">Profile</MobileNavLink>
                   <MobileNavLink href="/settings" active={isActive('/settings')} icon="⚙️">Settings</MobileNavLink>
 
                   <button
                     onClick={handleLogout}
-                    className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors font-medium text-lg"
+                    className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-colors font-medium text-lg mt-2"
                   >
                     <span>🚪</span> Logout
                   </button>
@@ -283,8 +289,8 @@ function NavLink({ href, active, children }) {
     <Link
       href={href}
       className={`px-5 py-2.5 rounded-full text-base font-semibold transition-all duration-200 ${active
-          ? 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20'
-          : 'text-gray-600 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+        ? 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20'
+        : 'text-gray-600 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-gray-50 dark:hover:bg-gray-800/50'
         }`}
     >
       {children}
@@ -309,8 +315,8 @@ function MobileNavLink({ href, active, icon, children }) {
     <Link
       href={href}
       className={`flex items-center gap-4 px-4 py-3 rounded-xl text-lg font-medium transition-colors ${active
-          ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400'
-          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+        ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400'
+        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
         }`}
     >
       <span className="text-xl">{icon}</span>
