@@ -56,7 +56,6 @@ export const api = {
       }
 
       // 2. Filter out obvious "automated" test recipes
-      // Matches "My Recipe 1234567890" or "Recipe 1234567890"
       if (/^(my )?recipe\s*\d{5,}/i.test(title)) {
         return true;
       }
@@ -98,7 +97,6 @@ export const api = {
     }
     return Array.isArray(data) ? data.filter(recipe => !isTestRecipe(recipe)) : [];
   },
-
 
   getPopularTags: async () => {
     const response = await fetch(`${API_BASE_URL}/api/recipes/tags/popular`, {
@@ -248,13 +246,11 @@ export const api = {
   },
 
   favoriteRecipe: async (recipeId) => {
-    // Backend toggles favorite on POST
     const response = await fetch(`${API_BASE_URL}/api/recipes/${recipeId}/favourite`, {
       method: 'POST',
       headers: getHeaders(true),
     });
 
-    // Verify JSON response
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
       const text = await response.text();
@@ -269,7 +265,6 @@ export const api = {
   },
 
   unfavoriteRecipe: async (recipeId) => {
-    // Same as favoriteRecipe - backend handles toggle
     const response = await fetch(`${API_BASE_URL}/api/recipes/${recipeId}/favourite`, {
       method: 'POST',
       headers: getHeaders(true),
@@ -320,7 +315,7 @@ export const api = {
 
   getUserProfileById: async (userId) => {
     const response = await fetch(`${API_BASE_URL}/api/users/${userId}`, {
-      headers: getHeaders(false), // Public endpoint
+      headers: getHeaders(false),
     });
 
     const contentType = response.headers.get('content-type');
@@ -426,7 +421,6 @@ export const api = {
     });
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || data.error || 'Failed to fetch favorites');
-    // Backend returns { recipes: [...] }
     return Array.isArray(data.recipes) ? data.recipes : Array.isArray(data) ? data : [];
   },
 
@@ -452,14 +446,75 @@ export const api = {
     return data;
   },
 
-  googleLogin: async (token) => {
-    const response = await fetch(`${API_BASE_URL}/api/users/google-login`, {
-      method: 'POST',
-      headers: getHeaders(false),
-      body: JSON.stringify({ token }),
+  // --- Admin Routes ---
+
+  getAllUsers: async () => {
+    const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+      headers: getHeaders(true),
     });
     const data = await response.json();
-    if (!response.ok) throw new Error(data.message || data.error || 'Google login failed');
+    if (!response.ok) throw new Error(data.message || data.error || 'Failed to fetch users');
     return data;
   },
+
+  createUserAdmin: async (userData) => {
+    const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+      method: 'POST',
+      headers: getHeaders(true),
+      body: JSON.stringify(userData),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || data.error || 'Failed to create user');
+    return data;
+  },
+
+  getAllRecipesAdmin: async () => {
+    const response = await fetch(`${API_BASE_URL}/api/admin/recipes`, {
+      headers: getHeaders(true),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || data.error || 'Failed to fetch recipes');
+    return data;
+  },
+
+  deleteUser: async (userId) => {
+    const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
+      method: 'DELETE',
+      headers: getHeaders(true),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || data.error || 'Failed to delete user');
+    return data;
+  },
+
+  updateUserAdmin: async (userId, userData) => {
+    const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}`, {
+      method: 'PUT',
+      headers: getHeaders(true),
+      body: JSON.stringify(userData),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || data.error || 'Failed to update user');
+    return data;
+  },
+
+  deleteRecipeAdmin: async (recipeId) => {
+    const response = await fetch(`${API_BASE_URL}/api/admin/recipes/${recipeId}`, {
+      method: 'DELETE',
+      headers: getHeaders(true),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || data.error || 'Failed to delete recipe');
+    return data;
+  },
+
+  deleteCommentAdmin: async (commentId) => {
+    const response = await fetch(`${API_BASE_URL}/api/admin/comments/${commentId}`, {
+      method: 'DELETE',
+      headers: getHeaders(true),
+    });
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.message || data.error || 'Failed to delete comment');
+    return data;
+  }
 };

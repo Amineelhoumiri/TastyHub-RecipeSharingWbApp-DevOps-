@@ -14,7 +14,8 @@ try {
           clientID: process.env.GOOGLE_CLIENT_ID,
           clientSecret: process.env.GOOGLE_CLIENT_SECRET,
           callbackURL: '/api/users/auth/google/callback', // This must match the authorized redirect URI in Google Console
-          passReqToCallback: true
+          passReqToCallback: true,
+          proxy: true
         },
         async (req, accessToken, refreshToken, profile, done) => {
           try {

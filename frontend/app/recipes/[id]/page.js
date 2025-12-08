@@ -16,6 +16,7 @@ export default function RecipeDetailPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
 
   // Comment form state
   const [commentText, setCommentText] = useState('');
@@ -43,6 +44,16 @@ export default function RecipeDetailPage() {
     }
     const token = localStorage.getItem('token');
     setIsAuthenticated(!!token);
+
+    const userStr = localStorage.getItem('user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        setIsAdmin(user.isAdmin || false);
+      } catch (e) {
+        console.error('Error parsing user data', e);
+      }
+    }
   }, [recipeId, fetchRecipe]);
 
   const handleLike = async () => {
@@ -120,6 +131,30 @@ export default function RecipeDetailPage() {
     }
   };
 
+  const handleAdminDeleteRecipe = async () => {
+    if (!confirm('ADMIN ACTION: Are you sure you want to delete this recipe? This cannot be undone.')) return;
+    try {
+      await api.deleteRecipeAdmin(recipeId);
+      alert('Recipe deleted successfully.');
+      router.push('/admin/recipes');
+    } catch (err) {
+      console.error('Error deleting recipe:', err);
+      alert(err.message || 'Failed to delete recipe');
+    }
+  };
+
+  const handleAdminDeleteComment = async (commentId) => {
+    if (!confirm('ADMIN ACTION: Are you sure you want to delete this comment?')) return;
+    try {
+      await api.deleteCommentAdmin(commentId);
+      // Refresh recipe to remove the comment
+      await fetchRecipe();
+    } catch (err) {
+      console.error('Error deleting comment:', err);
+      alert(err.message || 'Failed to delete comment');
+    }
+  };
+
   if (loading) {
     return (
       <main className="min-h-screen bg-gradient-to-b from-orange-50 to-white">
@@ -153,9 +188,34 @@ export default function RecipeDetailPage() {
 
       <div className="max-w-4xl mx-auto px-6 py-12">
         {/* Back Button */}
-        <Link href="/recipes" className="text-orange-600 hover:underline mb-6 inline-block">
-          ← Back to Recipes
-        </Link>
+        <div className="flex justify-between items-center mb-6">
+          <Link href="/recipes" className="text-orange-600 hover:underline inline-block">
+            ← Back to Recipes
+          </Link>
+          {isAdmin && (
+            <Link href="/admin/recipes" className="text-blue-600 hover:underline inline-block">
+              ← Back to Admin Dashboard
+            </Link>
+          )}
+        </div>
+
+        {/* Admin Controls */}
+        {isAdmin && (
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl p-4 mb-8 flex justify-between items-center">
+            <div>
+              <h3 className="text-red-800 dark:text-red-300 font-bold flex items-center gap-2">
+                <span>🛡️</span> Admin Controls
+              </h3>
+              <p className="text-sm text-red-600 dark:text-red-400">You are viewing this page as an administrator.</p>
+            </div>
+            <button
+              onClick={handleAdminDeleteRecipe}
+              className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition shadow-sm font-medium"
+            >
+              Delete Recipe
+            </button>
+          </div>
+        )}
 
         {/* Recipe Header */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden mb-8">
@@ -201,8 +261,8 @@ export default function RecipeDetailPage() {
                   onClick={handleLike}
                   disabled={likeLoading}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${recipe.isLiked
-                      ? 'bg-red-100 text-red-600 hover:bg-red-200'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     } ${likeLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                   <span className="text-2xl">{recipe.isLiked ? '❤️' : '🤍'}</span>
@@ -212,8 +272,8 @@ export default function RecipeDetailPage() {
                   onClick={handleFavorite}
                   disabled={favoriteLoading}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${recipe.isFavorited
-                      ? 'bg-pink-100 text-pink-600 hover:bg-pink-200'
-                      : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                    ? 'bg-pink-100 text-pink-600 hover:bg-pink-200'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                     } ${favoriteLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                   <span className="text-2xl">{recipe.isFavorited ? '💖' : '🤍'}</span>
@@ -359,7 +419,7 @@ export default function RecipeDetailPage() {
                 const createdAt = review.createdAt ? new Date(review.createdAt).toLocaleDateString() : '';
 
                 return (
-                  <div key={review.id || index} className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-0">
+                  <div key={review.id || index} className="border-b border-gray-200 dark:border-gray-700 pb-6 last:border-0 relative group">
                     <div className="flex items-start justify-between mb-2">
                       <div className="flex items-center gap-3">
                         {userId ? (
@@ -392,12 +452,23 @@ export default function RecipeDetailPage() {
                           </>
                         )}
                       </div>
-                      {rating && (
-                        <div className="flex items-center gap-1">
-                          <span className="text-yellow-500 text-xl">⭐</span>
-                          <span className="font-semibold text-gray-800 dark:text-gray-200">{rating}/5</span>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-4">
+                        {rating && (
+                          <div className="flex items-center gap-1">
+                            <span className="text-yellow-500 text-xl">⭐</span>
+                            <span className="font-semibold text-gray-800 dark:text-gray-200">{rating}/5</span>
+                          </div>
+                        )}
+                        {isAdmin && (
+                          <button
+                            onClick={() => handleAdminDeleteComment(review.id)}
+                            className="text-red-500 hover:text-red-700 text-sm font-medium opacity-0 group-hover:opacity-100 transition-opacity"
+                            title="Admin: Delete Comment"
+                          >
+                            🗑️ Delete
+                          </button>
+                        )}
+                      </div>
                     </div>
                     {comment && (
                       <p className="text-gray-700 dark:text-gray-300 mt-2">{comment}</p>
@@ -416,5 +487,3 @@ export default function RecipeDetailPage() {
     </main>
   );
 }
-
-

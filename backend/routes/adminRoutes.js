@@ -24,6 +24,10 @@ router.put('/users/:userId', adminController.updateUser);
 // @desc    Create a new user
 router.post('/users', adminController.createUser);
 
+// @route   GET /api/admin/recipes
+// @desc    Get all recipes
+router.get('/recipes', adminController.getAllRecipes);
+
 // @route   DELETE /api/admin/recipes/:recipeId
 // @desc    Delete any recipe
 router.delete('/recipes/:recipeId', adminController.deleteRecipe);

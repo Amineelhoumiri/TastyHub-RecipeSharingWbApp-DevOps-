@@ -155,6 +155,34 @@ exports.createUser = async (req, res) => {
 };
 
 /**
+ * @route   GET /api/admin/recipes
+ * @desc    Get all recipes (Admin only)
+ * @access  Private/Admin
+ */
+exports.getAllRecipes = async (req, res) => {
+  try {
+    const { Recipe, User } = require('../models');
+
+    const recipes = await Recipe.findAll({
+      include: [{
+        model: User,
+        attributes: ['id', 'username', 'profilePicture']
+      }],
+      order: [['createdAt', 'DESC']]
+    });
+
+    res.json({
+      message: 'Recipes fetched successfully',
+      count: recipes.length,
+      recipes
+    });
+  } catch (error) {
+    console.error('Get all recipes error:', error);
+    res.status(500).json({ message: 'Server error while fetching recipes' });
+  }
+};
+
+/**
  * @route   DELETE /api/admin/recipes/:recipeId
  * @desc    Delete any recipe (Admin only)
  * @access  Private/Admin

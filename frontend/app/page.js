@@ -34,12 +34,23 @@ export default function Home() {
       setTags(STATIC_TAGS);
 
       try {
-        // Fetch limited number of recipes for the home page to improve performance
-        const allRecipes = await api.getRecipes('', '', 9);
+        // Fetch more recipes to allow for filtering (increased to 100 to find older real recipes)
+        const allRecipes = await api.getRecipes('', '', 100);
 
         if (Array.isArray(allRecipes)) {
-          // Process featured recipes (first 6)
-          const featured = allRecipes.slice(0, 6);
+          // Filter out test recipes and take top 6
+          const featured = allRecipes
+            .filter(r => {
+              const title = (r.title || '').toLowerCase();
+              const desc = (r.description || '').toLowerCase();
+              const username = (r.username || r.User?.username || '').toLowerCase();
+
+              // Strict filter: Hide if ANY field contains "test"
+              return !title.includes('test') &&
+                !desc.includes('test') &&
+                !username.includes('test');
+            })
+            .slice(0, 6);
           setRecipes(featured);
         } else {
           setRecipes([]);
