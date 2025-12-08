@@ -13,7 +13,7 @@ try {
         {
           clientID: process.env.GOOGLE_CLIENT_ID,
           clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-          callbackURL: '/api/users/auth/google/callback', // This must match the authorized redirect URI in Google Console
+          callbackURL: process.env.GOOGLE_CALLBACK_URL || `${process.env.BACKEND_URL || 'http://localhost:5000'}/api/users/auth/google/callback`,
           passReqToCallback: true,
           proxy: true
         },

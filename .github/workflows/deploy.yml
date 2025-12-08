@@ -51,7 +51,7 @@ jobs:
         working-directory: ./backend
         env:
           RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --detach
+        run: railway up --service=${{ secrets.RAILWAY_SERVICE_NAME }} --detach
 
   # Frontend deployment job
   deploy-frontend:
