@@ -99,7 +99,7 @@ jobs:
 
       # Upload coverage reports to Codecov
       - name: Upload coverage reports
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v5
         if: always()
         with:
           directory: ./backend/coverage
