@@ -18,13 +18,6 @@ function RecipesContent() {
   const [loading, setLoading] = useState(true);
   const [currentSearchTerm, setCurrentSearchTerm] = useState('');
 
-  useEffect(() => {
-    const query = searchParams.get('search') || '';
-    setSearch(query);
-    setCurrentSearchTerm(query);
-    fetchRecipes(query);
-  }, [searchParams, fetchRecipes]);
-
   const fetchRecipes = useCallback(async (searchTerm = '') => {
     setLoading(true);
     try {
@@ -90,6 +83,13 @@ function RecipesContent() {
       setLoading(false);
     }
   }, [searchParams]);
+
+  useEffect(() => {
+    const query = searchParams.get('search') || '';
+    setSearch(query);
+    setCurrentSearchTerm(query);
+    fetchRecipes(query);
+  }, [searchParams, fetchRecipes]);
 
   const handleSearch = (e) => {
     e.preventDefault();

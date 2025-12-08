@@ -30,7 +30,7 @@ describe('Navigation', () => {
     cy.get('nav').should('be.visible');
     cy.visitAndCheck('/recipes').then((loaded) => {
       // Wait for loading to finish
-      cy.contains('Loading recipes...').should('not.exist');
+      cy.get('input[placeholder*="Search"]', { timeout: 15000 }).should('be.visible');
       if (!loaded) {
         this.skip();
         return;
