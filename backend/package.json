@@ -25,7 +25,7 @@
   "license": "Apache-2.0",
   "type": "commonjs",
   "dependencies": {
-    "@sentry/node": "^7.91.0",
+    "@sentry/node": "^10.29.0",
     "bcryptjs": "^3.0.3",
     "cors": "^2.8.5",
     "cross-env": "^10.1.0",
