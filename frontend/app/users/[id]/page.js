@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import Navbar from '@/components/Navbar';
@@ -18,11 +18,10 @@ export default function UserProfilePage() {
   useEffect(() => {
     if (userId) {
       fetchUserProfile();
-      fetchUserRecipes();
     }
-  }, [userId]);
+  }, [userId, fetchUserProfile]);
 
-  const fetchUserProfile = async () => {
+  const fetchUserProfile = useCallback(async () => {
     try {
       const userData = await api.getUserProfileById(userId);
       setUser(userData);
@@ -32,9 +31,9 @@ export default function UserProfilePage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [userId]);
 
-  const fetchUserRecipes = async () => {
+  const fetchUserRecipes = useCallback(async () => {
     try {
       // Get all recipes and filter by userId
       const allRecipes = await api.getRecipes();
@@ -52,13 +51,13 @@ export default function UserProfilePage() {
     } catch (err) {
       console.error('Error fetching user recipes:', err);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     if (user) {
       fetchUserRecipes();
     }
-  }, [user]);
+  }, [user, fetchUserRecipes]);
 
   if (loading) {
     return (

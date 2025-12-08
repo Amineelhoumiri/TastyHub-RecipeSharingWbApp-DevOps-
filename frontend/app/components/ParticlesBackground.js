@@ -130,11 +130,13 @@ export default function ParticlesBackground() {
             animationFrameId = requestAnimationFrame(animate);
         };
 
+        const container = containerRef.current;
+
         // Initialize
         window.addEventListener('resize', handleResize);
-        if (containerRef.current) {
-            containerRef.current.addEventListener('mousemove', handleMouseMove);
-            containerRef.current.addEventListener('mouseleave', handleMouseLeave);
+        if (container) {
+            container.addEventListener('mousemove', handleMouseMove);
+            container.addEventListener('mouseleave', handleMouseLeave);
         }
 
         handleResize();
@@ -142,9 +144,9 @@ export default function ParticlesBackground() {
 
         return () => {
             window.removeEventListener('resize', handleResize);
-            if (containerRef.current) {
-                containerRef.current.removeEventListener('mousemove', handleMouseMove);
-                containerRef.current.removeEventListener('mouseleave', handleMouseLeave);
+            if (container) {
+                container.removeEventListener('mousemove', handleMouseMove);
+                container.removeEventListener('mouseleave', handleMouseLeave);
             }
             cancelAnimationFrame(animationFrameId);
         };

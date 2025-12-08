@@ -1,7 +1,7 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
 import Link from "next/link";
-import { useState, useEffect, Suspense } from "react";
+import { useState, useEffect, Suspense, useCallback } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { api } from "@/lib/api";
 import Navbar from "@/components/Navbar";
@@ -23,9 +23,9 @@ function RecipesContent() {
     setSearch(query);
     setCurrentSearchTerm(query);
     fetchRecipes(query);
-  }, [searchParams]);
+  }, [searchParams, fetchRecipes]);
 
-  const fetchRecipes = async (searchTerm = '') => {
+  const fetchRecipes = useCallback(async (searchTerm = '') => {
     setLoading(true);
     try {
       const isUntaggedFilter = searchParams.get('filter') === 'untagged';
@@ -89,7 +89,7 @@ function RecipesContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchParams]);
 
   const handleSearch = (e) => {
     e.preventDefault();

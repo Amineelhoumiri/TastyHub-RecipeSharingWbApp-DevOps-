@@ -46,7 +46,7 @@ export const api = {
       const title = recipe.title || '';
 
       const usernameLower = username.toLowerCase();
-      const titleLower = title.toLowerCase();
+
 
       // 1. Filter out users that are clearly test users
       if (usernameLower.includes('test') ||

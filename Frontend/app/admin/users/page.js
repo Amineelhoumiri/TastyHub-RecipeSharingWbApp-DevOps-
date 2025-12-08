@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { api } from '@/lib/api';
-import Link from 'next/link';
+
 
 export default function UserManagementPage() {
     const [users, setUsers] = useState([]);
@@ -205,8 +205,8 @@ export default function UserManagementPage() {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <span className={`px-2.5 py-0.5 inline-flex text-xs font-medium rounded-full ${user.isAdmin
-                                                ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
-                                                : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
+                                            ? 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-300'
+                                            : 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-300'
                                             }`}>
                                             {user.isAdmin ? 'Admin' : 'User'}
                                         </span>

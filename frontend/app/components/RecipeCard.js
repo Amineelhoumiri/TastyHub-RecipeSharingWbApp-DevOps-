@@ -8,8 +8,7 @@ import { api } from "@/lib/api";
 export default function RecipeCard({ recipe }) {
     const router = useRouter();
     const [isFavorited, setIsFavorited] = useState(!!recipe.isFavorited);
-    // We don't need loading state for optimistic UI, but keeping it for compatibility if needed later
-    const [favoriteLoading, setFavoriteLoading] = useState(false);
+
 
     useEffect(() => {
         setIsFavorited(!!recipe.isFavorited);

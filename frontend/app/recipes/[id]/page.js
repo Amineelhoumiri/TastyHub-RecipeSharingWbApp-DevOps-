@@ -115,7 +115,7 @@ export default function RecipeDetailPage() {
 
     try {
       setSubmittingComment(true);
-      const result = await api.createComment(recipeId, commentText.trim(), commentRating);
+      await api.createComment(recipeId, commentText.trim(), commentRating);
 
       // Refresh recipe to get updated reviews and rating
       await fetchRecipe();
