@@ -1,6 +1,6 @@
 // recipes listing page tests
 describe('Recipes Page', () => {
-  beforeEach(function() {
+  beforeEach(function () {
     cy.visitAndCheck('/recipes').then((loaded) => {
       if (!loaded) {
         this.skip(); // Skip all tests in this suite if 404
@@ -14,8 +14,9 @@ describe('Recipes Page', () => {
 
   it('should display recipe cards if recipes exist', () => {
     // Wait for API call to complete and page to render
-    cy.wait(3000);
-    
+    cy.contains('Loading recipes...').should('not.exist');
+    cy.wait(1000);
+
     // Check if recipes are loaded or empty state is shown
     cy.get('body', { timeout: 10000 }).then(($body) => {
       const bodyText = $body.text();
@@ -32,7 +33,7 @@ describe('Recipes Page', () => {
 
   it('should navigate to recipe detail page when clicking a recipe', () => {
     cy.wait(3000);
-    
+
     cy.get('body', { timeout: 10000 }).then(($body) => {
       const bodyText = $body.text();
       if (!bodyText.includes('No recipes') && !bodyText.includes('No recipes found') && !bodyText.includes('available yet')) {

@@ -210,9 +210,13 @@ function RecipesContent() {
 export default function RecipesPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen flex items-center justify-center bg-white dark:bg-gray-900">
-        <div className="text-orange-600 text-lg">Loading...</div>
-      </div>
+      <main className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
+        <Navbar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="text-orange-600 text-lg">Loading...</div>
+        </div>
+        <Footer />
+      </main>
     }>
       <RecipesContent />
     </Suspense>
