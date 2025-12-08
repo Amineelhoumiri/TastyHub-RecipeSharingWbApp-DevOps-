@@ -1,51 +1,56 @@
-# TastyHub - Recipe Sharing Application
+# 🍳 TastyHub - Recipe Sharing Application
 
 **Live Demo:** [Click here to view on Vercel](INSERT_VERCEL_LINK_HERE)
 
-A full-stack recipe sharing platform built with Next.js frontend and Express.js backend, featuring PostgreSQL database, comprehensive testing, and CI/CD automation.
+Welcome to TastyHub! 👋 We're building a community-driven recipe sharing platform where food lovers can discover, share, and celebrate amazing recipes from around the world.
 
-## Architecture
+This is a full-stack application built with modern web technologies - Next.js for a beautiful, responsive frontend, Express.js powering a robust backend API, and PostgreSQL keeping everything organized. We've also set up comprehensive testing and automated deployments so you can focus on what matters: creating great features!
+
+## 🏗️ How It's Built
 
 ```
-frontend/          - Next.js application (app router + public assets)
-backend/           - Express.js API (REST endpoints, Sequelize ORM)
+frontend/          - Next.js application (beautiful UI with app router)
+backend/           - Express.js API (handles all the data magic)
   └── database/    - PostgreSQL schema and ER diagram
-.github/           - GitHub Actions CI/CD workflows
+.github/           - Automated testing and deployment workflows
 ```
 
-## Quick Start
+## 🚀 Quick Start
 
-### Prerequisites
+Ready to get cooking? Here's how to get TastyHub running on your machine!
 
-- Node.js 18+
-- PostgreSQL 14+
-- npm
+### What You'll Need
 
-### Frontend
+- Node.js 18 or newer
+- PostgreSQL 14 or newer
+- npm (comes with Node.js)
+
+### Setting Up the Frontend
 
 ```bash
 cd frontend
 npm install
-npm run dev          # http://localhost:3000
+npm run dev          # Opens at http://localhost:3000
 ```
 
-Or from root: `npm run dev`
+**Tip:** You can also run `npm run dev` from the root directory!
 
-### Backend
+### Setting Up the Backend
 
 ```bash
 cd backend
 npm install
 
-# Create .env file (see backend/README.md for details)
-npm run dev          # http://localhost:5000
+# Don't forget to create your .env file! 
+# Check backend/README.md for all the details
+npm run dev          # Starts at http://localhost:5000
 ```
 
-Or from root: `npm run dev:backend`
+**Tip:** Run `npm run dev:backend` from the root if you prefer!
 
-### Database Setup
+### Getting the Database Ready
 
-Import `backend/database/Tasty-Hub.sql` into PostgreSQL. See `backend/README.md` for configuration details.
+Import the schema file `backend/database/Tasty-Hub.sql` into your PostgreSQL database. Head over to `backend/README.md` for step-by-step instructions!
 
 ## CI/CD
 
@@ -169,23 +174,40 @@ See `frontend/TESTING.md` for detailed frontend testing documentation.
 
 ## Documentation
 
+### Core Documentation
+- [Project README](README.md) - This file - project overview and quick start
 - [Backend API Documentation](backend/README.md) - Complete backend API reference
-- [Frontend Documentation](frontend/README.md) - Frontend setup and features guide
+- [Frontend Documentation](frontend/README.md) - Frontend architecture and features
 - [Frontend Testing Guide](frontend/TESTING.md) - Frontend testing documentation
+
+### Security Documentation
+- [Security Policy](SECURITY.md) - Security policy and vulnerability reporting
+- [Security Pipeline](docs/SECURITY_PIPELINE.md) - Security implementation details
+- [Security Tools](docs/SECURITY_TOOLS.md) - Security tools overview and quick reference
+- [Security Implementation](docs/SECURITY_IMPLEMENTATION.md) - Implementation summary
+
+### Project Management
+- [Project Structure Audit](docs/PROJECT_STRUCTURE_AUDIT.md) - Project organization and documentation status
+- [Project Cleanup Summary](docs/PROJECT_CLEANUP_SUMMARY.md) - Cleanup and organization summary
+
+### Database
 - Database schema: `backend/database/Tasty-Hub.sql`
+- ER Diagram: `backend/database/ER DIAGRAM.jpg`
 
-## Contributing
+## 🤝 Contributing
 
-We welcome contributions! Here's how you can help:
+We'd love your help making TastyHub even better! Whether you're fixing a bug, adding a feature, or improving documentation, every contribution matters.
 
-1. Fork the repository and create a branch from `develop`
-2. Make your changes
-3. Run tests and linter to make sure everything works
-4. Commit with clear, descriptive messages
-5. Open a pull request to `develop` for review
+Here's how to get started:
 
-For more details, check out our contribution guidelines in the repository.
+1. **Fork the repo** and create your branch from `develop`
+2. **Make your magic happen** - add features, fix bugs, improve docs
+3. **Test everything** - run the tests and linter to make sure it all works
+4. **Write a clear commit message** - help us understand what you did
+5. **Open a pull request** to `develop` - we'll review it together!
 
-## License
+New to open source? No worries! Check out our contribution guidelines, and don't hesitate to ask questions. We're here to help! 💪
+
+## 📄 License
 
 This project is licensed under the Apache License 2.0. See the [LICENSE](LICENSE) file for details.
