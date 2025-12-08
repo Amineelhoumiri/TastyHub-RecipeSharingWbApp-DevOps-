@@ -3,6 +3,8 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { api, API_BASE_URL } from "@/lib/api";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
 
 export default function CreateRecipePage() {
   const router = useRouter();
@@ -382,24 +384,7 @@ export default function CreateRecipePage() {
           </div>
         </form>
       </div>
+      <Footer />
     </main>
   );
 }
-
-function Navbar() {
-  return (
-    <nav className="flex justify-between items-center px-8 py-4 bg-white shadow-sm">
-      <Link href="/" className="text-2xl font-bold text-orange-600">
-        🍽️ TastyHub
-      </Link>
-      <ul className="flex gap-6 text-gray-700 font-medium">
-        <li><Link href="/">Home</Link></li>
-        <li><Link href="/recipes">Recipes</Link></li>
-        <li><Link href="/recipes/new">Create Recipe</Link></li>
-        <li><Link href="/about">About</Link></li>
-        <li><Link href="/login">Login</Link></li>
-      </ul>
-    </nav>
-  );
-}
-
