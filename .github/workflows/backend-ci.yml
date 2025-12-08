@@ -55,42 +55,10 @@ jobs:
         working-directory: ./backend
         run: npm ci --include=dev
 
-      # TruffleHog secret scanning - FAILS build if secrets are found
-      - name: TruffleHog Secret Scan
-        uses: trufflesecurity/trufflehog@main
-        with:
-          path: ./
-          base: ${{ github.event.repository.default_branch }}
-          head: HEAD
-          extra_args: --debug --only-verified
-
-      # Security audit for dependencies - FAILS build on high/critical vulnerabilities
-      - name: Run security audit
+      # Basic security audit (comprehensive scans run in security-scan.yml)
+      - name: Run npm audit
         working-directory: ./backend
-        run: |
-          echo "Running security audit..."
-          npm audit --audit-level=high
-          
-      # Attempt to auto-fix vulnerabilities (non-breaking changes only)
-      - name: Check for available security fixes
-        working-directory: ./backend
-        run: |
-          echo "Checking for available security fixes..."
-          npm audit fix --dry-run || echo "Some vulnerabilities require manual intervention"
-      
-      # Check for outdated packages (informational only)
-      - name: Check for outdated packages
-        working-directory: ./backend
-        run: |
-          echo "Checking for outdated packages..."
-          npm outdated || echo "Some packages have newer versions available"
-      
-      # Verify no malicious packages (using npm audit signatures)
-      - name: Verify package integrity
-        working-directory: ./backend
-        run: |
-          echo "Verifying package integrity..."
-          npm audit signatures || echo "Package signature verification completed"
+        run: npm audit --audit-level=high
 
       - name: Set up environment variables
         working-directory: ./backend
