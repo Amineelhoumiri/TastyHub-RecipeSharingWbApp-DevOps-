@@ -51,8 +51,16 @@ export default function RecipeCard({ recipe }) {
   // ... handleFavoriteToggle
 
   return (
-    <Link
-      href={`/recipes/${recipe.id}`}
+    <div
+      onClick={() => router.push(`/recipes/${recipe.id}`)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          router.push(`/recipes/${recipe.id}`);
+        }
+      }}
       className="bg-white dark:bg-gray-800 rounded-2xl shadow hover:shadow-lg transition overflow-hidden block cursor-pointer group h-full flex flex-col"
     >
       <div className="relative overflow-hidden h-48 w-full bg-gray-100 dark:bg-gray-700">
@@ -155,6 +163,6 @@ export default function RecipeCard({ recipe }) {
           </span>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

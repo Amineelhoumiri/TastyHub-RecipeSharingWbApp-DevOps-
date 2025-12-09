@@ -72,14 +72,18 @@ exports.getAllRecipes = async (req, res) => {
       }
     } else {
       // Not logged in: only show public recipes
-      whereClause[Op.or] = whereClause[Op.or] || [];
-      whereClause[Op.and] = whereClause[Op.and] || [];
-      whereClause[Op.and].push({
+      const publicCondition = {
         [Op.or]: [
           { isPrivate: false },
           { isPrivate: null }
         ]
-      });
+      };
+
+      if (whereClause[Op.and]) {
+        whereClause[Op.and].push(publicCondition);
+      } else {
+        whereClause[Op.and] = [publicCondition];
+      }
     }
 
     const totalCount = await Recipe.count({ where: whereClause });
@@ -491,7 +495,7 @@ exports.updateRecipe = async (req, res) => {
 
       if (Array.isArray(tags) && tags.length > 0) {
         const tagPromises = tags
-          .filter(tagName => tagName && tagName.trim())
+          .filter(tagName => tagName && typeof tagName === 'string' && tagName.trim())
           .map(async (tagName) => {
             // Normalize tag name (lowercase, trimmed)
             const normalizedTagName = tagName.trim().toLowerCase();
@@ -525,8 +529,12 @@ exports.updateRecipe = async (req, res) => {
       // Add new ingredients
       if (Array.isArray(ingredients) && ingredients.length > 0) {
         const ingredientPromises = ingredients.map((ingredient) => {
+          if (!ingredient || typeof ingredient !== 'object') {
+            return null;
+          }
+
           const ingredientName = ingredient.name || ingredient.ingredientName;
-          if (!ingredientName || !ingredientName.trim()) {
+          if (!ingredientName || typeof ingredientName !== 'string' || !ingredientName.trim()) {
             return null;
           }
 
@@ -535,12 +543,16 @@ exports.updateRecipe = async (req, res) => {
             return null;
           }
 
+          const notes = (ingredient.notes && typeof ingredient.notes === 'string')
+            ? ingredient.notes.trim()
+            : null;
+
           return RecipeIngredient.create({
             recipeId: recipe.id,
             ingredientName: ingredientName.trim(),
             quantity: quantity,
             unit: ingredient.unit || 'piece',
-            notes: ingredient.notes ? ingredient.notes.trim() : null
+            notes: notes
           }, { transaction });
         });
 
@@ -559,16 +571,25 @@ exports.updateRecipe = async (req, res) => {
       // Add new steps
       if (Array.isArray(steps) && steps.length > 0) {
         const stepPromises = steps.map((step, index) => {
-          const instruction = step.instruction || step.text || step;
-          if (!instruction || !instruction.trim()) {
+          let instruction;
+
+          // Handle both object and string formats for steps
+          if (typeof step === 'string') {
+            instruction = step;
+          } else if (typeof step === 'object' && step !== null) {
+            instruction = step.instruction !== undefined ? step.instruction : step.text;
+          }
+
+          // Validate that we have a valid instruction string
+          if (!instruction || typeof instruction !== 'string' || !instruction.trim()) {
             return null;
           }
 
           return RecipeStep.create({
             recipeId: recipe.id,
-            stepNumber: step.stepNumber || index + 1,
+            stepNumber: (step && step.stepNumber) || index + 1,
             instruction: instruction.trim(),
-            stepImage: step.stepImage || null
+            stepImage: (step && step.stepImage) || null
           }, { transaction });
         });
 

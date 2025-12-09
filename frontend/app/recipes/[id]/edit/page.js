@@ -32,13 +32,8 @@ export default function EditRecipePage() {
   const [tagInput, setTagInput] = useState('');
 
   // Ingredients
-  const [ingredients, setIngredients] = useState([]);
-  const [newIngredient, setNewIngredient] = useState({
-    name: '',
-    quantity: '',
-    unit: '',
-    notes: '',
-  });
+  // Ingredients
+  const [ingredientsText, setIngredientsText] = useState('');
 
   // Steps
   const [steps, setSteps] = useState([]);
@@ -96,15 +91,33 @@ export default function EditRecipePage() {
       }
 
       // Set ingredients
+      // Set ingredients
       if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
-        setIngredients(
-          recipe.ingredients.map((ing) => ({
-            name: ing.ingredientName || ing.name || '',
-            quantity: ing.quantity || '',
-            unit: ing.unit || '',
-            notes: ing.notes || '',
-          }))
-        );
+        const text = recipe.ingredients
+          .map((ing) => {
+            const name = ing.ingredientName || ing.name || '';
+            const qty = ing.quantity;
+            const unit = ing.unit;
+            const notes = ing.notes;
+
+            // If it seems to be default/simple format, just return name
+            // (checking for roughly 1 or missing quantity and piece/missing unit)
+            if ((!qty || qty == 1) && (!unit || unit === 'piece')) {
+              return notes ? `${name} (${notes})` : name;
+            }
+
+            // Otherwise construct string for display
+            let parts = [];
+            if (qty) parts.push(qty);
+            if (unit && unit !== 'piece') parts.push(unit);
+            parts.push(name);
+
+            let str = parts.join(' ');
+            if (notes) str += ` (${notes})`;
+            return str;
+          })
+          .join('\n');
+        setIngredientsText(text);
       }
 
       // Set steps
@@ -136,21 +149,24 @@ export default function EditRecipePage() {
   }, [recipeId, router, fetchRecipe]);
 
   // Ingredient handlers
-  const addIngredient = () => {
-    if (newIngredient.name.trim()) {
-      setIngredients([...ingredients, { ...newIngredient }]);
-      setNewIngredient({ name: '', quantity: '', unit: '', notes: '' });
-    }
-  };
+  // Parse ingredients text into array format for backend
+  const parseIngredients = (text) => {
+    if (!text || !text.trim()) return [];
 
-  const removeIngredient = (index) => {
-    setIngredients(ingredients.filter((_, i) => i !== index));
-  };
+    // Split by newlines and filter empty lines
+    const lines = text
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
 
-  const updateIngredient = (index, field, value) => {
-    const updated = [...ingredients];
-    updated[index] = { ...updated[index], [field]: value };
-    setIngredients(updated);
+    // Convert each line to an ingredient object
+    // Each line becomes an ingredient with default quantity=1 and unit='piece'
+    return lines.map((line) => ({
+      name: line,
+      quantity: 1,
+      unit: 'piece',
+      notes: null,
+    }));
   };
 
   // Step handlers
@@ -228,12 +244,7 @@ export default function EditRecipePage() {
         imageUrl: imageUrl.trim() || null,
         isPrivate: isPrivate,
         tags: tags,
-        ingredients: ingredients.map((ing) => ({
-          ingredientName: ing.name,
-          quantity: parseFloat(ing.quantity) || 1,
-          unit: ing.unit || 'piece',
-          notes: ing.notes || null,
-        })),
+        ingredients: parseIngredients(ingredientsText),
         steps: steps.map((step, index) => ({
           stepNumber: index + 1,
           instruction: step,
@@ -487,108 +498,22 @@ export default function EditRecipePage() {
             <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
               Ingredients
             </h2>
-
-            {/* Add New Ingredient */}
-            <div className="grid grid-cols-12 gap-2 mb-4">
-              <input
-                type="text"
-                value={newIngredient.name}
-                onChange={(e) => setNewIngredient({ ...newIngredient, name: e.target.value })}
-                className="col-span-4 px-3 py-2 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none text-sm"
-                placeholder="Ingredient name"
+            <div className="mb-2">
+              <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">
+                List ingredients (one per line)
+              </label>
+              <textarea
+                value={ingredientsText}
+                onChange={(e) => setIngredientsText(e.target.value)}
+                rows={8}
+                className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none"
+                placeholder="Enter ingredients, one per line:&#10;2 cups flour&#10;1 cup sugar&#10;3 eggs&#10;1 tsp vanilla extract"
               />
-              <input
-                type="number"
-                step="0.1"
-                value={newIngredient.quantity}
-                onChange={(e) => setNewIngredient({ ...newIngredient, quantity: e.target.value })}
-                className="col-span-2 px-3 py-2 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none text-sm"
-                placeholder="Qty"
-              />
-              <select
-                value={newIngredient.unit}
-                onChange={(e) => setNewIngredient({ ...newIngredient, unit: e.target.value })}
-                className="col-span-2 px-3 py-2 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none text-sm"
-              >
-                <option value="">Unit</option>
-                <option value="piece">piece</option>
-                <option value="cup">cup</option>
-                <option value="tbsp">tbsp</option>
-                <option value="tsp">tsp</option>
-                <option value="g">g</option>
-                <option value="kg">kg</option>
-                <option value="ml">ml</option>
-                <option value="l">l</option>
-              </select>
-              <input
-                type="text"
-                value={newIngredient.notes}
-                onChange={(e) => setNewIngredient({ ...newIngredient, notes: e.target.value })}
-                className="col-span-3 px-3 py-2 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none text-sm"
-                placeholder="Notes (optional)"
-              />
-              <button
-                type="button"
-                onClick={addIngredient}
-                className="col-span-1 px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition text-sm"
-              >
-                +
-              </button>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                Enter each ingredient on a new line. You can include quantities and units directly
+                in the text.
+              </p>
             </div>
-
-            {/* Ingredients List */}
-            {ingredients.length > 0 && (
-              <div className="space-y-2">
-                {ingredients.map((ing, index) => (
-                  <div
-                    key={index}
-                    className="grid grid-cols-12 gap-2 items-center bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg"
-                  >
-                    <input
-                      type="text"
-                      value={ing.name}
-                      onChange={(e) => updateIngredient(index, 'name', e.target.value)}
-                      className="col-span-4 px-2 py-1 border dark:border-gray-600 rounded text-gray-900 dark:text-gray-100 dark:bg-gray-700 text-sm"
-                    />
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={ing.quantity}
-                      onChange={(e) => updateIngredient(index, 'quantity', e.target.value)}
-                      className="col-span-2 px-2 py-1 border dark:border-gray-600 rounded text-gray-900 dark:text-gray-100 dark:bg-gray-700 text-sm"
-                    />
-                    <select
-                      value={ing.unit}
-                      onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
-                      className="col-span-2 px-2 py-1 border dark:border-gray-600 rounded text-gray-900 dark:text-gray-100 dark:bg-gray-700 text-sm"
-                    >
-                      <option value="piece">piece</option>
-                      <option value="cup">cup</option>
-                      <option value="tbsp">tbsp</option>
-                      <option value="tsp">tsp</option>
-                      <option value="g">g</option>
-                      <option value="kg">kg</option>
-                      <option value="ml">ml</option>
-                      <option value="l">l</option>
-                    </select>
-                    <input
-                      type="text"
-                      value={ing.notes}
-                      onChange={(e) => updateIngredient(index, 'notes', e.target.value)}
-                      className="col-span-3 px-2 py-1 border dark:border-gray-600 rounded text-gray-900 dark:text-gray-100 dark:bg-gray-700 text-sm"
-                      placeholder="Notes"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => removeIngredient(index)}
-                      className="col-span-1 text-red-500 hover:text-red-700 font-bold"
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
           </section>
 
           {/* Steps Section */}

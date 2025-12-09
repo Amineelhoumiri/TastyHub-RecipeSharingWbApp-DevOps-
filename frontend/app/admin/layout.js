@@ -67,7 +67,7 @@ export default function AdminLayout({ children }) {
     <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-gray-900 font-sans">
       <Navbar />
 
-      <div className="flex flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-10 gap-10">
+      <div className="flex flex-col lg:flex-row flex-1 max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 lg:py-10 gap-6 lg:gap-10">
         {/* Admin Sidebar - Desktop */}
         <aside className="w-72 flex-shrink-0 hidden lg:block">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-200 dark:border-gray-700 overflow-hidden sticky top-28">
