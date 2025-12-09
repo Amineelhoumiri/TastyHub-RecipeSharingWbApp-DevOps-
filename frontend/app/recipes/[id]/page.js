@@ -356,10 +356,11 @@ export default function RecipeDetailPage() {
                 <button
                   onClick={handleLike}
                   disabled={likeLoading}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${recipe.isLiked
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+                    recipe.isLiked
                       ? 'bg-red-100 text-red-600 hover:bg-red-200'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    } ${likeLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                  } ${likeLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                   <span className="text-2xl">{recipe.isLiked ? '❤️' : '🤍'}</span>
                   <span>{recipe.total_likes || 0} likes</span>
@@ -367,10 +368,11 @@ export default function RecipeDetailPage() {
                 <button
                   onClick={handleFavorite}
                   disabled={favoriteLoading}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${recipe.isFavorited
+                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+                    recipe.isFavorited
                       ? 'bg-pink-100 text-pink-600 hover:bg-pink-200'
                       : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-                    } ${favoriteLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                  } ${favoriteLoading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                 >
                   <span className="text-2xl">{recipe.isFavorited ? '💖' : '🤍'}</span>
                   <span>{recipe.isFavorited ? 'In favorites' : 'Add to favorites'}</span>
