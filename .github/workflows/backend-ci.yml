@@ -55,12 +55,10 @@ jobs:
         working-directory: ./backend
         run: npm ci --include=dev
 
-      # Security audit for dependencies
-      - name: Run security audit
+      # Basic security audit (comprehensive scans run in security-scan.yml)
+      - name: Run npm audit
         working-directory: ./backend
-        run: |
-          npm audit --audit-level=moderate || true
-          npm audit fix --dry-run || true
+        run: npm audit --audit-level=high
 
       - name: Set up environment variables
         working-directory: ./backend

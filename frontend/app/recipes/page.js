@@ -46,33 +46,13 @@ function RecipesContent() {
         data = await api.getRecipes(searchTerm, '', 100);
       }
 
-      // STRICT FILTER: Filter out test recipes
-      const filteredData = data.filter(recipe => {
-        const title = (recipe.title || '').toLowerCase();
-        const desc = (recipe.description || '').toLowerCase();
-        const username = (recipe.username || recipe.User?.username || '').toLowerCase();
+      // NO FILTERING - Show all recipes
+      setRecipes(data);
 
-        // Hide if ANY field contains "test"
-        return !title.includes('test') &&
-          !desc.includes('test') &&
-          !username.includes('test');
-      });
-
-      setRecipes(filteredData);
-
-      if (filteredData.length === 0 && (searchTerm || isUntaggedFilter || isOtherFilter)) {
+      if (data.length === 0 && (searchTerm || isUntaggedFilter || isOtherFilter)) {
         const allData = await api.getRecipes('');
-        // Filter suggestions too
-        const validSuggestions = allData.filter(recipe => {
-          const title = (recipe.title || '').toLowerCase();
-          const desc = (recipe.description || '').toLowerCase();
-          const username = (recipe.username || recipe.User?.username || '').toLowerCase();
-
-          return !title.includes('test') &&
-            !desc.includes('test') &&
-            !username.includes('test');
-        });
-        setSuggestedRecipes(validSuggestions.slice(0, 6));
+        // NO FILTERING - Show all suggestions
+        setSuggestedRecipes(allData.slice(0, 6));
       } else {
         setSuggestedRecipes([]);
       }

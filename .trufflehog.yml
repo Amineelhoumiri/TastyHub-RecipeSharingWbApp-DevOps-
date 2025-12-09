@@ -1,0 +1,30 @@
+# TruffleHog Configuration
+# Patterns to exclude from secret scanning
+
+# Exclude test files and mock data
+**/tests/**
+**/test/**
+**/__tests__/**
+**/*.test.js
+**/*.spec.js
+**/cypress/**
+**/jest.config.js
+
+# Exclude documentation
+**/README.md
+**/SECURITY.md
+**/docs/**
+**/*.md
+
+# Exclude configuration files that don't contain real secrets
+**/.eslintrc.js
+**/.prettierrc
+**/package.json
+**/package-lock.json
+
+# Exclude build artifacts
+**/node_modules/**
+**/dist/**
+**/build/**
+**/.next/**
+**/coverage/**

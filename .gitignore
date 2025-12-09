@@ -58,6 +58,14 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
+!**/.env.example
+
+# Temporary output files (linting, logs, etc.)
+**/lint_output.txt
+**/recipes_log.txt
+**/*_log.txt
+**/*_output.txt
 
 # Railway/deployment config files (may contain sensitive data)
 *railway*.json
