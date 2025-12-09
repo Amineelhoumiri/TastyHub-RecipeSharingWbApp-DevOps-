@@ -12,4 +12,3 @@ if (SENTRY_DSN && process.env.NODE_ENV === 'production') {
     replaysSessionSampleRate: 0.1,
   });
 }
-

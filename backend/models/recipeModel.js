@@ -54,6 +54,11 @@ const Recipe = sequelize.define(
       type: DataTypes.TEXT,
       field: 'image_url'
     },
+    isPrivate: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      field: 'is_private'
+    },
     createdAt: {
       type: DataTypes.DATE,
       defaultValue: () => new Date(),

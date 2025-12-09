@@ -1,16 +1,16 @@
-import { Inter } from "next/font/google";
-import "./globals.css";
-import DarkModeScript from "./components/DarkModeScript";
-import Script from "next/script";
+import { Inter } from 'next/font/google';
+import './globals.css';
+import DarkModeScript from './components/DarkModeScript';
+import Script from 'next/script';
 
 const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
+  subsets: ['latin'],
+  variable: '--font-inter',
 });
 
 export const metadata = {
-  title: "TastyHub - Recipe Sharing Platform",
-  description: "Share and discover amazing recipes with the TastyHub community",
+  title: 'TastyHub - Recipe Sharing Platform',
+  description: 'Share and discover amazing recipes with the TastyHub community',
 };
 
 export default function RootLayout({ children }) {
@@ -37,9 +37,7 @@ export default function RootLayout({ children }) {
           }}
         />
       </head>
-      <body
-        className={`${inter.variable} font-sans antialiased`}
-      >
+      <body className={`${inter.variable} font-sans antialiased`}>
         <DarkModeScript />
         {children}
         <Script

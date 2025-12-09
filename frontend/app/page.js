@@ -11,9 +11,21 @@ export default function Home() {
   // Local state management instead of Zustand
   const [recipes, setRecipes] = useState([]);
   const [tags, setTags] = useState([
-    'Italian', 'Dessert', 'Healthy', 'Quick', 'Breakfast',
-    'Vegan', 'Dinner', 'Spicy', 'Asian', 'Mexican',
-    'Vegetarian', 'Seafood', 'Baking', 'Soup', 'Salad'
+    'Italian',
+    'Dessert',
+    'Healthy',
+    'Quick',
+    'Breakfast',
+    'Vegan',
+    'Dinner',
+    'Spicy',
+    'Asian',
+    'Mexican',
+    'Vegetarian',
+    'Seafood',
+    'Baking',
+    'Soup',
+    'Salad',
   ]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -27,9 +39,21 @@ export default function Home() {
 
       // Use a static list of popular categories for instant rendering and reliability
       const STATIC_TAGS = [
-        'Italian', 'Dessert', 'Healthy', 'Quick', 'Breakfast',
-        'Vegan', 'Dinner', 'Spicy', 'Asian', 'Mexican',
-        'Vegetarian', 'Seafood', 'Baking', 'Soup', 'Salad'
+        'Italian',
+        'Dessert',
+        'Healthy',
+        'Quick',
+        'Breakfast',
+        'Vegan',
+        'Dinner',
+        'Spicy',
+        'Asian',
+        'Mexican',
+        'Vegetarian',
+        'Seafood',
+        'Baking',
+        'Soup',
+        'Salad',
       ];
       setTags(STATIC_TAGS);
 
@@ -62,7 +86,7 @@ export default function Home() {
   // Animation Variants
   const fadeInUp = {
     hidden: { opacity: 0, y: 30 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: "easeOut" } }
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6, ease: 'easeOut' } },
   };
 
   const staggerContainer = {
@@ -70,14 +94,14 @@ export default function Home() {
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1
-      }
-    }
+        staggerChildren: 0.1,
+      },
+    },
   };
 
   const scaleIn = {
     hidden: { opacity: 0, scale: 0.9 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } }
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.5 } },
   };
 
   return (
@@ -87,16 +111,10 @@ export default function Home() {
         <Navbar />
 
         {/* Hero Section */}
-        <section
-          className="relative flex flex-col items-center justify-center text-center py-32 px-6 overflow-hidden"
-        >
+        <section className="relative flex flex-col items-center justify-center text-center py-32 px-6 overflow-hidden">
           {/* Floating Background Elements */}
-          <div
-            className="absolute top-20 left-10 w-24 h-24 bg-orange-400/20 rounded-full blur-xl pointer-events-none"
-          />
-          <div
-            className="absolute bottom-20 right-10 w-32 h-32 bg-yellow-400/20 rounded-full blur-xl pointer-events-none"
-          />
+          <div className="absolute top-20 left-10 w-24 h-24 bg-orange-400/20 rounded-full blur-xl pointer-events-none" />
+          <div className="absolute bottom-20 right-10 w-32 h-32 bg-yellow-400/20 rounded-full blur-xl pointer-events-none" />
 
           <motion.div
             initial="hidden"
@@ -109,20 +127,19 @@ export default function Home() {
               variants={fadeInUp}
               className="text-5xl md:text-6xl font-extrabold text-orange-600 dark:text-orange-400 mb-6 drop-shadow-sm"
             >
-              Share & Discover <span className="text-orange-600 dark:text-orange-500">Amazing Recipes</span>
+              Share & Discover{' '}
+              <span className="text-orange-600 dark:text-orange-500">Amazing Recipes</span>
             </motion.h2>
 
             <motion.p
               variants={fadeInUp}
               className="text-gray-700 dark:text-gray-200 text-lg md:text-xl max-w-2xl mx-auto mb-10 font-medium"
             >
-              Welcome to TastyHub — the home for food lovers. Explore delicious recipes, share your creations, and connect with a community of passionate cooks.
+              Welcome to TastyHub — the home for food lovers. Explore delicious recipes, share your
+              creations, and connect with a community of passionate cooks.
             </motion.p>
 
-            <motion.div
-              variants={fadeInUp}
-              className="flex gap-4 flex-wrap justify-center"
-            >
+            <motion.div variants={fadeInUp} className="flex gap-4 flex-wrap justify-center">
               <Link href="/recipes">
                 <motion.button
                   whileHover={{ scale: 1.1 }}
@@ -135,7 +152,7 @@ export default function Home() {
               {!isAuthenticated ? (
                 <Link href="/register">
                   <motion.button
-                    whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255, 1)" }}
+                    whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255, 1)' }}
                     whileTap={{ scale: 0.95 }}
                     className="px-8 py-4 bg-white/80 border-2 border-orange-500 text-orange-600 text-lg font-semibold rounded-full shadow-lg transition-colors"
                   >
@@ -145,7 +162,7 @@ export default function Home() {
               ) : (
                 <Link href="/recipes/new">
                   <motion.button
-                    whileHover={{ scale: 1.1, backgroundColor: "rgba(255,255,255, 1)" }}
+                    whileHover={{ scale: 1.1, backgroundColor: 'rgba(255,255,255, 1)' }}
                     whileTap={{ scale: 0.95 }}
                     className="px-8 py-4 bg-white/80 border-2 border-orange-500 text-orange-600 text-lg font-semibold rounded-full shadow-lg transition-colors"
                   >
@@ -162,11 +179,14 @@ export default function Home() {
           <motion.div
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
+            viewport={{ once: true, margin: '-50px' }}
             variants={staggerContainer}
             className="max-w-6xl mx-auto text-center"
           >
-            <motion.h3 variants={fadeInUp} className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-6">
+            <motion.h3
+              variants={fadeInUp}
+              className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-6"
+            >
               Popular Categories
             </motion.h3>
             <div className="flex flex-wrap justify-center gap-4">
@@ -174,7 +194,11 @@ export default function Home() {
                 <Link key={tag} href={`/recipes?search=${encodeURIComponent(tag)}`}>
                   <motion.div
                     variants={scaleIn}
-                    whileHover={{ y: -5, scale: 1.05, boxShadow: "0 10px 15px -3px rgba(0, 0, 0, 0.1)" }}
+                    whileHover={{
+                      y: -5,
+                      scale: 1.05,
+                      boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                    }}
                     whileTap={{ scale: 0.95 }}
                     className="px-6 py-2 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm text-gray-700 dark:text-gray-200 rounded-full shadow-sm border border-gray-200 dark:border-gray-600 hover:border-orange-500 hover:text-orange-600 dark:hover:text-orange-400 transition-colors cursor-pointer"
                   >
@@ -201,10 +225,13 @@ export default function Home() {
           <motion.div
             initial="hidden"
             whileInView="visible"
-            viewport={{ once: true, margin: "-50px" }}
+            viewport={{ once: true, margin: '-50px' }}
             variants={staggerContainer}
           >
-            <motion.h3 variants={fadeInUp} className="text-3xl font-bold text-center text-gray-800 dark:text-gray-200 mb-8">
+            <motion.h3
+              variants={fadeInUp}
+              className="text-3xl font-bold text-center text-gray-800 dark:text-gray-200 mb-8"
+            >
               Featured Recipes
             </motion.h3>
 
@@ -218,7 +245,9 @@ export default function Home() {
               </div>
             ) : recipes.length === 0 ? (
               <div className="text-center py-12">
-                <p className="text-gray-600 dark:text-gray-400">No recipes available yet. Be the first to share one!</p>
+                <p className="text-gray-600 dark:text-gray-400">
+                  No recipes available yet. Be the first to share one!
+                </p>
               </div>
             ) : (
               <motion.div
@@ -230,7 +259,7 @@ export default function Home() {
                     key={recipe.id}
                     variants={fadeInUp}
                     whileHover={{ y: -10, scale: 1.02 }}
-                    transition={{ type: "spring", stiffness: 300 }}
+                    transition={{ type: 'spring', stiffness: 300 }}
                   >
                     <RecipeCard recipe={recipe} />
                   </motion.div>
@@ -261,12 +290,12 @@ export default function Home() {
           className="text-center py-16 bg-orange-100/80 dark:bg-gray-900/80 backdrop-blur-sm mx-6 rounded-3xl mb-12 shadow-inner"
         >
           <h3 className="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-4">
-            {isAuthenticated ? "Share Your Culinary Masterpieces!" : "Join the TastyHub Community!"}
+            {isAuthenticated ? 'Share Your Culinary Masterpieces!' : 'Join the TastyHub Community!'}
           </h3>
           <p className="text-gray-600 dark:text-gray-300 mb-6">
             {isAuthenticated
-              ? "Inspire others by sharing your favorite recipes with the world."
-              : "Create your account to start sharing and saving your favorite recipes today."}
+              ? 'Inspire others by sharing your favorite recipes with the world.'
+              : 'Create your account to start sharing and saving your favorite recipes today.'}
           </p>
           {!isAuthenticated ? (
             <Link href="/register">

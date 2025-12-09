@@ -50,6 +50,38 @@ exports.getAllRecipes = async (req, res) => {
       }
     }
 
+    // Privacy filter: only show public recipes OR user's own private recipes
+    if (req.user) {
+      // Logged in: show public recipes OR recipes owned by this user
+      whereClause[Op.or] = whereClause[Op.or] || [];
+      const privacyFilter = [
+        { isPrivate: false },
+        { isPrivate: null },
+        { userId: req.user.id }
+      ];
+
+      if (whereClause[Op.or].length > 0) {
+        // Combine with existing OR conditions
+        whereClause[Op.and] = [
+          { [Op.or]: whereClause[Op.or] },
+          { [Op.or]: privacyFilter }
+        ];
+        delete whereClause[Op.or];
+      } else {
+        whereClause[Op.or] = privacyFilter;
+      }
+    } else {
+      // Not logged in: only show public recipes
+      whereClause[Op.or] = whereClause[Op.or] || [];
+      whereClause[Op.and] = whereClause[Op.and] || [];
+      whereClause[Op.and].push({
+        [Op.or]: [
+          { isPrivate: false },
+          { isPrivate: null }
+        ]
+      });
+    }
+
     const totalCount = await Recipe.count({ where: whereClause });
 
     const recipes = await Recipe.findAll({
@@ -239,7 +271,8 @@ exports.createRecipe = async (req, res) => {
       cookingTime,
       servings,
       imageUrl,
-      tags
+      tags,
+      isPrivate
     } = req.body;
 
     // Validate required fields
@@ -279,7 +312,8 @@ exports.createRecipe = async (req, res) => {
       userId: req.user.id, // Get user ID from auth middleware
       cookingTime: cookingTime ? parseInt(cookingTime) : null,
       servings: servings ? parseInt(servings) : null,
-      imageUrl: imageUrl ? imageUrl.trim() : null
+      imageUrl: imageUrl ? imageUrl.trim() : null,
+      isPrivate: isPrivate || false
     }, { transaction }); // Pass transaction to ensure it's part of the same transaction
 
     // Create recipe steps if provided
@@ -412,7 +446,10 @@ exports.updateRecipe = async (req, res) => {
       cookingTime,
       servings,
       imageUrl,
-      tags
+      tags,
+      ingredients,
+      steps,
+      isPrivate
     } = req.body;
 
     // Find the recipe first
@@ -438,6 +475,7 @@ exports.updateRecipe = async (req, res) => {
     if (cookingTime !== undefined) updateData.cookingTime = cookingTime;
     if (servings !== undefined) updateData.servings = servings;
     if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
+    if (isPrivate !== undefined) updateData.isPrivate = isPrivate;
     updateData.updatedAt = new Date(); // Update the timestamp
 
     // Update the recipe
@@ -473,6 +511,68 @@ exports.updateRecipe = async (req, res) => {
           });
 
         await Promise.all(tagPromises);
+      }
+    }
+
+    // Handle ingredients update if provided
+    if (ingredients !== undefined) {
+      // Remove all existing ingredients
+      await RecipeIngredient.destroy({
+        where: { recipeId: recipe.id },
+        transaction
+      });
+
+      // Add new ingredients
+      if (Array.isArray(ingredients) && ingredients.length > 0) {
+        const ingredientPromises = ingredients.map((ingredient) => {
+          const ingredientName = ingredient.name || ingredient.ingredientName;
+          if (!ingredientName || !ingredientName.trim()) {
+            return null;
+          }
+
+          const quantity = parseFloat(ingredient.quantity);
+          if (isNaN(quantity) || quantity < 0) {
+            return null;
+          }
+
+          return RecipeIngredient.create({
+            recipeId: recipe.id,
+            ingredientName: ingredientName.trim(),
+            quantity: quantity,
+            unit: ingredient.unit || 'piece',
+            notes: ingredient.notes ? ingredient.notes.trim() : null
+          }, { transaction });
+        });
+
+        await Promise.all(ingredientPromises.filter(p => p !== null));
+      }
+    }
+
+    // Handle steps update if provided
+    if (steps !== undefined) {
+      // Remove all existing steps
+      await RecipeStep.destroy({
+        where: { recipeId: recipe.id },
+        transaction
+      });
+
+      // Add new steps
+      if (Array.isArray(steps) && steps.length > 0) {
+        const stepPromises = steps.map((step, index) => {
+          const instruction = step.instruction || step.text || step;
+          if (!instruction || !instruction.trim()) {
+            return null;
+          }
+
+          return RecipeStep.create({
+            recipeId: recipe.id,
+            stepNumber: step.stepNumber || index + 1,
+            instruction: instruction.trim(),
+            stepImage: step.stepImage || null
+          }, { transaction });
+        });
+
+        await Promise.all(stepPromises.filter(p => p !== null));
       }
     }
 

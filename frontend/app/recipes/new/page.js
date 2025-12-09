@@ -1,10 +1,10 @@
 'use client';
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import { api, API_BASE_URL } from "@/lib/api";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import { api, API_BASE_URL } from '@/lib/api';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
 
 export default function CreateRecipePage() {
   const router = useRouter();
@@ -28,6 +28,9 @@ export default function CreateRecipePage() {
   // Tags
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState('');
+
+  // Privacy
+  const [isPrivate, setIsPrivate] = useState(false);
 
   // Check authentication on component mount
   useEffect(() => {
@@ -62,17 +65,18 @@ export default function CreateRecipePage() {
     if (!text || !text.trim()) return [];
 
     // Split by newlines and filter empty lines
-    const lines = text.split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
+    const lines = text
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
 
     // Convert each line to an ingredient object
     // Each line becomes an ingredient with default quantity=1 and unit='piece'
-    return lines.map(line => ({
+    return lines.map((line) => ({
       name: line,
       quantity: 1,
       unit: 'piece',
-      notes: null
+      notes: null,
     }));
   };
 
@@ -81,14 +85,15 @@ export default function CreateRecipePage() {
     if (!text || !text.trim()) return [];
 
     // Split by newlines and filter empty lines
-    const lines = text.split('\n')
-      .map(line => line.trim())
-      .filter(line => line.length > 0);
+    const lines = text
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
 
     // Convert each line to a step object
     return lines.map((line, index) => ({
       stepNumber: index + 1,
-      instruction: line
+      instruction: line,
     }));
   };
 
@@ -100,7 +105,7 @@ export default function CreateRecipePage() {
   };
 
   const removeTag = (tagToRemove) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+    setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
   const handleTagKeyDown = (e) => {
@@ -138,7 +143,8 @@ export default function CreateRecipePage() {
         imageUrl: imageUrl.trim() || null,
         ingredients: parsedIngredients,
         steps: parsedSteps,
-        tags: tags
+        tags: tags,
+        isPrivate: isPrivate
       };
 
       const result = await api.createRecipe(recipeData);
@@ -208,7 +214,9 @@ export default function CreateRecipePage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block mb-1 font-medium text-gray-700">Cooking Time (minutes)</label>
+                  <label className="block mb-1 font-medium text-gray-700">
+                    Cooking Time (minutes)
+                  </label>
                   <input
                     type="number"
                     value={cookingTime}
@@ -248,10 +256,25 @@ export default function CreateRecipePage() {
                       src={imageUrl}
                       alt="Preview"
                       className="w-full h-full object-cover"
-                      onError={(e) => { e.target.style.display = 'none'; }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
                     />
                   </div>
                 )}
+              </div>
+
+              <div className="flex items-center gap-3">
+                <input
+                  type="checkbox"
+                  id="isPrivate"
+                  checked={isPrivate}
+                  onChange={(e) => setIsPrivate(e.target.checked)}
+                  className="w-5 h-5 text-orange-500 border-gray-300 rounded focus:ring-orange-500"
+                />
+                <label htmlFor="isPrivate" className="font-medium text-gray-700">
+                  Make this recipe private (only visible to you)
+                </label>
               </div>
             </div>
           </section>
@@ -264,7 +287,16 @@ export default function CreateRecipePage() {
             <div className="mb-4">
               <label className="block mb-2 font-medium text-gray-700">Popular Tags</label>
               <div className="flex flex-wrap gap-2">
-                {['Italian', 'Dessert', 'Healthy', 'Quick', 'Breakfast', 'Vegan', 'Dinner', 'Spicy'].map((tag) => (
+                {[
+                  'Italian',
+                  'Dessert',
+                  'Healthy',
+                  'Quick',
+                  'Breakfast',
+                  'Vegan',
+                  'Dinner',
+                  'Spicy',
+                ].map((tag) => (
                   <button
                     key={tag}
                     type="button"
@@ -341,7 +373,8 @@ export default function CreateRecipePage() {
                 placeholder="Enter ingredients, one per line:&#10;2 cups flour&#10;1 cup sugar&#10;3 eggs&#10;1 tsp vanilla extract"
               />
               <p className="text-sm text-gray-500 mt-2">
-                Enter each ingredient on a new line. You can include quantities and units if desired.
+                Enter each ingredient on a new line. You can include quantities and units if
+                desired.
               </p>
             </div>
           </section>

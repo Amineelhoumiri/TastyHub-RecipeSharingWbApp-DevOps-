@@ -44,6 +44,3 @@ describe('Home Page', () => {
     cy.wait(500); // Wait for page to fully load
   });
 });
-
-
-

@@ -15,7 +15,9 @@ Cypress.Commands.add('checkServerHealth', () => {
     failOnStatusCode: false,
   }).then((response) => {
     if (response.status === 404) {
-      cy.log('⚠️ Warning: Server returned 404. Make sure the frontend server is running with "npm run dev"');
+      cy.log(
+        '⚠️ Warning: Server returned 404. Make sure the frontend server is running with "npm run dev"'
+      );
     }
   });
 });
@@ -26,11 +28,12 @@ Cypress.Commands.add('visitAndCheck', (url, options = {}) => {
   cy.wait(1000);
   return cy.get('body', { timeout: 5000 }).then(($body) => {
     const bodyText = $body.text();
-    const is404 = bodyText.includes('404') || 
-                  bodyText.includes('Not Found') || 
-                  bodyText.includes('This page could not be found') ||
-                  bodyText.includes('page could not be found');
-    
+    const is404 =
+      bodyText.includes('404') ||
+      bodyText.includes('Not Found') ||
+      bodyText.includes('This page could not be found') ||
+      bodyText.includes('page could not be found');
+
     if (is404) {
       cy.log(`⚠️ Warning: ${url} returned 404 - server may need restart`);
       return false; // Page is 404

@@ -105,10 +105,7 @@ describe('LoginPage', () => {
     await waitFor(() => {
       expect(api.login).toHaveBeenCalledWith('test@example.com', 'password123');
       expect(localStorage.setItem).toHaveBeenCalledWith('token', 'test-token');
-      expect(localStorage.setItem).toHaveBeenCalledWith(
-        'user',
-        JSON.stringify(mockResponse.user)
-      );
+      expect(localStorage.setItem).toHaveBeenCalledWith('user', JSON.stringify(mockResponse.user));
       expect(mockPush).toHaveBeenCalledWith('/');
     });
   });
@@ -162,4 +159,3 @@ describe('LoginPage', () => {
     expect(passwordInput).toBeRequired();
   });
 });
-

@@ -1,17 +1,17 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { api, API_BASE_URL } from "@/lib/api";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import { api, API_BASE_URL } from '@/lib/api';
 
 export default function LoginPage() {
   const router = useRouter();
 
   // form state
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState('');
 
   useEffect(() => {
     // Check for token in URL (from Google Auth redirect)
@@ -41,10 +41,10 @@ export default function LoginPage() {
 
   async function handleSubmit(event) {
     event.preventDefault();
-    setError("");
+    setError('');
 
     if (!email || !password) {
-      setError("Please provide both email and password.");
+      setError('Please provide both email and password.');
       return;
     }
 
@@ -58,9 +58,9 @@ export default function LoginPage() {
       if (data.user) {
         localStorage.setItem('user', JSON.stringify(data.user));
       }
-      router.push("/");
+      router.push('/');
     } catch (err) {
-      setError(err.message || "Login failed. Please check your credentials and try again.");
+      setError(err.message || 'Login failed. Please check your credentials and try again.');
     } finally {
       setLoading(false);
     }
@@ -69,14 +69,12 @@ export default function LoginPage() {
   return (
     <main className="min-h-screen flex items-center justify-center bg-gradient-to-b from-orange-50 to-white px-6">
       <div className="bg-white shadow-lg rounded-2xl p-8 w-full max-w-md">
-        <h2 className="text-3xl font-bold text-center text-orange-600 mb-6">
-          Login to TastyHub
-        </h2>
+        <h2 className="text-3xl font-bold text-center text-orange-600 mb-6">Login to TastyHub</h2>
 
         <form
           className="flex flex-col gap-4"
           onSubmit={handleSubmit}
-          aria-describedby={error ? "login-error" : undefined}
+          aria-describedby={error ? 'login-error' : undefined}
         >
           {/* Email field: label is linked to input via htmlFor/id */}
           <div>
@@ -119,7 +117,7 @@ export default function LoginPage() {
             className="w-full bg-orange-500 text-white py-3 rounded-lg font-semibold hover:bg-orange-600 transition disabled:opacity-50"
             disabled={loading}
           >
-            {loading ? "Logging in..." : "Login"}
+            {loading ? 'Logging in...' : 'Login'}
           </button>
 
           <div className="relative flex py-2 items-center">
@@ -134,7 +132,11 @@ export default function LoginPage() {
             className="w-full bg-white border border-gray-300 text-gray-700 py-3 rounded-lg font-semibold hover:bg-gray-50 transition flex items-center justify-center gap-2"
             disabled={loading}
           >
-            <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google" className="w-5 h-5" />
+            <img
+              src="https://www.svgrepo.com/show/475656/google-color.svg"
+              alt="Google"
+              className="w-5 h-5"
+            />
             Sign in with Google
           </button>
 
@@ -146,7 +148,7 @@ export default function LoginPage() {
         </form>
 
         <p className="text-center text-gray-600 mt-4">
-          Don&apos;t have an account?{" "}
+          Don&apos;t have an account?{' '}
           <a className="text-orange-600 font-medium hover:underline" href="/register">
             Register
           </a>

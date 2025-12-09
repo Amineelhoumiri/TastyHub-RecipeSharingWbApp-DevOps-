@@ -106,18 +106,21 @@ frontend/
 ### Components
 
 #### Navbar
+
 - Responsive navigation bar
 - Dark mode support
 - User authentication state
 - Mobile menu
 
 #### RecipeCard
+
 - Recipe preview card
 - Like/favorite functionality
 - Author information
 - Responsive design
 
 #### ParticlesBackground
+
 - Animated particle background
 - Performance optimized
 - Customizable colors
@@ -198,17 +201,20 @@ npm run lint:fix      # Auto-fix linting issues
 ## Performance Optimization
 
 ### Image Compression
+
 - Client-side image compression before upload
 - Reduces file sizes by ~70%
 - Maintains acceptable quality
 - See `app/lib/imageUtils.js`
 
 ### Code Splitting
+
 - Automatic code splitting with Next.js
 - Dynamic imports for heavy components
 - Optimized bundle sizes
 
 ### Caching
+
 - Static asset caching
 - API response caching (where appropriate)
 - Browser caching headers
@@ -253,11 +259,11 @@ npm start
 
 ## Environment Variables
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `NEXT_PUBLIC_API_URL` | Yes | Backend API URL |
-| `NEXT_PUBLIC_SENTRY_DSN` | No | Sentry DSN for error tracking |
-| `NEXT_PUBLIC_HOTJAR_ID` | No | Hotjar ID for analytics |
+| Variable                 | Required | Description                   |
+| ------------------------ | -------- | ----------------------------- |
+| `NEXT_PUBLIC_API_URL`    | Yes      | Backend API URL               |
+| `NEXT_PUBLIC_SENTRY_DSN` | No       | Sentry DSN for error tracking |
+| `NEXT_PUBLIC_HOTJAR_ID`  | No       | Hotjar ID for analytics       |
 
 ## Troubleshooting
 

@@ -91,25 +91,37 @@ export default function Navbar() {
   return (
     <nav className="sticky top-0 z-50 bg-white/80 dark:bg-gray-900/80 backdrop-blur-md border-b border-gray-200/50 dark:border-gray-800/50 transition-all duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center h-20"> {/* Increased height to h-20 */}
+        <div className="flex justify-between items-center h-20">
+          {' '}
+          {/* Increased height to h-20 */}
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group">
-            <span className="text-3xl group-hover:scale-110 transition-transform duration-200">🍳</span> {/* Increased icon size */}
+            <span className="text-3xl group-hover:scale-110 transition-transform duration-200">
+              🍳
+            </span>{' '}
+            {/* Increased icon size */}
             <span className="text-2xl font-bold bg-gradient-to-r from-orange-600 to-orange-500 bg-clip-text text-transparent dark:from-orange-400 dark:to-orange-300">
               TastyHub
-            </span> {/* Increased text size */}
+            </span>{' '}
+            {/* Increased text size */}
           </Link>
-
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-2">
-            <NavLink href="/" active={isActive('/')}>Home</NavLink>
-            <NavLink href="/recipes" active={isActive('/recipes')}>Recipes</NavLink>
+            <NavLink href="/" active={isActive('/')}>
+              Home
+            </NavLink>
+            <NavLink href="/recipes" active={isActive('/recipes')}>
+              Recipes
+            </NavLink>
             {isAuthenticated && (
-              <NavLink href="/favorites" active={isActive('/favorites')}>Favorites</NavLink>
+              <NavLink href="/favorites" active={isActive('/favorites')}>
+                Favorites
+              </NavLink>
             )}
-            <NavLink href="/about" active={isActive('/about')}>About</NavLink>
+            <NavLink href="/about" active={isActive('/about')}>
+              About
+            </NavLink>
           </div>
-
           {/* Right Side Actions */}
           <div className="hidden md:flex items-center gap-5">
             <button
@@ -142,7 +154,9 @@ export default function Navbar() {
                   <span className="text-base font-medium text-gray-700 dark:text-gray-200 max-w-[120px] truncate">
                     {user?.username || 'User'}
                   </span>
-                  <span className={`text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}>
+                  <span
+                    className={`text-gray-400 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`}
+                  >
                     ▼
                   </span>
                 </button>
@@ -151,17 +165,29 @@ export default function Navbar() {
                 {isDropdownOpen && (
                   <div className="absolute right-0 mt-3 w-60 bg-white dark:bg-gray-800 rounded-xl shadow-xl border border-gray-100 dark:border-gray-700 py-2 animate-in fade-in slide-in-from-top-2 duration-200">
                     <div className="px-5 py-3 border-b border-gray-100 dark:border-gray-700 mb-1">
-                      <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">Signed in as</p>
-                      <p className="text-base font-semibold text-gray-900 dark:text-white truncate">{user?.email}</p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 uppercase tracking-wider font-semibold">
+                        Signed in as
+                      </p>
+                      <p className="text-base font-semibold text-gray-900 dark:text-white truncate">
+                        {user?.email}
+                      </p>
                     </div>
 
                     {user?.isAdmin && (
-                      <DropdownLink href="/admin" icon="🛡️">Admin Dashboard</DropdownLink>
+                      <DropdownLink href="/admin" icon="🛡️">
+                        Admin Dashboard
+                      </DropdownLink>
                     )}
-                    <DropdownLink href="/my-recipes" icon="👨‍🍳">My Recipes</DropdownLink>
+                    <DropdownLink href="/my-recipes" icon="👨‍🍳">
+                      My Recipes
+                    </DropdownLink>
                     {/* Favorites removed from dropdown as it's now in main nav */}
-                    <DropdownLink href="/profile" icon="👤">Profile</DropdownLink>
-                    <DropdownLink href="/settings" icon="⚙️">Settings</DropdownLink>
+                    <DropdownLink href="/profile" icon="👤">
+                      Profile
+                    </DropdownLink>
+                    <DropdownLink href="/settings" icon="⚙️">
+                      Settings
+                    </DropdownLink>
 
                     <div className="border-t border-gray-100 dark:border-gray-700 mt-2 pt-2">
                       <button
@@ -191,7 +217,6 @@ export default function Navbar() {
               </div>
             )}
           </div>
-
           {/* Mobile Menu Button */}
           <div className="md:hidden flex items-center gap-3">
             <button
@@ -220,14 +245,24 @@ export default function Navbar() {
                 <div className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-orange-50 to-orange-100/50 dark:from-gray-800 dark:to-gray-800/50 rounded-xl border border-orange-200 dark:border-orange-900/30">
                   <div className="w-14 h-14 rounded-full bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center border-2 border-orange-300 dark:border-orange-700 overflow-hidden">
                     {user?.profilePicture ? (
-                      <img src={user.profilePicture} alt={user.username} className="w-full h-full object-cover" />
+                      <img
+                        src={user.profilePicture}
+                        alt={user.username}
+                        className="w-full h-full object-cover"
+                      />
                     ) : (
-                      <span className="text-xl font-bold text-orange-600 dark:text-orange-400">{user?.username?.charAt(0).toUpperCase()}</span>
+                      <span className="text-xl font-bold text-orange-600 dark:text-orange-400">
+                        {user?.username?.charAt(0).toUpperCase()}
+                      </span>
                     )}
                   </div>
                   <div className="flex-1">
-                    <p className="font-bold text-xl text-gray-900 dark:text-white">{user?.username}</p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{user?.email}</p>
+                    <p className="font-bold text-xl text-gray-900 dark:text-white">
+                      {user?.username}
+                    </p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                      {user?.email}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -235,22 +270,40 @@ export default function Navbar() {
 
             {/* Navigation Links */}
             <div className="space-y-2">
-              <MobileNavLink href="/" active={isActive('/')} icon="🏠">Home</MobileNavLink>
-              <MobileNavLink href="/recipes" active={isActive('/recipes')} icon="📖">Recipes</MobileNavLink>
+              <MobileNavLink href="/" active={isActive('/')} icon="🏠">
+                Home
+              </MobileNavLink>
+              <MobileNavLink href="/recipes" active={isActive('/recipes')} icon="📖">
+                Recipes
+              </MobileNavLink>
               {isAuthenticated && (
-                <MobileNavLink href="/favorites" active={isActive('/favorites')} icon="❤️">Favorites</MobileNavLink>
+                <MobileNavLink href="/favorites" active={isActive('/favorites')} icon="❤️">
+                  Favorites
+                </MobileNavLink>
               )}
-              <MobileNavLink href="/about" active={isActive('/about')} icon="ℹ️">About</MobileNavLink>
+              <MobileNavLink href="/about" active={isActive('/about')} icon="ℹ️">
+                About
+              </MobileNavLink>
             </div>
 
             {/* User Options Section */}
             <div className="border-t border-gray-100 dark:border-gray-800 pt-4">
               {isAuthenticated ? (
                 <div className="space-y-2">
-                  {user?.isAdmin && <MobileNavLink href="/admin" active={isActive('/admin')} icon="🛡️">Admin Dashboard</MobileNavLink>}
-                  <MobileNavLink href="/my-recipes" active={isActive('/my-recipes')} icon="👨‍🍳">My Recipes</MobileNavLink>
-                  <MobileNavLink href="/profile" active={isActive('/profile')} icon="👤">Profile</MobileNavLink>
-                  <MobileNavLink href="/settings" active={isActive('/settings')} icon="⚙️">Settings</MobileNavLink>
+                  {user?.isAdmin && (
+                    <MobileNavLink href="/admin" active={isActive('/admin')} icon="🛡️">
+                      Admin Dashboard
+                    </MobileNavLink>
+                  )}
+                  <MobileNavLink href="/my-recipes" active={isActive('/my-recipes')} icon="👨‍🍳">
+                    My Recipes
+                  </MobileNavLink>
+                  <MobileNavLink href="/profile" active={isActive('/profile')} icon="👤">
+                    Profile
+                  </MobileNavLink>
+                  <MobileNavLink href="/settings" active={isActive('/settings')} icon="⚙️">
+                    Settings
+                  </MobileNavLink>
 
                   <button
                     onClick={handleLogout}
@@ -288,10 +341,11 @@ function NavLink({ href, active, children }) {
   return (
     <Link
       href={href}
-      className={`px-5 py-2.5 rounded-full text-base font-semibold transition-all duration-200 ${active
-        ? 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20'
-        : 'text-gray-600 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-gray-50 dark:hover:bg-gray-800/50'
-        }`}
+      className={`px-5 py-2.5 rounded-full text-base font-semibold transition-all duration-200 ${
+        active
+          ? 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20'
+          : 'text-gray-600 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-gray-50 dark:hover:bg-gray-800/50'
+      }`}
     >
       {children}
     </Link>
@@ -314,10 +368,11 @@ function MobileNavLink({ href, active, icon, children }) {
   return (
     <Link
       href={href}
-      className={`flex items-center gap-4 px-4 py-3 rounded-xl text-lg font-medium transition-colors ${active
-        ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400'
-        : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
-        }`}
+      className={`flex items-center gap-4 px-4 py-3 rounded-xl text-lg font-medium transition-colors ${
+        active
+          ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400'
+          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
+      }`}
     >
       <span className="text-xl">{icon}</span>
       {children}

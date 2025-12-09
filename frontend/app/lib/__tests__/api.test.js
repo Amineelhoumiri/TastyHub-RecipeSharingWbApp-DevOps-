@@ -114,10 +114,7 @@ describe('API Utility', () => {
 
       const result = await api.getRecipe('1');
 
-      expect(fetch).toHaveBeenCalledWith(
-        'http://localhost:5000/api/recipes/1',
-        expect.any(Object)
-      );
+      expect(fetch).toHaveBeenCalledWith('http://localhost:5000/api/recipes/1', expect.any(Object));
       expect(result).toHaveProperty('id', '1');
       expect(result).toHaveProperty('title', 'Test Recipe');
     });
@@ -168,9 +165,9 @@ describe('API Utility', () => {
         json: async () => ({ error: 'Email already exists' }),
       });
 
-      await expect(
-        api.register('testuser', 'test@example.com', 'password123')
-      ).rejects.toThrow('Email already exists');
+      await expect(api.register('testuser', 'test@example.com', 'password123')).rejects.toThrow(
+        'Email already exists'
+      );
     });
   });
 
@@ -207,9 +204,7 @@ describe('API Utility', () => {
         json: async () => ({ error: 'Invalid credentials' }),
       });
 
-      await expect(api.login('test@example.com', 'wrong')).rejects.toThrow(
-        'Invalid credentials'
-      );
+      await expect(api.login('test@example.com', 'wrong')).rejects.toThrow('Invalid credentials');
     });
   });
 
@@ -310,6 +305,3 @@ describe('API Utility', () => {
     });
   });
 });
-
-
-

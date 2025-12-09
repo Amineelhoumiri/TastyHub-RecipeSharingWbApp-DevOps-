@@ -1,6 +1,6 @@
 // registration page tests
 describe('Register Page', () => {
-  beforeEach(function() {
+  beforeEach(function () {
     cy.clearLocalStorage();
     cy.clearCookies();
     cy.visitAndCheck('/register').then((loaded) => {
@@ -21,7 +21,7 @@ describe('Register Page', () => {
     cy.get('input[type="password"]').first().type('password123');
     cy.get('input[type="password"]').last().type('password123');
     cy.get('button[type="submit"]').click();
-    
+
     // Browser validation should prevent submission or show error
     cy.get('input[type="email"]').should('have.attr', 'type', 'email');
   });
@@ -37,6 +37,3 @@ describe('Register Page', () => {
     cy.get('input[type="password"]').should('have.length.at.least', 1);
   });
 });
-
-
-

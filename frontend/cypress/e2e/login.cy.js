@@ -1,6 +1,6 @@
 // login page tests
 describe('Login Page', () => {
-  beforeEach(function() {
+  beforeEach(function () {
     cy.clearLocalStorage();
     cy.clearCookies();
     cy.visitAndCheck('/login').then((loaded) => {
@@ -21,18 +21,19 @@ describe('Login Page', () => {
     cy.get('input[type="email"]').type('wrong@email.com');
     cy.get('input[type="password"]').type('wrongpassword');
     cy.get('button[type="submit"]').click();
-    
+
     // Wait for error message - check for error element with role="alert"
     // The error message will be either from the API or a generic "Login failed" message
     cy.get('[role="alert"]', { timeout: 10000 }).should('be.visible');
     // Verify it contains some error-related text
     cy.get('[role="alert"]').then(($el) => {
       const text = $el.text().toLowerCase();
-      expect(text).to.satisfy((txt) => 
-        txt.includes('login failed') || 
-        txt.includes('invalid') || 
-        txt.includes('error') ||
-        txt.includes('credentials')
+      expect(text).to.satisfy(
+        (txt) =>
+          txt.includes('login failed') ||
+          txt.includes('invalid') ||
+          txt.includes('error') ||
+          txt.includes('credentials')
       );
     });
   });
@@ -52,7 +53,7 @@ describe('Login Page', () => {
     cy.get('input[type="email"]').type(testEmail);
     cy.get('input[type="password"]').type(testPassword);
     cy.get('button[type="submit"]').click();
-    
+
     // Check if login was successful or failed
     cy.get('body', { timeout: 5000 }).then(($body) => {
       if ($body.text().includes('error') || $body.text().includes('failed')) {
@@ -70,6 +71,3 @@ describe('Login Page', () => {
     cy.get('input[type="password"]').should('have.attr', 'required');
   });
 });
-
-
-

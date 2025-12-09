@@ -42,6 +42,3 @@ async function checkServers() {
 }
 
 checkServers();
-
-
-

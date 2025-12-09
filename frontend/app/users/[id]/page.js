@@ -38,7 +38,7 @@ export default function UserProfilePage() {
       // Get all recipes and filter by userId
       const allRecipes = await api.getRecipes();
       // Filter recipes by userId if available, otherwise fallback to username
-      const userRecipes = allRecipes.filter(recipe => {
+      const userRecipes = allRecipes.filter((recipe) => {
         if (user?.id && recipe.userId) {
           return recipe.userId === user.id;
         }
@@ -93,7 +93,10 @@ export default function UserProfilePage() {
       <Navbar />
 
       <div className="flex-1 max-w-4xl mx-auto px-6 py-12 w-full">
-        <Link href="/recipes" className="text-orange-600 dark:text-orange-400 hover:underline mb-6 inline-block">
+        <Link
+          href="/recipes"
+          className="text-orange-600 dark:text-orange-400 hover:underline mb-6 inline-block"
+        >
           ← Back to Recipes
         </Link>
 
@@ -166,14 +169,16 @@ export default function UserProfilePage() {
                       {recipe.description || 'No description'}
                     </p>
                     <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-                      <span>⭐ {
-                        (() => {
+                      <span>
+                        ⭐{' '}
+                        {(() => {
                           const rating = recipe.average_rating || recipe.averageRating;
                           if (!rating && rating !== 0) return 'No ratings';
-                          const numRating = typeof rating === 'number' ? rating : parseFloat(rating);
+                          const numRating =
+                            typeof rating === 'number' ? rating : parseFloat(rating);
                           return isNaN(numRating) ? 'No ratings' : numRating.toFixed(1);
-                        })()
-                      }</span>
+                        })()}
+                      </span>
                     </div>
                   </div>
                 </Link>
@@ -187,4 +192,3 @@ export default function UserProfilePage() {
     </main>
   );
 }
-
