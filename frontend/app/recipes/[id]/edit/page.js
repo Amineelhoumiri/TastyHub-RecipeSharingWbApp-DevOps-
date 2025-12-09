@@ -437,10 +437,11 @@ export default function EditRecipePage() {
                         setTags([...tags, tag]);
                       }
                     }}
-                    className={`px-3 py-1 rounded-full text-sm font-medium border transition ${tags.includes(tag)
+                    className={`px-3 py-1 rounded-full text-sm font-medium border transition ${
+                      tags.includes(tag)
                         ? 'bg-orange-500 text-white border-orange-500'
                         : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:border-orange-500 hover:text-orange-500'
-                      }`}
+                    }`}
                   >
                     {tag}
                   </button>
@@ -509,7 +510,8 @@ export default function EditRecipePage() {
                 placeholder="Enter ingredients, one per line:&#10;2 cups flour&#10;1 cup sugar&#10;3 eggs&#10;1 tsp vanilla extract"
               />
               <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
-                Enter each ingredient on a new line. You can include quantities and units directly in the text.
+                Enter each ingredient on a new line. You can include quantities and units directly
+                in the text.
               </p>
             </div>
           </section>

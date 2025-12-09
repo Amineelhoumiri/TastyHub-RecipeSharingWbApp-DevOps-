@@ -87,10 +87,11 @@ export default function AdminLayout({ children }) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`group flex items-center gap-4 px-5 py-4 rounded-xl transition-all duration-200 ${isActive
+                    className={`group flex items-center gap-4 px-5 py-4 rounded-xl transition-all duration-200 ${
+                      isActive
                         ? 'bg-orange-50 text-orange-700 shadow-sm dark:bg-orange-900/20 dark:text-orange-400 border border-orange-100 dark:border-orange-800/30'
                         : 'text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700/50 hover:text-gray-900 dark:hover:text-gray-200'
-                      }`}
+                    }`}
                   >
                     <span
                       className={`text-2xl transition-transform duration-200 ${isActive ? 'scale-110' : 'group-hover:scale-110'}`}
@@ -137,10 +138,11 @@ export default function AdminLayout({ children }) {
                   <Link
                     key={item.href}
                     href={item.href}
-                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${isActive
+                    className={`flex items-center gap-2 px-4 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                      isActive
                         ? 'bg-orange-600 text-white shadow-md'
                         : 'bg-gray-50 dark:bg-gray-700/50 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-                      }`}
+                    }`}
                   >
                     <span>{item.icon}</span>
                     {item.name}
