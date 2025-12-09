@@ -144,7 +144,7 @@ export default function CreateRecipePage() {
         ingredients: parsedIngredients,
         steps: parsedSteps,
         tags: tags,
-        isPrivate: isPrivate
+        isPrivate: isPrivate,
       };
 
       const result = await api.createRecipe(recipeData);
@@ -305,10 +305,11 @@ export default function CreateRecipePage() {
                         setTags([...tags, tag]);
                       }
                     }}
-                    className={`px-3 py-1 rounded-full text-sm font-medium border transition ${tags.includes(tag)
-                      ? 'bg-orange-500 text-white border-orange-500'
-                      : 'bg-white text-gray-700 border-gray-300 hover:border-orange-500 hover:text-orange-500'
-                      }`}
+                    className={`px-3 py-1 rounded-full text-sm font-medium border transition ${
+                      tags.includes(tag)
+                        ? 'bg-orange-500 text-white border-orange-500'
+                        : 'bg-white text-gray-700 border-gray-300 hover:border-orange-500 hover:text-orange-500'
+                    }`}
                   >
                     {tag}
                   </button>

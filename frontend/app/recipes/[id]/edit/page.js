@@ -33,7 +33,12 @@ export default function EditRecipePage() {
 
   // Ingredients
   const [ingredients, setIngredients] = useState([]);
-  const [newIngredient, setNewIngredient] = useState({ name: '', quantity: '', unit: '', notes: '' });
+  const [newIngredient, setNewIngredient] = useState({
+    name: '',
+    quantity: '',
+    unit: '',
+    notes: '',
+  });
 
   // Steps
   const [steps, setSteps] = useState([]);
@@ -92,17 +97,19 @@ export default function EditRecipePage() {
 
       // Set ingredients
       if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
-        setIngredients(recipe.ingredients.map(ing => ({
-          name: ing.ingredientName || ing.name || '',
-          quantity: ing.quantity || '',
-          unit: ing.unit || '',
-          notes: ing.notes || ''
-        })));
+        setIngredients(
+          recipe.ingredients.map((ing) => ({
+            name: ing.ingredientName || ing.name || '',
+            quantity: ing.quantity || '',
+            unit: ing.unit || '',
+            notes: ing.notes || '',
+          }))
+        );
       }
 
       // Set steps
       if (recipe.steps && Array.isArray(recipe.steps)) {
-        setSteps(recipe.steps.map(step => step.instruction || step.text || ''));
+        setSteps(recipe.steps.map((step) => step.instruction || step.text || ''));
       }
     } catch (err) {
       console.error('Error fetching recipe:', err);
@@ -221,16 +228,16 @@ export default function EditRecipePage() {
         imageUrl: imageUrl.trim() || null,
         isPrivate: isPrivate,
         tags: tags,
-        ingredients: ingredients.map(ing => ({
+        ingredients: ingredients.map((ing) => ({
           ingredientName: ing.name,
           quantity: parseFloat(ing.quantity) || 1,
           unit: ing.unit || 'piece',
-          notes: ing.notes || null
+          notes: ing.notes || null,
         })),
         steps: steps.map((step, index) => ({
           stepNumber: index + 1,
-          instruction: step
-        }))
+          instruction: step,
+        })),
       };
 
       await api.updateRecipe(recipeId, recipeData);
@@ -419,10 +426,11 @@ export default function EditRecipePage() {
                         setTags([...tags, tag]);
                       }
                     }}
-                    className={`px-3 py-1 rounded-full text-sm font-medium border transition ${tags.includes(tag)
-                      ? 'bg-orange-500 text-white border-orange-500'
-                      : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:border-orange-500 hover:text-orange-500'
-                      }`}
+                    className={`px-3 py-1 rounded-full text-sm font-medium border transition ${
+                      tags.includes(tag)
+                        ? 'bg-orange-500 text-white border-orange-500'
+                        : 'bg-white dark:bg-gray-700 text-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600 hover:border-orange-500 hover:text-orange-500'
+                    }`}
                   >
                     {tag}
                   </button>
@@ -476,7 +484,9 @@ export default function EditRecipePage() {
 
           {/* Ingredients Section */}
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Ingredients</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+              Ingredients
+            </h2>
 
             {/* Add New Ingredient */}
             <div className="grid grid-cols-12 gap-2 mb-4">
@@ -530,7 +540,10 @@ export default function EditRecipePage() {
             {ingredients.length > 0 && (
               <div className="space-y-2">
                 {ingredients.map((ing, index) => (
-                  <div key={index} className="grid grid-cols-12 gap-2 items-center bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg">
+                  <div
+                    key={index}
+                    className="grid grid-cols-12 gap-2 items-center bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg"
+                  >
                     <input
                       type="text"
                       value={ing.name}
@@ -580,7 +593,9 @@ export default function EditRecipePage() {
 
           {/* Steps Section */}
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Instructions</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+              Instructions
+            </h2>
 
             {/* Add New Step */}
             <div className="flex gap-2 mb-4">
@@ -604,7 +619,10 @@ export default function EditRecipePage() {
             {steps.length > 0 && (
               <div className="space-y-3">
                 {steps.map((step, index) => (
-                  <div key={index} className="flex gap-3 items-start bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                  <div
+                    key={index}
+                    className="flex gap-3 items-start bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg"
+                  >
                     <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-orange-500 text-white font-bold rounded-full text-sm">
                       {index + 1}
                     </span>
