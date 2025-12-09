@@ -40,37 +40,9 @@ export const api = {
     if (!response.ok) throw new Error('Failed to fetch recipes');
     const data = await response.json();
 
-    // Filter out test recipes
+    // NO FILTERING - Show all recipes
     const isTestRecipe = (recipe) => {
-      const username = recipe.author?.username || recipe.username || '';
-      const title = recipe.title || '';
-
-      const usernameLower = username.toLowerCase();
-
-
-      // 1. Filter out users that are clearly test users
-      if (usernameLower.includes('test') ||
-        usernameLower.includes('dummy') ||
-        usernameLower.includes('mock')) {
-        return true;
-      }
-
-      // 2. Filter out obvious "automated" test recipes
-      if (/^(my )?recipe\s*\d{5,}/i.test(title)) {
-        return true;
-      }
-
-      // Matches titles that are just a long number (timestamp)
-      if (/^\d{10,}$/.test(title)) {
-        return true;
-      }
-
-      // Matches "Test Recipe" or "Demo Recipe" exactly or with numbers
-      if (/^(test|demo)\s*recipe/i.test(title)) {
-        return true;
-      }
-
-      return false;
+      return false; // Never filter anything
     };
 
     // Transform and filter recipes

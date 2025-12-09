@@ -38,19 +38,8 @@ export default function Home() {
         const allRecipes = await api.getRecipes('', '', 100);
 
         if (Array.isArray(allRecipes)) {
-          // Filter out test recipes and take top 6
-          const featured = allRecipes
-            .filter(r => {
-              const title = (r.title || '').toLowerCase();
-              const desc = (r.description || '').toLowerCase();
-              const username = (r.username || r.User?.username || '').toLowerCase();
-
-              // Strict filter: Hide if ANY field contains "test"
-              return !title.includes('test') &&
-                !desc.includes('test') &&
-                !username.includes('test');
-            })
-            .slice(0, 6);
+          // NO FILTERING - Show all recipes
+          const featured = allRecipes.slice(0, 6);
           setRecipes(featured);
         } else {
           setRecipes([]);

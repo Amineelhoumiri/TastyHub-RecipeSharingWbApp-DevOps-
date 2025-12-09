@@ -41,6 +41,23 @@ export default function AdminDashboard() {
                     </p>
                 </Link>
 
+                {/* Recipe Management Card */}
+                <Link
+                    href="/admin/recipes"
+                    className="group block p-6 bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 hover:shadow-md hover:border-orange-300 dark:hover:border-orange-700 transition-all"
+                >
+                    <div className="flex items-center justify-between mb-4">
+                        <div className="p-3 bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400 rounded-lg">
+                            🍲
+                        </div>
+                        <span className="text-gray-400 group-hover:text-orange-500 transition-colors">→</span>
+                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">Recipe Management</h3>
+                    <p className="text-gray-600 dark:text-gray-400 text-sm">
+                        View all recipes, bulk delete, and manage recipe content across the platform.
+                    </p>
+                </Link>
+
                 {/* Future: Content Moderation */}
                 <div className="p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700 opacity-75 cursor-not-allowed">
                     <div className="flex items-center justify-between mb-4">

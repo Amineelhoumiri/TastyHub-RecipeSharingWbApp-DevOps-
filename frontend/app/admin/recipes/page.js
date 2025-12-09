@@ -8,6 +8,8 @@ export default function RecipeManagementPage() {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
     const [actionLoading, setActionLoading] = useState(null);
+    const [selectedRecipes, setSelectedRecipes] = useState([]);
+    const [bulkDeleting, setBulkDeleting] = useState(false);
 
     useEffect(() => {
         fetchRecipes();
@@ -18,6 +20,7 @@ export default function RecipeManagementPage() {
             setLoading(true);
             const data = await api.getAllRecipesAdmin();
             setRecipes(data.recipes || []);
+            setSelectedRecipes([]); // Clear selection when refreshing
         } catch (err) {
             console.error('Error fetching recipes:', err);
             setError('Failed to load recipes. Please try again.');
@@ -35,11 +38,54 @@ export default function RecipeManagementPage() {
             setActionLoading(recipeId);
             await api.deleteRecipeAdmin(recipeId);
             setRecipes(recipes.filter(r => r.id !== recipeId));
+            setSelectedRecipes(selectedRecipes.filter(id => id !== recipeId));
         } catch (err) {
             console.error('Error deleting recipe:', err);
             alert(err.message || 'Failed to delete recipe');
         } finally {
             setActionLoading(null);
+        }
+    };
+
+    const handleBulkDelete = async () => {
+        if (selectedRecipes.length === 0) {
+            alert('Please select at least one recipe to delete');
+            return;
+        }
+
+        if (!confirm(`Are you sure you want to delete ${selectedRecipes.length} recipe(s)? This action cannot be undone.`)) {
+            return;
+        }
+
+        try {
+            setBulkDeleting(true);
+            // Delete all selected recipes
+            await Promise.all(selectedRecipes.map(id => api.deleteRecipeAdmin(id)));
+            // Remove deleted recipes from state
+            setRecipes(recipes.filter(r => !selectedRecipes.includes(r.id)));
+            setSelectedRecipes([]);
+            alert(`Successfully deleted ${selectedRecipes.length} recipe(s)`);
+        } catch (err) {
+            console.error('Error bulk deleting recipes:', err);
+            alert(err.message || 'Failed to delete some recipes');
+        } finally {
+            setBulkDeleting(false);
+        }
+    };
+
+    const toggleRecipeSelection = (recipeId) => {
+        setSelectedRecipes(prev =>
+            prev.includes(recipeId)
+                ? prev.filter(id => id !== recipeId)
+                : [...prev, recipeId]
+        );
+    };
+
+    const toggleSelectAll = () => {
+        if (selectedRecipes.length === recipes.length) {
+            setSelectedRecipes([]);
+        } else {
+            setSelectedRecipes(recipes.map(r => r.id));
         }
     };
 
@@ -57,15 +103,31 @@ export default function RecipeManagementPage() {
                 <div>
                     <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Recipe Management</h1>
                     <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        Manage recipes: View details or delete content.
+                        Total: <span className="font-semibold text-orange-600 dark:text-orange-400">{recipes.length}</span> recipe(s)
+                        {selectedRecipes.length > 0 && (
+                            <span className="ml-2">
+                                | Selected: <span className="font-semibold text-blue-600 dark:text-blue-400">{selectedRecipes.length}</span>
+                            </span>
+                        )}
                     </p>
                 </div>
-                <button
-                    onClick={fetchRecipes}
-                    className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
-                >
-                    <span>🔄</span> Refresh
-                </button>
+                <div className="flex gap-2">
+                    {selectedRecipes.length > 0 && (
+                        <button
+                            onClick={handleBulkDelete}
+                            disabled={bulkDeleting}
+                            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm font-medium transition-colors flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                            <span>🗑️</span> Delete Selected ({selectedRecipes.length})
+                        </button>
+                    )}
+                    <button
+                        onClick={fetchRecipes}
+                        className="px-4 py-2 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+                    >
+                        <span>🔄</span> Refresh
+                    </button>
+                </div>
             </div>
 
             {error && (
@@ -79,6 +141,14 @@ export default function RecipeManagementPage() {
                     <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                         <thead className="bg-gray-50 dark:bg-gray-900/50">
                             <tr>
+                                <th scope="col" className="px-6 py-3 text-left">
+                                    <input
+                                        type="checkbox"
+                                        checked={recipes.length > 0 && selectedRecipes.length === recipes.length}
+                                        onChange={toggleSelectAll}
+                                        className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
+                                    />
+                                </th>
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                                     Recipe
                                 </th>
@@ -95,7 +165,18 @@ export default function RecipeManagementPage() {
                         </thead>
                         <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
                             {recipes.map((recipe) => (
-                                <tr key={recipe.id} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                                <tr
+                                    key={recipe.id}
+                                    className={`hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors ${selectedRecipes.includes(recipe.id) ? 'bg-orange-50 dark:bg-orange-900/10' : ''}`}
+                                >
+                                    <td className="px-6 py-4 whitespace-nowrap">
+                                        <input
+                                            type="checkbox"
+                                            checked={selectedRecipes.includes(recipe.id)}
+                                            onChange={() => toggleRecipeSelection(recipe.id)}
+                                            className="w-4 h-4 text-orange-600 bg-gray-100 border-gray-300 rounded focus:ring-orange-500 dark:focus:ring-orange-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600 cursor-pointer"
+                                        />
+                                    </td>
                                     <td className="px-6 py-4 whitespace-nowrap">
                                         <div className="flex items-center">
                                             <div className="flex-shrink-0 h-12 w-12 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700">
