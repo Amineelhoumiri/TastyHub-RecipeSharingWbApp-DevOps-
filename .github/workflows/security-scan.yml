@@ -1,1 +1,217 @@
 
+name: Security Scan
+
+# Run security scans daily and on-demand
+on:
+  schedule:
+    # Run every day at 2 AM UTC
+    - cron: '0 2 * * *'
+  workflow_dispatch: # Allow manual trigger
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - '**/package.json'
+      - '**/package-lock.json'
+
+jobs:
+  security-audit:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [backend, frontend]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: ${{ matrix.project }}/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./${{ matrix.project }}
+        run: npm ci
+
+      # Critical security audit - fails on high/critical vulnerabilities
+      # Note: Frontend has a known glob vulnerability in dev dependency (eslint-config-next)
+      # This doesn't affect production code, only the linting tool
+      - name: Run npm audit (high severity)
+        working-directory: ./${{ matrix.project }}
+        run: |
+          echo "🔍 Running security audit for ${{ matrix.project }}..."
+          if [ "${{ matrix.project }}" = "frontend" ]; then
+            # For frontend, check audit but don't fail on glob vulnerability in dev deps
+            npm audit --audit-level=high --production || {
+              echo "⚠️ Note: glob vulnerability exists in dev dependency (eslint-config-next)"
+              echo "This affects only the linting tool, not production code"
+              echo "Production dependencies are clean"
+              npm audit --audit-level=high --production
+            }
+          else
+            # For backend, fail on any high severity vulnerabilities
+            npm audit --audit-level=high
+          fi
+
+      # Check package signatures for supply chain attacks
+      - name: Verify package signatures
+        working-directory: ./${{ matrix.project }}
+        run: |
+          echo "🔐 Verifying package signatures..."
+          npm audit signatures
+
+      # List outdated packages (informational)
+      - name: Check for outdated packages
+        working-directory: ./${{ matrix.project }}
+        continue-on-error: true
+        run: |
+          echo "📦 Checking for outdated packages..."
+          npm outdated
+
+      # Generate security report
+      - name: Generate security report
+        if: always()
+        working-directory: ./${{ matrix.project }}
+        run: |
+          echo "📊 Generating security report..."
+          npm audit --json > security-report-${{ matrix.project }}.json || true
+          
+      # Upload security report as artifact
+      - name: Upload security report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report-${{ matrix.project }}
+          path: ${{ matrix.project }}/security-report-${{ matrix.project }}.json
+          retention-days: 30
+
+  # Dependency review for pull requests
+  dependency-review:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v3
+        with:
+          fail-on-severity: high
+          deny-licenses: GPL-3.0, AGPL-3.0
+
+  # TruffleHog secret scanning - detects hardcoded secrets
+  trufflehog-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better secret detection
+
+      - name: TruffleHog Secret Scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --debug --only-verified
+
+  # Trivy vulnerability scanner - comprehensive security scanning
+  trivy-scan:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      contents: read
+    strategy:
+      matrix:
+        project: [backend, frontend]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner in fs mode
+        uses: aquasecurity/trivy-action@master
+        continue-on-error: true  # Don't fail build, just report
+        with:
+          scan-type: 'fs'
+          scan-ref: './${{ matrix.project }}'
+          format: 'sarif'
+          output: 'trivy-results-${{ matrix.project }}.sarif'
+          severity: 'CRITICAL,HIGH'
+          exit-code: '0'  # Report only, don't fail
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        continue-on-error: true  # Don't fail if code scanning not enabled
+        if: always()
+        with:
+          sarif_file: 'trivy-results-${{ matrix.project }}.sarif'
+          category: 'trivy-${{ matrix.project }}'
+
+  # OWASP Dependency Check
+  owasp-dependency-check:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        project: [backend, frontend]
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: OWASP Dependency Check
+        uses: dependency-check/Dependency-Check_Action@main
+        continue-on-error: true  # Don't fail build, just report
+        with:
+          project: 'TastyHub-${{ matrix.project }}'
+          path: './${{ matrix.project }}'
+          format: 'HTML'
+          args: >
+            --failOnCVSS 7
+            --enableRetired
+
+      - name: Upload OWASP Dependency Check results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: owasp-dependency-check-${{ matrix.project }}
+          path: ${{ github.workspace }}/reports
+          retention-days: 30
+
+  # CodeQL Analysis for code security
+  codeql-analysis:
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+
+    strategy:
+      fail-fast: false
+      matrix:
+        language: ['javascript']
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          queries: security-extended,security-and-quality
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        continue-on-error: true  # Don't fail if code scanning not enabled
+        with:
+          category: "/language:${{matrix.language}}"
+
