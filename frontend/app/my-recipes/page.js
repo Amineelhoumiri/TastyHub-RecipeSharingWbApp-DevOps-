@@ -1,10 +1,10 @@
 'use client';
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import { api } from "@/lib/api";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import { api } from '@/lib/api';
 
 export default function MyRecipesPage() {
   const router = useRouter();
@@ -41,14 +41,16 @@ export default function MyRecipesPage() {
   };
 
   const handleDeleteRecipe = async (recipeId, recipeTitle) => {
-    if (!confirm(`Are you sure you want to delete "${recipeTitle}"? This action cannot be undone.`)) {
+    if (
+      !confirm(`Are you sure you want to delete "${recipeTitle}"? This action cannot be undone.`)
+    ) {
       return;
     }
 
     try {
       await api.deleteRecipe(recipeId);
       // Remove recipe from list
-      setRecipes(recipes.filter(r => r.id !== recipeId));
+      setRecipes(recipes.filter((r) => r.id !== recipeId));
       setError('');
     } catch (err) {
       console.error('Error deleting recipe:', err);
@@ -61,7 +63,9 @@ export default function MyRecipesPage() {
       <main className="min-h-screen bg-gradient-to-b from-orange-50 to-white dark:from-gray-900 dark:to-gray-800">
         <Navbar />
         <div className="flex-1 flex items-center justify-center py-20">
-          <div className="text-orange-600 dark:text-orange-400 text-lg">Checking authentication...</div>
+          <div className="text-orange-600 dark:text-orange-400 text-lg">
+            Checking authentication...
+          </div>
         </div>
         <Footer />
       </main>
@@ -93,7 +97,9 @@ export default function MyRecipesPage() {
 
         {loading ? (
           <div className="text-center py-20">
-            <div className="text-orange-600 dark:text-orange-400 text-lg">Loading your recipes...</div>
+            <div className="text-orange-600 dark:text-orange-400 text-lg">
+              Loading your recipes...
+            </div>
           </div>
         ) : recipes.length === 0 ? (
           <div className="text-center py-20">
@@ -136,14 +142,15 @@ export default function MyRecipesPage() {
                   </p>
 
                   <div className="flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400 mb-4">
-                    <span>⭐ {
-                      (() => {
+                    <span>
+                      ⭐{' '}
+                      {(() => {
                         const rating = recipe.averageRating || recipe.average_rating;
                         if (!rating && rating !== 0) return 'No ratings';
                         const numRating = typeof rating === 'number' ? rating : parseFloat(rating);
                         return isNaN(numRating) ? 'No ratings' : numRating.toFixed(1);
-                      })()
-                    }</span>
+                      })()}
+                    </span>
                     {recipe.servings && <span>👤 {recipe.servings}</span>}
                     {recipe.cookingTime && <span>⏱️ {recipe.cookingTime}min</span>}
                   </div>
@@ -179,4 +186,3 @@ export default function MyRecipesPage() {
     </main>
   );
 }
-

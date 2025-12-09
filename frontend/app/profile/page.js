@@ -1,10 +1,10 @@
 'use client';
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import { api } from "@/lib/api";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import { api } from '@/lib/api';
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -107,7 +107,9 @@ export default function ProfilePage() {
                   }}
                 />
               ) : null}
-              <span className={`profile-initial absolute inset-0 flex items-center justify-center ${user?.profilePicture ? 'hidden' : 'flex'}`}>
+              <span
+                className={`profile-initial absolute inset-0 flex items-center justify-center ${user?.profilePicture ? 'hidden' : 'flex'}`}
+              >
                 {user?.username?.charAt(0).toUpperCase() || 'U'}
               </span>
             </div>
@@ -117,9 +119,7 @@ export default function ProfilePage() {
               <h2 className="text-3xl font-bold text-gray-800 dark:text-gray-200 mb-2">
                 {user?.username || 'User'}
               </h2>
-              <p className="text-gray-600 dark:text-gray-400 mb-4">
-                {user?.email || ''}
-              </p>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">{user?.email || ''}</p>
               {user?.createdAt && (
                 <p className="text-sm text-gray-500 dark:text-gray-500">
                   Member since {new Date(user.createdAt).toLocaleDateString()}
@@ -166,11 +166,9 @@ export default function ProfilePage() {
             <div className="text-sm text-gray-600 dark:text-gray-400">Preferences</div>
           </Link>
         </div>
-
       </div>
 
       <Footer />
     </main>
   );
 }
-

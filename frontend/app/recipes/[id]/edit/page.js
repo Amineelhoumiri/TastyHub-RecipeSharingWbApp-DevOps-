@@ -1,11 +1,11 @@
 'use client';
-import { useState, useEffect, useCallback } from "react";
-import { useRouter, useParams } from "next/navigation";
-import Link from "next/link";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import { api } from "@/lib/api";
-import { compressImage } from "@/lib/imageUtils";
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter, useParams } from 'next/navigation';
+import Link from 'next/link';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import { api } from '@/lib/api';
+import { compressImage } from '@/lib/imageUtils';
 
 export default function EditRecipePage() {
   const router = useRouter();
@@ -27,12 +27,17 @@ export default function EditRecipePage() {
   const [uploadingImage, setUploadingImage] = useState(false);
   const [isPrivate, setIsPrivate] = useState(false);
 
-
   // Tags
   const [tags, setTags] = useState([]);
   const [tagInput, setTagInput] = useState('');
 
+  // Ingredients
+  const [ingredients, setIngredients] = useState([]);
+  const [newIngredient, setNewIngredient] = useState({ name: '', quantity: '', unit: '', notes: '' });
 
+  // Steps
+  const [steps, setSteps] = useState([]);
+  const [newStep, setNewStep] = useState('');
 
   const handleImageUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -59,7 +64,6 @@ export default function EditRecipePage() {
 
       const result = await api.uploadRecipeImage(compressedFile);
       setImageUrl(result.imageUrl);
-
     } catch (err) {
       console.error('Error uploading image:', err);
       setError(err.message || 'Failed to upload image');
@@ -67,6 +71,46 @@ export default function EditRecipePage() {
       setUploadingImage(false);
     }
   };
+
+  const fetchRecipe = useCallback(async () => {
+    try {
+      setLoading(true);
+      const recipe = await api.getRecipe(recipeId);
+
+      // Populate form fields
+      setTitle(recipe.title || '');
+      setDescription(recipe.description || '');
+      setCookingTime(recipe.cooking_time?.toString() || '');
+      setServings(recipe.servings?.toString() || '');
+      setImageUrl(recipe.image_url || '');
+      setIsPrivate(recipe.isPrivate || recipe.is_private || false);
+
+      // Set tags
+      if (recipe.tags && Array.isArray(recipe.tags)) {
+        setTags(recipe.tags);
+      }
+
+      // Set ingredients
+      if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
+        setIngredients(recipe.ingredients.map(ing => ({
+          name: ing.ingredientName || ing.name || '',
+          quantity: ing.quantity || '',
+          unit: ing.unit || '',
+          notes: ing.notes || ''
+        })));
+      }
+
+      // Set steps
+      if (recipe.steps && Array.isArray(recipe.steps)) {
+        setSteps(recipe.steps.map(step => step.instruction || step.text || ''));
+      }
+    } catch (err) {
+      console.error('Error fetching recipe:', err);
+      setError(err.message || 'Failed to load recipe');
+    } finally {
+      setLoading(false);
+    }
+  }, [recipeId]);
 
   useEffect(() => {
     const checkAuth = () => {
@@ -84,37 +128,59 @@ export default function EditRecipePage() {
     }
   }, [recipeId, router, fetchRecipe]);
 
-  const fetchRecipe = useCallback(async () => {
-    try {
-      setLoading(true);
-      const recipe = await api.getRecipe(recipeId);
-
-      // Populate form fields
-      setTitle(recipe.title || '');
-      setDescription(recipe.description || '');
-      setCookingTime(recipe.cooking_time?.toString() || '');
-      setServings(recipe.servings?.toString() || '');
-      setImageUrl(recipe.image_url || '');
-      setIsPrivate(recipe.isPrivate || recipe.is_private || false);
-
-
-
-      // Set tags
-      if (recipe.tags && Array.isArray(recipe.tags)) {
-        setTags(recipe.tags);
-      }
-    } catch (err) {
-      console.error('Error fetching recipe:', err);
-      setError(err.message || 'Failed to load recipe');
-    } finally {
-      setLoading(false);
+  // Ingredient handlers
+  const addIngredient = () => {
+    if (newIngredient.name.trim()) {
+      setIngredients([...ingredients, { ...newIngredient }]);
+      setNewIngredient({ name: '', quantity: '', unit: '', notes: '' });
     }
-  }, [recipeId]);
+  };
 
+  const removeIngredient = (index) => {
+    setIngredients(ingredients.filter((_, i) => i !== index));
+  };
 
+  const updateIngredient = (index, field, value) => {
+    const updated = [...ingredients];
+    updated[index] = { ...updated[index], [field]: value };
+    setIngredients(updated);
+  };
 
+  // Step handlers
+  const addStep = () => {
+    if (newStep.trim()) {
+      setSteps([...steps, newStep.trim()]);
+      setNewStep('');
+    }
+  };
 
+  const removeStep = (index) => {
+    setSteps(steps.filter((_, i) => i !== index));
+  };
 
+  const updateStep = (index, value) => {
+    const updated = [...steps];
+    updated[index] = value;
+    setSteps(updated);
+  };
+
+  const moveStepUp = (index) => {
+    if (index > 0) {
+      const updated = [...steps];
+      [updated[index - 1], updated[index]] = [updated[index], updated[index - 1]];
+      setSteps(updated);
+    }
+  };
+
+  const moveStepDown = (index) => {
+    if (index < steps.length - 1) {
+      const updated = [...steps];
+      [updated[index], updated[index + 1]] = [updated[index + 1], updated[index]];
+      setSteps(updated);
+    }
+  };
+
+  // Tag handlers
   const addTag = () => {
     if (tagInput.trim() && !tags.includes(tagInput.trim())) {
       setTags([...tags, tagInput.trim()]);
@@ -123,7 +189,7 @@ export default function EditRecipePage() {
   };
 
   const removeTag = (tagToRemove) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+    setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
   const handleTagKeyDown = (e) => {
@@ -147,8 +213,6 @@ export default function EditRecipePage() {
     }
 
     try {
-      // const parsedIngredients = parseIngredients(ingredientsText);
-
       const recipeData = {
         title: title.trim(),
         description: description.trim() || null,
@@ -156,7 +220,17 @@ export default function EditRecipePage() {
         servings: servings ? parseInt(servings) : null,
         imageUrl: imageUrl.trim() || null,
         isPrivate: isPrivate,
-        tags: tags
+        tags: tags,
+        ingredients: ingredients.map(ing => ({
+          ingredientName: ing.name,
+          quantity: parseFloat(ing.quantity) || 1,
+          unit: ing.unit || 'piece',
+          notes: ing.notes || null
+        })),
+        steps: steps.map((step, index) => ({
+          stepNumber: index + 1,
+          instruction: step
+        }))
       };
 
       await api.updateRecipe(recipeId, recipeData);
@@ -190,7 +264,10 @@ export default function EditRecipePage() {
       <Navbar />
 
       <div className="flex-1 max-w-4xl mx-auto px-6 py-12 w-full">
-        <Link href={`/recipes/${recipeId}`} className="text-orange-600 dark:text-orange-400 hover:underline mb-6 inline-block">
+        <Link
+          href={`/recipes/${recipeId}`}
+          className="text-orange-600 dark:text-orange-400 hover:underline mb-6 inline-block"
+        >
           ← Back to Recipe
         </Link>
 
@@ -204,14 +281,21 @@ export default function EditRecipePage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8"
+        >
           {/* Basic Information */}
           <section className="mb-8">
-            <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Basic Information</h2>
+            <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+              Basic Information
+            </h2>
 
             <div className="space-y-4">
               <div>
-                <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">Recipe Title *</label>
+                <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">
+                  Recipe Title *
+                </label>
                 <input
                   type="text"
                   value={title}
@@ -223,7 +307,9 @@ export default function EditRecipePage() {
               </div>
 
               <div>
-                <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">Description</label>
+                <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">
+                  Description
+                </label>
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
@@ -235,7 +321,9 @@ export default function EditRecipePage() {
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">Cooking Time (minutes)</label>
+                  <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">
+                    Cooking Time (minutes)
+                  </label>
                   <input
                     type="number"
                     value={cookingTime}
@@ -247,7 +335,9 @@ export default function EditRecipePage() {
                 </div>
 
                 <div>
-                  <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">Servings</label>
+                  <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">
+                    Servings
+                  </label>
                   <input
                     type="number"
                     value={servings}
@@ -260,62 +350,17 @@ export default function EditRecipePage() {
               </div>
 
               <div>
-                <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">Recipe Image</label>
+                <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">
+                  Recipe Image URL
+                </label>
 
-                <div className="flex gap-4 mb-4">
-                  <button
-                    type="button"
-                    onClick={() => setImageMode('url')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition ${imageMode === 'url'
-                      ? 'bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-700'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                      }`}
-                  >
-                    Image URL
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setImageMode('upload')}
-                    className={`px-4 py-2 rounded-lg text-sm font-medium transition ${imageMode === 'upload'
-                      ? 'bg-orange-100 text-orange-700 border border-orange-200 dark:bg-orange-900/40 dark:text-orange-300 dark:border-orange-700'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'
-                      }`}
-                  >
-                    Upload Image
-                  </button>
-                </div>
-
-                {imageMode === 'url' ? (
-                  <input
-                    type="url"
-                    value={imageUrl}
-                    onChange={(e) => setImageUrl(e.target.value)}
-                    className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none"
-                    placeholder="https://example.com/image.jpg"
-                  />
-                ) : (
-                  <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-orange-400 dark:hover:border-orange-500 transition bg-gray-50 dark:bg-gray-700/50">
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleImageUpload}
-                      disabled={uploadingImage}
-                      className="hidden"
-                      id="recipe-image-upload"
-                    />
-                    <label htmlFor="recipe-image-upload" className="cursor-pointer block">
-                      {uploadingImage ? (
-                        <div className="text-orange-600 dark:text-orange-400 font-medium">Uploading...</div>
-                      ) : (
-                        <>
-                          <div className="text-4xl mb-2">📷</div>
-                          <div className="text-gray-700 dark:text-gray-300 font-medium mb-1">Click to upload image</div>
-                          <div className="text-sm text-gray-500 dark:text-gray-400">JPG, PNG, GIF up to 5MB</div>
-                        </>
-                      )}
-                    </label>
-                  </div>
-                )}
+                <input
+                  type="url"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                  className="w-full px-4 py-3 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none"
+                  placeholder="https://example.com/image.jpg"
+                />
 
                 {imageUrl && (
                   <div className="mt-4 relative w-full h-48 bg-gray-100 dark:bg-gray-700 rounded-lg overflow-hidden border border-gray-200 dark:border-gray-600">
@@ -323,7 +368,9 @@ export default function EditRecipePage() {
                       src={imageUrl}
                       alt="Preview"
                       className="w-full h-full object-cover"
-                      onError={(e) => { e.target.style.display = 'none'; }}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                      }}
                     />
                   </div>
                 )}
@@ -350,9 +397,20 @@ export default function EditRecipePage() {
 
             {/* Popular Tags Selection */}
             <div className="mb-4">
-              <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">Popular Tags</label>
+              <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">
+                Popular Tags
+              </label>
               <div className="flex flex-wrap gap-2">
-                {['Italian', 'Dessert', 'Healthy', 'Quick', 'Breakfast', 'Vegan', 'Dinner', 'Spicy'].map((tag) => (
+                {[
+                  'Italian',
+                  'Dessert',
+                  'Healthy',
+                  'Quick',
+                  'Breakfast',
+                  'Vegan',
+                  'Dinner',
+                  'Spicy',
+                ].map((tag) => (
                   <button
                     key={tag}
                     type="button"
@@ -373,7 +431,9 @@ export default function EditRecipePage() {
             </div>
 
             <div className="mb-4">
-              <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">Add Custom Tags</label>
+              <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">
+                Add Custom Tags
+              </label>
               <div className="flex gap-2">
                 <input
                   type="text"
@@ -414,10 +474,179 @@ export default function EditRecipePage() {
             )}
           </section>
 
-          {/* Note about ingredients and steps */}
-          <div className="bg-blue-50 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 rounded-lg p-4 mb-6 text-sm text-blue-800 dark:text-blue-200">
-            <strong>Note:</strong> Currently, you can only edit basic information. Full ingredient and step editing will be available soon.
-          </div>
+          {/* Ingredients Section */}
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Ingredients</h2>
+
+            {/* Add New Ingredient */}
+            <div className="grid grid-cols-12 gap-2 mb-4">
+              <input
+                type="text"
+                value={newIngredient.name}
+                onChange={(e) => setNewIngredient({ ...newIngredient, name: e.target.value })}
+                className="col-span-4 px-3 py-2 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none text-sm"
+                placeholder="Ingredient name"
+              />
+              <input
+                type="number"
+                step="0.1"
+                value={newIngredient.quantity}
+                onChange={(e) => setNewIngredient({ ...newIngredient, quantity: e.target.value })}
+                className="col-span-2 px-3 py-2 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none text-sm"
+                placeholder="Qty"
+              />
+              <select
+                value={newIngredient.unit}
+                onChange={(e) => setNewIngredient({ ...newIngredient, unit: e.target.value })}
+                className="col-span-2 px-3 py-2 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none text-sm"
+              >
+                <option value="">Unit</option>
+                <option value="piece">piece</option>
+                <option value="cup">cup</option>
+                <option value="tbsp">tbsp</option>
+                <option value="tsp">tsp</option>
+                <option value="g">g</option>
+                <option value="kg">kg</option>
+                <option value="ml">ml</option>
+                <option value="l">l</option>
+              </select>
+              <input
+                type="text"
+                value={newIngredient.notes}
+                onChange={(e) => setNewIngredient({ ...newIngredient, notes: e.target.value })}
+                className="col-span-3 px-3 py-2 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none text-sm"
+                placeholder="Notes (optional)"
+              />
+              <button
+                type="button"
+                onClick={addIngredient}
+                className="col-span-1 px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition text-sm"
+              >
+                +
+              </button>
+            </div>
+
+            {/* Ingredients List */}
+            {ingredients.length > 0 && (
+              <div className="space-y-2">
+                {ingredients.map((ing, index) => (
+                  <div key={index} className="grid grid-cols-12 gap-2 items-center bg-gray-50 dark:bg-gray-700/50 p-2 rounded-lg">
+                    <input
+                      type="text"
+                      value={ing.name}
+                      onChange={(e) => updateIngredient(index, 'name', e.target.value)}
+                      className="col-span-4 px-2 py-1 border dark:border-gray-600 rounded text-gray-900 dark:text-gray-100 dark:bg-gray-700 text-sm"
+                    />
+                    <input
+                      type="number"
+                      step="0.1"
+                      value={ing.quantity}
+                      onChange={(e) => updateIngredient(index, 'quantity', e.target.value)}
+                      className="col-span-2 px-2 py-1 border dark:border-gray-600 rounded text-gray-900 dark:text-gray-100 dark:bg-gray-700 text-sm"
+                    />
+                    <select
+                      value={ing.unit}
+                      onChange={(e) => updateIngredient(index, 'unit', e.target.value)}
+                      className="col-span-2 px-2 py-1 border dark:border-gray-600 rounded text-gray-900 dark:text-gray-100 dark:bg-gray-700 text-sm"
+                    >
+                      <option value="piece">piece</option>
+                      <option value="cup">cup</option>
+                      <option value="tbsp">tbsp</option>
+                      <option value="tsp">tsp</option>
+                      <option value="g">g</option>
+                      <option value="kg">kg</option>
+                      <option value="ml">ml</option>
+                      <option value="l">l</option>
+                    </select>
+                    <input
+                      type="text"
+                      value={ing.notes}
+                      onChange={(e) => updateIngredient(index, 'notes', e.target.value)}
+                      className="col-span-3 px-2 py-1 border dark:border-gray-600 rounded text-gray-900 dark:text-gray-100 dark:bg-gray-700 text-sm"
+                      placeholder="Notes"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeIngredient(index)}
+                      className="col-span-1 text-red-500 hover:text-red-700 font-bold"
+                    >
+                      ×
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
+
+          {/* Steps Section */}
+          <section className="mb-8">
+            <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Instructions</h2>
+
+            {/* Add New Step */}
+            <div className="flex gap-2 mb-4">
+              <textarea
+                value={newStep}
+                onChange={(e) => setNewStep(e.target.value)}
+                rows={2}
+                className="flex-1 px-4 py-3 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none"
+                placeholder="Add a new step..."
+              />
+              <button
+                type="button"
+                onClick={addStep}
+                className="px-6 py-3 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition"
+              >
+                Add Step
+              </button>
+            </div>
+
+            {/* Steps List */}
+            {steps.length > 0 && (
+              <div className="space-y-3">
+                {steps.map((step, index) => (
+                  <div key={index} className="flex gap-3 items-start bg-gray-50 dark:bg-gray-700/50 p-4 rounded-lg">
+                    <span className="flex-shrink-0 w-8 h-8 flex items-center justify-center bg-orange-500 text-white font-bold rounded-full text-sm">
+                      {index + 1}
+                    </span>
+                    <textarea
+                      value={step}
+                      onChange={(e) => updateStep(index, e.target.value)}
+                      rows={2}
+                      className="flex-1 px-3 py-2 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none"
+                    />
+                    <div className="flex flex-col gap-1">
+                      <button
+                        type="button"
+                        onClick={() => moveStepUp(index)}
+                        disabled={index === 0}
+                        className="px-2 py-1 text-gray-600 dark:text-gray-400 hover:text-orange-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="Move up"
+                      >
+                        ↑
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => moveStepDown(index)}
+                        disabled={index === steps.length - 1}
+                        className="px-2 py-1 text-gray-600 dark:text-gray-400 hover:text-orange-500 disabled:opacity-30 disabled:cursor-not-allowed"
+                        title="Move down"
+                      >
+                        ↓
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => removeStep(index)}
+                        className="px-2 py-1 text-red-500 hover:text-red-700 font-bold"
+                        title="Remove"
+                      >
+                        ×
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
 
           {/* Submit Buttons */}
           <div className="flex gap-4 justify-end">
@@ -442,5 +671,3 @@ export default function EditRecipePage() {
     </main>
   );
 }
-
-

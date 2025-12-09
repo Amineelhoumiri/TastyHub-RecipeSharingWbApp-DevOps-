@@ -14,7 +14,7 @@
 // ***********************************************************
 
 // Import commands.js using ES2015 syntax:
-import './commands'
+import './commands';
 
 // Alternatively you can use CommonJS syntax:
 // require('./commands')
@@ -27,9 +27,9 @@ Cypress.on('uncaught:exception', (err, runnable) => {
   const errorName = err?.name || '';
   const errorStack = err?.stack || '';
   const fullError = JSON.stringify(err) || '';
-  
+
   // Check for React hydration errors - be very permissive
-  const isHydrationError = 
+  const isHydrationError =
     errorMessage.includes('Minified React error #418') ||
     errorMessage.includes('Hydration failed') ||
     errorMessage.includes('There was an error while hydrating') ||
@@ -53,16 +53,13 @@ Cypress.on('uncaught:exception', (err, runnable) => {
     errorMessage.includes('Minified React error') ||
     // Check for Suspense boundary errors related to hydration
     (errorMessage.includes('Suspense') && errorMessage.includes('hydration'));
-  
+
   if (isHydrationError) {
     // Log but don't fail the test
     console.log('Ignoring React hydration error:', errorMessage.substring(0, 200));
     return false;
   }
-  
+
   // Let other errors fail the test
   return true;
 });
-
-
-

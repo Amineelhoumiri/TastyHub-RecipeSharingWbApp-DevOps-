@@ -6,10 +6,7 @@ module.exports = defineConfig({
     setupNodeEvents(on, config) {
       // implement node event listeners here
     },
-    specPattern: [
-      'cypress/e2e/**/*.cy.{js,jsx,ts,tsx}',
-      'cypress/tests/**/*.cy.{js,jsx,ts,tsx}'
-    ],
+    specPattern: ['cypress/e2e/**/*.cy.{js,jsx,ts,tsx}', 'cypress/tests/**/*.cy.{js,jsx,ts,tsx}'],
     supportFile: 'cypress/support/e2e.js',
     video: false,
     screenshotOnRunFailure: true,
@@ -19,13 +16,10 @@ module.exports = defineConfig({
     // Retry failed tests once
     retries: {
       runMode: 1,
-      openMode: 0
-    }
+      openMode: 0,
+    },
   },
   env: {
     apiUrl: 'http://localhost:5000/api',
   },
 });
-
-
-

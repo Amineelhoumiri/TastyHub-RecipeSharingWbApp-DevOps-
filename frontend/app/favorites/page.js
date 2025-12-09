@@ -1,11 +1,11 @@
 'use client';
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import { api } from "@/lib/api";
-import RecipeCard from "@/components/RecipeCard";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import { api } from '@/lib/api';
+import RecipeCard from '@/components/RecipeCard';
 
 export default function FavoritesPage() {
   const router = useRouter();
@@ -60,7 +60,9 @@ export default function FavoritesPage() {
       <main className="min-h-screen bg-gradient-to-b from-orange-50 to-white dark:from-gray-900 dark:to-gray-800">
         <Navbar />
         <div className="flex-1 flex items-center justify-center py-20">
-          <div className="text-orange-600 dark:text-orange-400 text-lg">Checking authentication...</div>
+          <div className="text-orange-600 dark:text-orange-400 text-lg">
+            Checking authentication...
+          </div>
         </div>
         <Footer />
       </main>
@@ -86,7 +88,9 @@ export default function FavoritesPage() {
 
         {loading ? (
           <div className="text-center py-20">
-            <div className="text-orange-600 dark:text-orange-400 text-lg">Loading your favorites...</div>
+            <div className="text-orange-600 dark:text-orange-400 text-lg">
+              Loading your favorites...
+            </div>
           </div>
         ) : recipes.length === 0 ? (
           <div className="text-center py-20">
@@ -117,4 +121,3 @@ export default function FavoritesPage() {
     </main>
   );
 }
-

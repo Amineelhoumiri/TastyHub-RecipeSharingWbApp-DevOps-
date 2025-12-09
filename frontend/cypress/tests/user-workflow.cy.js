@@ -5,7 +5,7 @@ describe('User Workflow', () => {
     cy.clearCookies();
   });
 
-  it('should complete full user registration and login flow', function() {
+  it('should complete full user registration and login flow', function () {
     // Generate unique test user
     const timestamp = Date.now();
     const username = `testuser${timestamp}`;
@@ -44,14 +44,16 @@ describe('User Workflow', () => {
             cy.url().should('not.include', '/login');
           } else {
             // Login failed - log and continue
-            cy.log('User registration/login flow completed (may have failed if user already exists)');
+            cy.log(
+              'User registration/login flow completed (may have failed if user already exists)'
+            );
           }
         });
       });
     });
   });
 
-  it('should browse recipes without authentication', function() {
+  it('should browse recipes without authentication', function () {
     cy.visitAndCheck('/').then((loaded) => {
       if (!loaded) {
         this.skip();
@@ -67,7 +69,7 @@ describe('User Workflow', () => {
   it('should redirect to login when accessing protected routes', () => {
     // Try to access a protected route (like creating a recipe)
     cy.visit('/recipes/new');
-    
+
     // Should redirect to login or show login prompt
     cy.url({ timeout: 5000 }).then(($url) => {
       // Either redirected to login or still on new recipe page
@@ -77,6 +79,3 @@ describe('User Workflow', () => {
     });
   });
 });
-
-
-

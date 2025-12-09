@@ -22,7 +22,11 @@ describe('Recipes Page', () => {
     // Check if recipes are loaded or empty state is shown
     cy.get('body', { timeout: 10000 }).then(($body) => {
       const bodyText = $body.text();
-      if (bodyText.includes('No recipes') || bodyText.includes('No recipes found') || bodyText.includes('available yet')) {
+      if (
+        bodyText.includes('No recipes') ||
+        bodyText.includes('No recipes found') ||
+        bodyText.includes('available yet')
+      ) {
         // Empty state is acceptable - just verify it's shown
         cy.contains(/no recipes|no recipes found|available yet/i).should('be.visible');
       } else {
@@ -40,7 +44,11 @@ describe('Recipes Page', () => {
 
     cy.get('body', { timeout: 10000 }).then(($body) => {
       const bodyText = $body.text();
-      if (!bodyText.includes('No recipes') && !bodyText.includes('No recipes found') && !bodyText.includes('available yet')) {
+      if (
+        !bodyText.includes('No recipes') &&
+        !bodyText.includes('No recipes found') &&
+        !bodyText.includes('available yet')
+      ) {
         // Only test navigation if recipes exist
         cy.get('a[href*="/recipes/"]', { timeout: 10000 }).first().should('be.visible').click();
         cy.url({ timeout: 10000 }).should('match', /\/recipes\/[\w-]+/);
@@ -65,6 +73,3 @@ describe('Recipes Page', () => {
     cy.get('body').should('be.visible');
   });
 });
-
-
-

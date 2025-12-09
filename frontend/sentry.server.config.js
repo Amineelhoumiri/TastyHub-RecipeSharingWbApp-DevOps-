@@ -10,4 +10,3 @@ if (SENTRY_DSN && process.env.NODE_ENV === 'production') {
     tracesSampleRate: 0.1,
   });
 }
-

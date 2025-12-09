@@ -48,8 +48,8 @@ export const api = {
     // Transform and filter recipes
     if (data.recipes && Array.isArray(data.recipes)) {
       return data.recipes
-        .filter(recipe => !isTestRecipe(recipe))
-        .map(recipe => ({
+        .filter((recipe) => !isTestRecipe(recipe))
+        .map((recipe) => ({
           id: recipe.id,
           title: recipe.title,
           description: recipe.description,
@@ -64,10 +64,10 @@ export const api = {
           })(),
           username: recipe.author?.username || recipe.username || 'Unknown',
           userId: recipe.author?.id || recipe.userId || recipe.user_id || null,
-          tags: recipe.tags || []
+          tags: recipe.tags || [],
         }));
     }
-    return Array.isArray(data) ? data.filter(recipe => !isTestRecipe(recipe)) : [];
+    return Array.isArray(data) ? data.filter((recipe) => !isTestRecipe(recipe)) : [];
   },
 
   getPopularTags: async () => {
@@ -105,18 +105,19 @@ export const api = {
         userId: recipe.author?.id || recipe.userId || recipe.user_id || null,
         ingredients: recipe.ingredients || [],
         steps: recipe.steps || [],
-        reviews: (recipe.reviews || recipe.Reviews || []).map(review => ({
+        reviews: (recipe.reviews || recipe.Reviews || []).map((review) => ({
           id: review.id,
           comment: review.comment,
           rating: review.rating,
           createdAt: review.createdAt,
           User: review.User || review.user || {},
-          username: review.User?.username || review.user?.username || review.username || 'Anonymous',
-          userId: review.User?.id || review.user?.id || review.userId || null
+          username:
+            review.User?.username || review.user?.username || review.username || 'Anonymous',
+          userId: review.User?.id || review.user?.id || review.userId || null,
         })),
         total_likes: recipe.totalLikes || recipe.total_likes || 0,
         isLiked: recipe.isLiked || false,
-        isFavorited: recipe.isFavorited || false
+        isFavorited: recipe.isFavorited || false,
       };
     }
     return data;
@@ -197,7 +198,7 @@ export const api = {
   },
 
   updateComment: async (recipeId, commentId, comment, rating = null) => {
-    const response = await fetch(`${API_BASE_URL}/api/recipes/${recipeId}/comments/${commentId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/comments/${commentId}`, {
       method: 'PUT',
       headers: getHeaders(true),
       body: JSON.stringify({ comment, rating }),
@@ -208,7 +209,7 @@ export const api = {
   },
 
   deleteComment: async (recipeId, commentId) => {
-    const response = await fetch(`${API_BASE_URL}/api/recipes/${recipeId}/comments/${commentId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/comments/${commentId}`, {
       method: 'DELETE',
       headers: getHeaders(true),
     });
@@ -226,7 +227,9 @@ export const api = {
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
       const text = await response.text();
-      throw new Error(`Server returned non-JSON response. Status: ${response.status}. ${text.substring(0, 100)}`);
+      throw new Error(
+        `Server returned non-JSON response. Status: ${response.status}. ${text.substring(0, 100)}`
+      );
     }
 
     const data = await response.json();
@@ -245,7 +248,9 @@ export const api = {
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
       const text = await response.text();
-      throw new Error(`Server returned non-JSON response. Status: ${response.status}. ${text.substring(0, 100)}`);
+      throw new Error(
+        `Server returned non-JSON response. Status: ${response.status}. ${text.substring(0, 100)}`
+      );
     }
 
     const data = await response.json();
@@ -293,7 +298,9 @@ export const api = {
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
       const text = await response.text();
-      throw new Error(`Server returned non-JSON response. Status: ${response.status}. ${text.substring(0, 100)}`);
+      throw new Error(
+        `Server returned non-JSON response. Status: ${response.status}. ${text.substring(0, 100)}`
+      );
     }
 
     const data = await response.json();
@@ -333,13 +340,17 @@ export const api = {
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
       const text = await response.text();
-      throw new Error(`Server returned non-JSON response. Status: ${response.status}. ${text.substring(0, 100)}`);
+      throw new Error(
+        `Server returned non-JSON response. Status: ${response.status}. ${text.substring(0, 100)}`
+      );
     }
 
     const data = await response.json();
 
     if (response.status === 501) {
-      throw new Error('Profile picture upload is not yet implemented on the backend. Please contact the development team.');
+      throw new Error(
+        'Profile picture upload is not yet implemented on the backend. Please contact the development team.'
+      );
     }
 
     if (!response.ok) {
@@ -367,7 +378,9 @@ export const api = {
     const contentType = response.headers.get('content-type');
     if (!contentType || !contentType.includes('application/json')) {
       const text = await response.text();
-      throw new Error(`Server returned non-JSON response. Status: ${response.status}. ${text.substring(0, 100)}`);
+      throw new Error(
+        `Server returned non-JSON response. Status: ${response.status}. ${text.substring(0, 100)}`
+      );
     }
 
     const data = await response.json();
@@ -488,5 +501,5 @@ export const api = {
     const data = await response.json();
     if (!response.ok) throw new Error(data.message || data.error || 'Failed to delete comment');
     return data;
-  }
+  },
 };

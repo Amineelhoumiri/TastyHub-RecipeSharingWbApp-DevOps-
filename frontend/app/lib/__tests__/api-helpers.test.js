@@ -14,10 +14,10 @@ describe('API Helper Functions', () => {
   describe('Authentication headers', () => {
     it('should include Authorization header when token exists', async () => {
       localStorage.setItem('token', 'test-token-123');
-      
+
       // Re-import to get fresh module with updated localStorage
       const { api: freshApi } = require('../api');
-      
+
       fetch.mockResolvedValueOnce({
         ok: true,
         json: async () => ({ recipes: [] }),
@@ -45,7 +45,7 @@ describe('API Helper Functions', () => {
 
       const callArgs = fetch.mock.calls[0];
       const headers = callArgs[1].headers;
-      
+
       expect(headers).not.toHaveProperty('Authorization');
     });
   });
@@ -132,6 +132,3 @@ describe('API Helper Functions', () => {
     });
   });
 });
-
-
-

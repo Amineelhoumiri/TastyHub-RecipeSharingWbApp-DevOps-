@@ -1,12 +1,12 @@
 'use client';
 /* eslint-disable @next/next/no-img-element */
-import Link from "next/link";
-import { useState, useEffect, Suspense, useCallback } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
-import { api } from "@/lib/api";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import RecipeCard from "@/components/RecipeCard";
+import Link from 'next/link';
+import { useState, useEffect, Suspense, useCallback } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { api } from '@/lib/api';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import RecipeCard from '@/components/RecipeCard';
 
 function RecipesContent() {
   const searchParams = useSearchParams();
@@ -18,51 +18,63 @@ function RecipesContent() {
   const [loading, setLoading] = useState(true);
   const [currentSearchTerm, setCurrentSearchTerm] = useState('');
 
-  const fetchRecipes = useCallback(async (searchTerm = '') => {
-    setLoading(true);
-    try {
-      const isUntaggedFilter = searchParams.get('filter') === 'untagged';
-      const isOtherFilter = searchParams.get('filter') === 'other';
+  const fetchRecipes = useCallback(
+    async (searchTerm = '') => {
+      setLoading(true);
+      try {
+        const isUntaggedFilter = searchParams.get('filter') === 'untagged';
+        const isOtherFilter = searchParams.get('filter') === 'other';
 
-      let data;
-      if (isOtherFilter) {
-        const allRecipes = await api.getRecipes('', '', 100);
-        const allTags = allRecipes.flatMap(r => r.tags || []);
-        const uniqueTags = [...new Set(allTags)].slice(0, 8);
-        const defaultTags = ['Italian', 'Dessert', 'Healthy', 'Quick', 'Breakfast', 'Vegan', 'Dinner', 'Spicy'];
-        const popularTags = [...new Set([...uniqueTags, ...defaultTags])].slice(0, 8);
+        let data;
+        if (isOtherFilter) {
+          const allRecipes = await api.getRecipes('', '', 100);
+          const allTags = allRecipes.flatMap((r) => r.tags || []);
+          const uniqueTags = [...new Set(allTags)].slice(0, 8);
+          const defaultTags = [
+            'Italian',
+            'Dessert',
+            'Healthy',
+            'Quick',
+            'Breakfast',
+            'Vegan',
+            'Dinner',
+            'Spicy',
+          ];
+          const popularTags = [...new Set([...uniqueTags, ...defaultTags])].slice(0, 8);
 
-        data = allRecipes.filter(recipe => {
-          const recipeTags = recipe.tags || [];
-          if (recipeTags.length === 0) return true;
-          return recipeTags.some(tag => !popularTags.includes(tag));
-        });
-        setCurrentSearchTerm('Other Recipes');
-      } else if (isUntaggedFilter) {
-        const allRecipes = await api.getRecipes('', '', 100);
-        data = allRecipes.filter(recipe => !recipe.tags || recipe.tags.length === 0);
-        setCurrentSearchTerm('Untagged Recipes');
-      } else {
-        data = await api.getRecipes(searchTerm, '', 100);
+          data = allRecipes.filter((recipe) => {
+            const recipeTags = recipe.tags || [];
+            if (recipeTags.length === 0) return true;
+            return recipeTags.some((tag) => !popularTags.includes(tag));
+          });
+          setCurrentSearchTerm('Other Recipes');
+        } else if (isUntaggedFilter) {
+          const allRecipes = await api.getRecipes('', '', 100);
+          data = allRecipes.filter((recipe) => !recipe.tags || recipe.tags.length === 0);
+          setCurrentSearchTerm('Untagged Recipes');
+        } else {
+          data = await api.getRecipes(searchTerm, '', 100);
+        }
+
+        // NO FILTERING - Show all recipes
+        setRecipes(data);
+
+        if (data.length === 0 && (searchTerm || isUntaggedFilter || isOtherFilter)) {
+          const allData = await api.getRecipes('');
+          // NO FILTERING - Show all suggestions
+          setSuggestedRecipes(allData.slice(0, 6));
+        } else {
+          setSuggestedRecipes([]);
+        }
+      } catch (error) {
+        console.error('Error fetching recipes:', error);
+        setRecipes([]);
+      } finally {
+        setLoading(false);
       }
-
-      // NO FILTERING - Show all recipes
-      setRecipes(data);
-
-      if (data.length === 0 && (searchTerm || isUntaggedFilter || isOtherFilter)) {
-        const allData = await api.getRecipes('');
-        // NO FILTERING - Show all suggestions
-        setSuggestedRecipes(allData.slice(0, 6));
-      } else {
-        setSuggestedRecipes([]);
-      }
-    } catch (error) {
-      console.error('Error fetching recipes:', error);
-      setRecipes([]);
-    } finally {
-      setLoading(false);
-    }
-  }, [searchParams]);
+    },
+    [searchParams]
+  );
 
   useEffect(() => {
     const query = searchParams.get('search') || '';
@@ -90,7 +102,9 @@ function RecipesContent() {
       <main className="min-h-screen flex flex-col bg-gradient-to-b from-orange-50 to-white dark:from-gray-900 dark:to-gray-800">
         <Navbar />
         <div className="flex-1 flex items-center justify-center">
-          <div className="text-orange-600 dark:text-orange-400 text-lg animate-pulse">Loading recipes...</div>
+          <div className="text-orange-600 dark:text-orange-400 text-lg animate-pulse">
+            Loading recipes...
+          </div>
         </div>
         <Footer />
       </main>
@@ -142,20 +156,23 @@ function RecipesContent() {
         <div className="max-w-4xl mx-auto px-6 mb-8 text-center">
           <div className="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 rounded-xl p-8">
             <h3 className="text-xl font-semibold text-gray-800 dark:text-gray-200 mb-2">
-              {currentSearchTerm === 'Other Recipes'
-                ? 'No other recipes found (all recipes belong to popular categories).'
-                : currentSearchTerm === 'Untagged Recipes'
-                  ? 'No untagged recipes found.'
-                  : <span>Sorry, no recipes found with this tag: <span className="text-orange-600 dark:text-orange-400">"{currentSearchTerm}"</span></span>
-              }
+              {currentSearchTerm === 'Other Recipes' ? (
+                'No other recipes found (all recipes belong to popular categories).'
+              ) : currentSearchTerm === 'Untagged Recipes' ? (
+                'No untagged recipes found.'
+              ) : (
+                <span>
+                  Sorry, no recipes found with this tag:{' '}
+                  <span className="text-orange-600 dark:text-orange-400">
+                    "{currentSearchTerm}"
+                  </span>
+                </span>
+              )}
             </h3>
             <p className="text-gray-600 dark:text-gray-400 mb-6">
               But don't worry! Here are some other delicious recipes you might like:
             </p>
-            <button
-              onClick={clearSearch}
-              className="text-orange-500 hover:underline font-medium"
-            >
+            <button onClick={clearSearch} className="text-orange-500 hover:underline font-medium">
               View all recipes
             </button>
           </div>
@@ -164,16 +181,10 @@ function RecipesContent() {
 
       {/* Recipe Grid */}
       <section className="grid sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto px-6 pb-20">
-        {recipes.length > 0 ? (
-          recipes.map((recipe) => (
-            <RecipeCard key={recipe.id} recipe={recipe} />
-          ))
-        ) : (
-          /* Show suggested recipes if main list is empty */
-          suggestedRecipes.map((recipe) => (
-            <RecipeCard key={recipe.id} recipe={recipe} />
-          ))
-        )}
+        {recipes.length > 0
+          ? recipes.map((recipe) => <RecipeCard key={recipe.id} recipe={recipe} />)
+          : /* Show suggested recipes if main list is empty */
+            suggestedRecipes.map((recipe) => <RecipeCard key={recipe.id} recipe={recipe} />)}
       </section>
 
       {recipes.length === 0 && suggestedRecipes.length === 0 && !currentSearchTerm && (
@@ -189,15 +200,17 @@ function RecipesContent() {
 
 export default function RecipesPage() {
   return (
-    <Suspense fallback={
-      <main className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
-        <Navbar />
-        <div className="flex-1 flex items-center justify-center">
-          <div className="text-orange-600 text-lg">Loading...</div>
-        </div>
-        <Footer />
-      </main>
-    }>
+    <Suspense
+      fallback={
+        <main className="min-h-screen flex flex-col bg-white dark:bg-gray-900">
+          <Navbar />
+          <div className="flex-1 flex items-center justify-center">
+            <div className="text-orange-600 text-lg">Loading...</div>
+          </div>
+          <Footer />
+        </main>
+      }
+    >
       <RecipesContent />
     </Suspense>
   );

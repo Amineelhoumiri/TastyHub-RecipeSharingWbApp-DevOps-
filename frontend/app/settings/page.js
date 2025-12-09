@@ -1,11 +1,11 @@
 'use client';
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
-import Navbar from "@/components/Navbar";
-import Footer from "@/components/Footer";
-import { api } from "@/lib/api";
-import { compressImage } from "@/lib/imageUtils";
+import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
+import Link from 'next/link';
+import Navbar from '@/components/Navbar';
+import Footer from '@/components/Footer';
+import { api } from '@/lib/api';
+import { compressImage } from '@/lib/imageUtils';
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -175,13 +175,16 @@ export default function SettingsPage() {
       // Reload user profile to get updated picture
       try {
         const updatedUser = await api.getUserProfile();
-        setProfilePicture(updatedUser.profilePicture || updatedUser.profile_picture || newPictureUrl);
+        setProfilePicture(
+          updatedUser.profilePicture || updatedUser.profile_picture || newPictureUrl
+        );
 
         // Update localStorage
         const userData = localStorage.getItem('user');
         if (userData) {
           const user = JSON.parse(userData);
-          user.profilePicture = updatedUser.profilePicture || updatedUser.profile_picture || newPictureUrl;
+          user.profilePicture =
+            updatedUser.profilePicture || updatedUser.profile_picture || newPictureUrl;
           localStorage.setItem('user', JSON.stringify(user));
         }
       } catch (profileErr) {
@@ -238,11 +241,15 @@ export default function SettingsPage() {
 
         {/* Profile Settings */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-6">Profile Settings</h2>
+          <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-6">
+            Profile Settings
+          </h2>
 
           {/* Profile Picture Upload */}
           <div className="mb-6">
-            <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">Profile Picture</label>
+            <label className="block mb-2 font-medium text-gray-700 dark:text-gray-300">
+              Profile Picture
+            </label>
             <div className="flex items-center gap-4">
               <div className="w-24 h-24 rounded-full bg-orange-100 dark:bg-orange-900 flex items-center justify-center overflow-hidden border-2 border-orange-200 dark:border-orange-700 relative">
                 {profilePicture ? (
@@ -256,7 +263,9 @@ export default function SettingsPage() {
                     }}
                   />
                 ) : null}
-                <span className={`text-3xl font-bold text-orange-600 dark:text-orange-400 absolute inset-0 flex items-center justify-center ${profilePicture ? 'hidden' : 'flex'}`}>
+                <span
+                  className={`text-3xl font-bold text-orange-600 dark:text-orange-400 absolute inset-0 flex items-center justify-center ${profilePicture ? 'hidden' : 'flex'}`}
+                >
                   {username.charAt(0).toUpperCase() || 'U'}
                 </span>
                 {uploadingPicture && (
@@ -303,10 +312,13 @@ export default function SettingsPage() {
               {!editingName ? (
                 <p className="text-gray-900 dark:text-gray-100 text-lg">{username}</p>
               ) : (
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  handleSaveProfile(e, 'username');
-                }} className="flex gap-4 animate-fade-in">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSaveProfile(e, 'username');
+                  }}
+                  className="flex gap-4 animate-fade-in"
+                >
                   <input
                     type="text"
                     value={username}
@@ -337,7 +349,9 @@ export default function SettingsPage() {
             {/* Email Update */}
             <div>
               <div className="flex justify-between items-center mb-2">
-                <label className="font-medium text-gray-700 dark:text-gray-300">Email Address</label>
+                <label className="font-medium text-gray-700 dark:text-gray-300">
+                  Email Address
+                </label>
                 {!editingEmail && (
                   <button
                     onClick={() => setEditingEmail(true)}
@@ -351,10 +365,13 @@ export default function SettingsPage() {
               {!editingEmail ? (
                 <p className="text-gray-900 dark:text-gray-100 text-lg">{email}</p>
               ) : (
-                <form onSubmit={(e) => {
-                  e.preventDefault();
-                  handleSaveProfile(e, 'email');
-                }} className="flex gap-4 animate-fade-in">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSaveProfile(e, 'email');
+                  }}
+                  className="flex gap-4 animate-fade-in"
+                >
                   <input
                     type="email"
                     value={email}
@@ -392,7 +409,9 @@ export default function SettingsPage() {
 
         {/* Preferences */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8 mb-6">
-          <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-6">Preferences</h2>
+          <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-6">
+            Preferences
+          </h2>
 
           <div className="space-y-6">
             {/* Dark Mode */}
@@ -407,12 +426,14 @@ export default function SettingsPage() {
               </div>
               <button
                 onClick={() => setDarkMode(!darkMode)}
-                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${darkMode ? 'bg-orange-500' : 'bg-gray-300'
-                  }`}
+                className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                  darkMode ? 'bg-orange-500' : 'bg-gray-300'
+                }`}
               >
                 <span
-                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${darkMode ? 'translate-x-6' : 'translate-x-1'
-                    }`}
+                  className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                    darkMode ? 'translate-x-6' : 'translate-x-1'
+                  }`}
                 />
               </button>
             </div>
@@ -436,7 +457,8 @@ export default function SettingsPage() {
             </div>
 
             <div className="bg-yellow-50 dark:bg-yellow-900 border border-yellow-200 dark:border-yellow-700 rounded-lg p-4 text-sm text-yellow-800 dark:text-yellow-200 mb-4">
-              <strong>Note:</strong> Preferences are currently saved locally. Backend sync will be available soon.
+              <strong>Note:</strong> Preferences are currently saved locally. Backend sync will be
+              available soon.
             </div>
 
             <button
@@ -450,7 +472,9 @@ export default function SettingsPage() {
 
         {/* Quick Links */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-8">
-          <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">Quick Links</h2>
+          <h2 className="text-2xl font-semibold text-gray-800 dark:text-gray-200 mb-4">
+            Quick Links
+          </h2>
           <div className="flex flex-wrap gap-4">
             <Link
               href="/profile"
@@ -475,7 +499,7 @@ export default function SettingsPage() {
       </div>
 
       <Footer />
-    </main >
+    </main>
   );
 }
 
@@ -536,18 +560,26 @@ function ChangePasswordForm() {
       {!isEditing ? (
         <p className="text-gray-500 dark:text-gray-400">••••••••</p>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-4 animate-fade-in bg-gray-50 dark:bg-gray-700/50 p-6 rounded-xl">
+        <form
+          onSubmit={handleSubmit}
+          className="space-y-4 animate-fade-in bg-gray-50 dark:bg-gray-700/50 p-6 rounded-xl"
+        >
           {message.text && (
-            <div className={`px-4 py-3 rounded ${message.type === 'success'
-              ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border border-green-400 dark:border-green-600'
-              : 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 border border-red-400 dark:border-red-600'
-              }`}>
+            <div
+              className={`px-4 py-3 rounded ${
+                message.type === 'success'
+                  ? 'bg-green-100 dark:bg-green-900 text-green-700 dark:text-green-300 border border-green-400 dark:border-green-600'
+                  : 'bg-red-100 dark:bg-red-900 text-red-700 dark:text-red-300 border border-red-400 dark:border-red-600'
+              }`}
+            >
               {message.text}
             </div>
           )}
 
           <div>
-            <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">Current Password</label>
+            <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">
+              Current Password
+            </label>
             <input
               type="password"
               value={currentPassword}
@@ -558,7 +590,9 @@ function ChangePasswordForm() {
           </div>
 
           <div>
-            <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">New Password</label>
+            <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">
+              New Password
+            </label>
             <input
               type="password"
               value={newPassword}
@@ -570,7 +604,9 @@ function ChangePasswordForm() {
           </div>
 
           <div>
-            <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">Confirm New Password</label>
+            <label className="block mb-1 font-medium text-gray-700 dark:text-gray-300">
+              Confirm New Password
+            </label>
             <input
               type="password"
               value={confirmPassword}
@@ -608,4 +644,3 @@ function ChangePasswordForm() {
     </div>
   );
 }
-
