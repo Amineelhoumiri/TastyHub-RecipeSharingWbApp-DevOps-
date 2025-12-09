@@ -96,6 +96,7 @@ export default function EditRecipePage() {
       }
 
       // Set ingredients
+      // Set ingredients
       if (recipe.ingredients && Array.isArray(recipe.ingredients)) {
         setIngredients(
           recipe.ingredients.map((ing) => ({
@@ -136,21 +137,24 @@ export default function EditRecipePage() {
   }, [recipeId, router, fetchRecipe]);
 
   // Ingredient handlers
-  const addIngredient = () => {
-    if (newIngredient.name.trim()) {
-      setIngredients([...ingredients, { ...newIngredient }]);
-      setNewIngredient({ name: '', quantity: '', unit: '', notes: '' });
-    }
-  };
+  // Parse ingredients text into array format for backend
+  const parseIngredients = (text) => {
+    if (!text || !text.trim()) return [];
 
-  const removeIngredient = (index) => {
-    setIngredients(ingredients.filter((_, i) => i !== index));
-  };
+    // Split by newlines and filter empty lines
+    const lines = text
+      .split('\n')
+      .map((line) => line.trim())
+      .filter((line) => line.length > 0);
 
-  const updateIngredient = (index, field, value) => {
-    const updated = [...ingredients];
-    updated[index] = { ...updated[index], [field]: value };
-    setIngredients(updated);
+    // Convert each line to an ingredient object
+    // Each line becomes an ingredient with default quantity=1 and unit='piece'
+    return lines.map((line) => ({
+      name: line,
+      quantity: 1,
+      unit: 'piece',
+      notes: null,
+    }));
   };
 
   // Step handlers
@@ -527,13 +531,9 @@ export default function EditRecipePage() {
                 className="col-span-3 px-3 py-2 border dark:border-gray-600 rounded-lg text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-orange-500 outline-none text-sm"
                 placeholder="Notes (optional)"
               />
-              <button
-                type="button"
-                onClick={addIngredient}
-                className="col-span-1 px-3 py-2 bg-orange-500 text-white rounded-lg hover:bg-orange-600 transition text-sm"
-              >
-                +
-              </button>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                Enter each ingredient on a new line. You can include quantities and units directly in the text.
+              </p>
             </div>
 
             {/* Ingredients List */}

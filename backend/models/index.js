@@ -21,15 +21,15 @@ User.hasMany(Review, { foreignKey: 'user_id' });
 Review.belongsTo(User, { foreignKey: 'user_id' });
 
 // Recipe-Review (One-to-Many)
-Recipe.hasMany(Review, { foreignKey: 'recipe_id', as: 'Reviews' });
+Recipe.hasMany(Review, { foreignKey: 'recipe_id', as: 'Reviews', onDelete: 'CASCADE', hooks: true });
 Review.belongsTo(Recipe, { foreignKey: 'recipe_id' });
 
 // Recipe-Ingredient (One-to-Many)
-Recipe.hasMany(RecipeIngredient, { foreignKey: 'recipe_id', as: 'ingredients' });
+Recipe.hasMany(RecipeIngredient, { foreignKey: 'recipe_id', as: 'ingredients', onDelete: 'CASCADE', hooks: true });
 RecipeIngredient.belongsTo(Recipe, { foreignKey: 'recipe_id' });
 
 // Recipe-Step (One-to-Many)
-Recipe.hasMany(RecipeStep, { foreignKey: 'recipe_id', as: 'steps' });
+Recipe.hasMany(RecipeStep, { foreignKey: 'recipe_id', as: 'steps', onDelete: 'CASCADE', hooks: true });
 RecipeStep.belongsTo(Recipe, { foreignKey: 'recipe_id' });
 
 // User-Activity (One-to-Many)
@@ -37,26 +37,33 @@ User.hasMany(ActivityLog, { foreignKey: 'user_id' });
 ActivityLog.belongsTo(User, { foreignKey: 'user_id' });
 
 // Recipe-Activity (One-to-Many)
-Recipe.hasMany(ActivityLog, { foreignKey: 'recipe_id' });
+Recipe.hasMany(ActivityLog, { foreignKey: 'recipe_id', onDelete: 'CASCADE', hooks: true });
 ActivityLog.belongsTo(Recipe, { foreignKey: 'recipe_id' });
 
 // --- Many-to-Many Relationships ---
 
 // User-Recipe (Likes)
 User.belongsToMany(Recipe, { through: Like, foreignKey: 'user_id' });
-Recipe.belongsToMany(User, { through: Like, foreignKey: 'recipe_id' });
+Recipe.belongsToMany(User, { through: Like, foreignKey: 'recipe_id', onDelete: 'CASCADE' });
 
 // User-Recipe (Favorites)
 User.belongsToMany(Recipe, { through: Favorite, foreignKey: 'user_id' });
-Recipe.belongsToMany(User, { through: Favorite, foreignKey: 'recipe_id' });
+Recipe.belongsToMany(User, { through: Favorite, foreignKey: 'recipe_id', onDelete: 'CASCADE' });
 
-// Direct associations for Favorite and Like to Recipe (for easier querying)
-Favorite.belongsTo(Recipe, { foreignKey: 'recipe_id' });
+// Direct associations for Favorite and Like to Recipe (for easier querying/deleting)
+Recipe.hasMany(Like, { foreignKey: 'recipe_id', onDelete: 'CASCADE', hooks: true });
 Like.belongsTo(Recipe, { foreignKey: 'recipe_id' });
 
+Recipe.hasMany(Favorite, { foreignKey: 'recipe_id', onDelete: 'CASCADE', hooks: true });
+Favorite.belongsTo(Recipe, { foreignKey: 'recipe_id' });
+
 // Recipe-Tag (Many-to-Many)
-Recipe.belongsToMany(Tag, { through: RecipeTag, foreignKey: 'recipe_id' });
+Recipe.belongsToMany(Tag, { through: RecipeTag, foreignKey: 'recipe_id', onDelete: 'CASCADE' });
 Tag.belongsToMany(Recipe, { through: RecipeTag, foreignKey: 'tag_id' });
+
+// Direct association for RecipeTag cleanup
+Recipe.hasMany(RecipeTag, { foreignKey: 'recipe_id', onDelete: 'CASCADE', hooks: true });
+RecipeTag.belongsTo(Recipe, { foreignKey: 'recipe_id' });
 
 // Export all models
 module.exports = {

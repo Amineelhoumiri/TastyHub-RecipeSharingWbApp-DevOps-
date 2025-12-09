@@ -51,8 +51,16 @@ export default function RecipeCard({ recipe }) {
   // ... handleFavoriteToggle
 
   return (
-    <Link
-      href={`/recipes/${recipe.id}`}
+    <div
+      onClick={() => router.push(`/recipes/${recipe.id}`)}
+      role="button"
+      tabIndex={0}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          router.push(`/recipes/${recipe.id}`);
+        }
+      }}
       className="bg-white dark:bg-gray-800 rounded-2xl shadow hover:shadow-lg transition overflow-hidden block cursor-pointer group h-full flex flex-col"
     >
       <div className="relative overflow-hidden h-48 w-full bg-gray-100 dark:bg-gray-700">
@@ -79,11 +87,10 @@ export default function RecipeCard({ recipe }) {
         )}
         <button
           onClick={handleFavoriteToggle}
-          className={`absolute top-3 right-3 p-2 rounded-full shadow-md transition-all duration-200 ${
-            isFavorited
+          className={`absolute top-3 right-3 p-2 rounded-full shadow-md transition-all duration-200 ${isFavorited
               ? 'bg-orange-500 text-white hover:bg-orange-600'
               : 'bg-white/90 backdrop-blur-sm text-gray-600 hover:bg-white hover:text-orange-500'
-          }`}
+            }`}
           title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
         >
           <svg
@@ -155,6 +162,6 @@ export default function RecipeCard({ recipe }) {
           </span>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }
