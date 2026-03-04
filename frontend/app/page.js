@@ -220,11 +220,7 @@ export default function Home() {
 
         {/* Featured Recipes */}
         <section className="px-8 py-12">
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={staggerContainer}
-          >
+          <motion.div initial="hidden" animate="visible" variants={staggerContainer}>
             <motion.h3
               variants={fadeInUp}
               className="text-3xl font-bold text-center text-gray-800 dark:text-gray-200 mb-8"

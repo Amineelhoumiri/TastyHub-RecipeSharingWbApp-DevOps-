@@ -84,10 +84,11 @@ export default function RecipeCard({ recipe }) {
         )}
         <button
           onClick={handleFavoriteToggle}
-          className={`absolute top-3 right-3 p-2 rounded-full shadow-md transition-all duration-200 ${isFavorited
+          className={`absolute top-3 right-3 p-2 rounded-full shadow-md transition-all duration-200 ${
+            isFavorited
               ? 'bg-orange-500 text-white hover:bg-orange-600'
               : 'bg-white/90 backdrop-blur-sm text-gray-600 hover:bg-white hover:text-orange-500'
-            }`}
+          }`}
           title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
         >
           <svg
