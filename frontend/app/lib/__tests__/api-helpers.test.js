@@ -122,7 +122,7 @@ describe('API Helper Functions', () => {
         id: '1',
         title: 'Homemade Bread',
         description: undefined,
-        image_url: undefined,
+        image_url: '',
         cooking_time: undefined,
         servings: undefined,
         average_rating: 0,
