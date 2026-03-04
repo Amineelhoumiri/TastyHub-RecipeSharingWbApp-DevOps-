@@ -53,7 +53,7 @@ export const api = {
           id: recipe.id,
           title: recipe.title,
           description: recipe.description,
-          image_url: recipe.imageUrl || recipe.image_url,
+          image_url: (recipe.imageUrl || recipe.image_url || '').replace('localhost:5000', 'localhost:5001'),
           cooking_time: recipe.cookingTime || recipe.cooking_time,
           servings: recipe.servings,
           average_rating: (() => {
