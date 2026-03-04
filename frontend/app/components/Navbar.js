@@ -113,6 +113,9 @@ export default function Navbar() {
             <NavLink href="/recipes" active={isActive('/recipes')}>
               Recipes
             </NavLink>
+            <NavLink href="/hubby" active={isActive('/hubby')}>
+              Hubby AI 🌟
+            </NavLink>
             {isAuthenticated && (
               <NavLink href="/favorites" active={isActive('/favorites')}>
                 Favorites
@@ -276,6 +279,9 @@ export default function Navbar() {
               <MobileNavLink href="/recipes" active={isActive('/recipes')} icon="📖">
                 Recipes
               </MobileNavLink>
+              <MobileNavLink href="/hubby" active={isActive('/hubby')} icon="🤖">
+                Hubby AI
+              </MobileNavLink>
               {isAuthenticated && (
                 <MobileNavLink href="/favorites" active={isActive('/favorites')} icon="❤️">
                   Favorites
@@ -341,11 +347,10 @@ function NavLink({ href, active, children }) {
   return (
     <Link
       href={href}
-      className={`px-5 py-2.5 rounded-full text-base font-semibold transition-all duration-200 ${
-        active
+      className={`px-5 py-2.5 rounded-full text-base font-semibold transition-all duration-200 ${active
           ? 'text-orange-600 dark:text-orange-400 bg-orange-50 dark:bg-orange-900/20'
           : 'text-gray-600 dark:text-gray-300 hover:text-orange-600 dark:hover:text-orange-400 hover:bg-gray-50 dark:hover:bg-gray-800/50'
-      }`}
+        }`}
     >
       {children}
     </Link>
@@ -368,11 +373,10 @@ function MobileNavLink({ href, active, icon, children }) {
   return (
     <Link
       href={href}
-      className={`flex items-center gap-4 px-4 py-3 rounded-xl text-lg font-medium transition-colors ${
-        active
+      className={`flex items-center gap-4 px-4 py-3 rounded-xl text-lg font-medium transition-colors ${active
           ? 'bg-orange-50 dark:bg-orange-900/20 text-orange-600 dark:text-orange-400'
           : 'text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-800'
-      }`}
+        }`}
     >
       <span className="text-xl">{icon}</span>
       {children}

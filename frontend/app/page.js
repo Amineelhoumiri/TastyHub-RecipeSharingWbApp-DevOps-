@@ -118,8 +118,7 @@ export default function Home() {
 
           <motion.div
             initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true }}
+            animate="visible"
             variants={staggerContainer}
             className="relative z-10 max-w-4xl mx-auto"
           >
@@ -178,8 +177,7 @@ export default function Home() {
         <section className="px-8 py-8">
           <motion.div
             initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
+            animate="visible"
             variants={staggerContainer}
             className="max-w-6xl mx-auto text-center"
           >
@@ -224,8 +222,7 @@ export default function Home() {
         <section className="px-8 py-12">
           <motion.div
             initial="hidden"
-            whileInView="visible"
-            viewport={{ once: true, margin: '-50px' }}
+            animate="visible"
             variants={staggerContainer}
           >
             <motion.h3
@@ -284,8 +281,7 @@ export default function Home() {
         {/* Call to Action */}
         <motion.section
           initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true }}
+          animate="visible"
           variants={fadeInUp}
           className="text-center py-16 bg-orange-100/80 dark:bg-gray-900/80 backdrop-blur-sm mx-6 rounded-3xl mb-12 shadow-inner"
         >

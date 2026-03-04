@@ -65,13 +65,10 @@ export default function RecipeCard({ recipe }) {
     >
       <div className="relative overflow-hidden h-48 w-full bg-gray-100 dark:bg-gray-700">
         {!imgError ? (
-          <Image
+          <img
             src={imgSrc}
             alt={recipe.title}
-            fill
-            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            priority={false}
+            className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
             onError={() => setImgError(true)}
           />
         ) : (
@@ -87,11 +84,10 @@ export default function RecipeCard({ recipe }) {
         )}
         <button
           onClick={handleFavoriteToggle}
-          className={`absolute top-3 right-3 p-2 rounded-full shadow-md transition-all duration-200 ${
-            isFavorited
+          className={`absolute top-3 right-3 p-2 rounded-full shadow-md transition-all duration-200 ${isFavorited
               ? 'bg-orange-500 text-white hover:bg-orange-600'
               : 'bg-white/90 backdrop-blur-sm text-gray-600 hover:bg-white hover:text-orange-500'
-          }`}
+            }`}
           title={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
         >
           <svg
